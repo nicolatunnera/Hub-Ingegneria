@@ -243,16 +243,12 @@
 
 // Aggiungi questa funzione in fondo al file, prima dell'ultima parentesi
 async function sendTelegramNotification(message) {
-    const BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0"; // Sostituisci appena ne crei uno nuovo
-    const CHAT_ID = "822351412";
-    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`;
-    
-    try {
-        await fetch(url);
-        console.log("Notifica inviata");
-    } catch (error) {
-        console.error("Errore notifica Telegram:", error);
-    }
+    const BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
+    const snapshot = await getDocs(collection(db, "subscribers"));
+    snapshot.forEach(doc => {
+        const chatId = doc.data().chatId;
+        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
+    });
 }
 
         document.getElementById('btnSubscribe')?.addEventListener('click', async () => {
