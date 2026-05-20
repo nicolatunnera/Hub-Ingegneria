@@ -391,20 +391,24 @@ async function sendTelegramNotification(message) {
     document.getElementById('excelNote').value = "";
 });
 
-        const fileDocInput = document.getElementById('docFile');
-        document.getElementById('dropzoneDoc')?.addEventListener('click', () => fileDocInput.click());
-        fileDocInput?.addEventListener('change', (e) => {
-            if(!e.target.files.length) return; const file = e.target.files[0];
-            selectedDocName = file.name;
-            document.getElementById('textDropDoc').innerHTML = `<span class="text-blue-700 font-semibold">${file.name}</span>`;
-            const reader = new FileReader(); 
-reader.onload = (ev) => { 
-    base64DocData = btoa(ev.target.result);
-    // AGGIUNTA: Feedback visivo che il file è pronto
-    document.getElementById('textDropDoc').innerHTML = `<span class="text-green-600 font-bold">✅ File caricato e pronto!</span>`;
-};
-reader.readAsBinaryString(file);
-        });
+const fileDocInput = document.getElementById('docFile');
+document.getElementById('dropzoneDoc')?.addEventListener('click', () => fileDocInput.click());
+
+fileDocInput?.addEventListener('change', (e) => {
+    if(!e.target.files.length) return;
+    const file = e.target.files[0];
+    selectedDocName = file.name;
+    
+    // Aggiorna UI
+    document.getElementById('textDropDoc').innerHTML = `<span class="text-blue-700 font-semibold animate-pulse">Caricamento...</span>`;
+    
+    const reader = new FileReader(); 
+    reader.onload = (ev) => { 
+        base64DocData = ev.target.result; // Salva il file come DataURL
+        document.getElementById('textDropDoc').innerHTML = `<span class="text-green-600 font-bold">✅ File pronto!</span>`;
+    };
+    reader.readAsDataURL(file); // Metodo corretto
+});
 
         document.getElementById('btnUploadDoc')?.addEventListener('click', async () => {
     const title = document.getElementById('textTitle').value.trim();
@@ -503,14 +507,24 @@ reader.readAsBinaryString(file);
         window.toggleSidebar = () => { document.getElementById('sidebar')?.classList.toggle('-translate-x-full'); };
         window.toggleStyleModal = () => { document.getElementById('styleModal')?.classList.toggle('hidden'); };
 
-        window.downloadBase64File = (base64, filename) => {
-            const bin = atob(base64); const arr = new Uint8Array(bin.length);
-            for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-            const blob = new Blob([arr], { type: "application/octet-stream" });
-            const url = URL.createObjectURL(blob); const a = document.createElement('a');
-            a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-        };
-
+        window.downloadBase64File = (data, filename) => {
+    // Se è un DataURL, estraiamo solo la parte base64
+    const base64 = data.includes(',') ? data.split(',')[1] : data;
+    
+    const bin = atob(base64); 
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    
+    const blob = new Blob([arr], { type: "application/octet-stream" });
+    const url = URL.createObjectURL(blob); 
+    const a = document.createElement('a');
+    a.href = url; 
+    a.download = filename; 
+    document.body.appendChild(a); 
+    a.click(); 
+    a.remove(); 
+    URL.revokeObjectURL(url);
+};
         window.deleteCloudItem = async (id, isExcel, label) => {
             if(confirm(`Eliminare definitivamente ${label}?`)) {
                 if(isExcel) {
