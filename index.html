@@ -546,28 +546,33 @@ document.getElementById('btnUploadNote')?.addEventListener('click', async () => 
         });
         window.deleteNote = async (id) => { if(confirm("Rimuovere nota?")) { await deleteDoc(doc(db, "notesHub", id)); showToast("Nota rimossa."); } };
 
-        onSnapshot(query(collection(db, "historyHub"), orderBy("timestamp", "desc")), (snap) => {
-            const historyBody = document.getElementById('historyTableBody'); if(!historyBody) return; historyBody.innerHTML = "";
-
-updateFilterButtons(snap)
-
-
-            if(snap.empty) { historyBody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-400 italic">Storico vuoto.</td></tr>`; return; }
-            snap.forEach(d => {
-                const data = d.data(); let timeStr = "...";
-                if(data.timestamp) { const date = data.timestamp.toDate(); timeStr = date.toLocaleDateString('it-IT') + " " + date.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'}); }
-                const tr = document.createElement('tr'); tr.className = "hover:bg-gray-50/50 doc-row";
-
-		// AGGIUNGI QUESTA RIGA (attenzione: il database deve avere il campo 'category')
-    		tr.setAttribute("data-category", data.category || "Altro")
-
-                tr.innerHTML = `<td class="p-2 font-mono text-gray-500">${timeStr}</td>
-                    <td class="p-2 font-medium text-gray-800 break-all">${data.title}</td>
-                    <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${data.style}">${data.action}</span></td>
-                    <td class="p-2 text-center"><button onclick="deleteHistoryRow('${d.id}')" class="text-gray-300 hover:text-red-500 font-bold px-1 cursor-pointer">✕</button></td>`;
-                historyBody.appendChild(tr);
-            });
-        });
+       onSnapshot(query(collection(db, "historyHub"), orderBy("timestamp", "desc")), (snap) => {
+    const historyBody = document.getElementById('historyTableBody'); 
+    if(!historyBody) return; 
+    historyBody.innerHTML = "";
+    
+    if(snap.empty) { 
+        historyBody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-400 italic">Storico vuoto.</td></tr>`; 
+        return; 
+    }
+    
+    snap.forEach(d => {
+        const data = d.data(); 
+        let timeStr = "...";
+        if(data.timestamp) { 
+            const date = data.timestamp.toDate(); 
+            timeStr = date.toLocaleDateString('it-IT') + " " + date.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'}); 
+        }
+        
+        const tr = document.createElement('tr'); 
+        tr.className = "hover:bg-gray-50/50";
+        tr.innerHTML = `<td class="p-2 font-mono text-gray-500">${timeStr}</td>
+            <td class="p-2 font-medium text-gray-800 break-all">${data.title}</td>
+            <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${data.style}">${data.action}</span></td>
+            <td class="p-2 text-center"><button onclick="deleteHistoryRow('${d.id}')" class="text-gray-300 hover:text-red-500 font-bold px-1 cursor-pointer">✕</button></td>`;
+        historyBody.appendChild(tr);
+    });
+});
         window.deleteHistoryRow = async (id) => { if(confirm("Rimuovere riga?")) { await deleteDoc(doc(db, "historyHub", id)); showToast("Rimosso dallo storico."); } };
 
 // Funzione che crea i bottoni dinamicamente in base alle categorie trovate
