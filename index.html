@@ -194,6 +194,16 @@
                         </h2>
                         <p class="text-xs text-gray-400">File sincronizzati ad accesso condiviso</p>
                     </div>
+
+
+<div class="flex flex-wrap gap-2 mt-4 mb-2">
+    <button onclick="setFilter('Tutti')" class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded text-xs font-bold transition-colors">Tutti</button>
+    <button onclick="setFilter('EXCEL')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 px-3 py-1 rounded text-xs font-bold transition-colors">Excel</button>
+    <button onclick="setFilter('PDF')" class="bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded text-xs font-bold transition-colors">PDF</button>
+    <button onclick="setFilter('DOCX')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded text-xs font-bold transition-colors">DOCX</button>
+</div>
+
+
                     <input type="text" id="searchCloud" placeholder="Cerca nell'archivio..." class="bg-gray-50 border border-gray-300 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 w-full sm:w-64">
                 </div>
                 <div class="overflow-x-auto archivio-scroll-container">
@@ -219,6 +229,7 @@
                     <p class="text-xs text-gray-400 mb-3">Tracciamento modifiche cronologiche</p>
                 </div>
                 <div class="overflow-x-auto storico-scroll-container border border-gray-100 rounded-lg">
+
                     <table class="w-full text-left border-collapse text-xs text-gray-700">
                         <thead>
                             <tr class="border-b border-gray-200 text-gray-500 font-bold tracking-wider uppercase bg-gray-50 sticky top-0">
@@ -228,6 +239,7 @@
                                 <th class="p-2.5 text-center">Ripulitura</th>
                             </tr>
                         </thead>
+
                         <tbody id="historyTableBody" class="divide-y divide-gray-100 bg-white"></tbody>
                     </table>
                 </div>
@@ -289,6 +301,7 @@ async function sendTelegramNotification(message) {
 
         let base64ExcelData = null, selectedExcelName = "";
         let base64DocData = null, selectedDocName = "";
+	let currentFilter = 'Tutti'; // Variabile globale per il filtro
 
         function showToast(message, isError = false) {
             const container = document.getElementById('toastContainer');
@@ -435,11 +448,27 @@ async function sendTelegramNotification(message) {
             const body = document.getElementById('archiveTableBody'); if(!body) return; body.innerHTML = "";
             const searchVal = document.getElementById('searchCloud')?.value.toLowerCase().trim() || "";
             let combined = [...allExcelFiles, ...allTextFiles];
-            let filtered = combined.filter(f => {
-                const name = f.isExcel ? f.name : f.title; const note = f.isExcel ? f.note : f.fileName;
-                return name.toLowerCase().includes(searchVal) || note.toLowerCase().includes(searchVal);
-            });
-            if(!filtered.length) { body.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400 italic">Nessun elemento trovato.</td></tr>`; return; }
+// FILTRO LOGICA
+    let filtered = combined.filter(f => {
+        // Filtro formato
+        let matchFormat = true;
+        if (currentFilter !== 'Tutti') {
+            if (currentFilter === 'EXCEL') matchFormat = f.isExcel;
+            else matchFormat = f.fileType === currentFilter;
+        }
+        
+        // Filtro ricerca testo
+        const name = f.isExcel ? f.name : f.title; 
+        const note = f.isExcel ? f.note : f.fileName;
+        const matchSearch = name.toLowerCase().includes(searchVal) || note.toLowerCase().includes(searchVal);
+        
+        return matchFormat && matchSearch;
+    });
+
+    if(!filtered.length) { 
+        body.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400 italic">Nessun elemento trovato per il filtro "${currentFilter}".</td></tr>`; 
+        return; 
+    }
             filtered.forEach(f => {
                 const tr = document.createElement('tr'); tr.className = "hover:bg-gray-50/80 text-xs";
                 if(f.isExcel) {
@@ -519,11 +548,19 @@ document.getElementById('btnUploadNote')?.addEventListener('click', async () => 
 
         onSnapshot(query(collection(db, "historyHub"), orderBy("timestamp", "desc")), (snap) => {
             const historyBody = document.getElementById('historyTableBody'); if(!historyBody) return; historyBody.innerHTML = "";
+
+updateFilterButtons(snap)
+
+
             if(snap.empty) { historyBody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-400 italic">Storico vuoto.</td></tr>`; return; }
             snap.forEach(d => {
                 const data = d.data(); let timeStr = "...";
                 if(data.timestamp) { const date = data.timestamp.toDate(); timeStr = date.toLocaleDateString('it-IT') + " " + date.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'}); }
-                const tr = document.createElement('tr'); tr.className = "hover:bg-gray-50/50";
+                const tr = document.createElement('tr'); tr.className = "hover:bg-gray-50/50 doc-row";
+
+		// AGGIUNGI QUESTA RIGA (attenzione: il database deve avere il campo 'category')
+    		tr.setAttribute("data-category", data.category || "Altro")
+
                 tr.innerHTML = `<td class="p-2 font-mono text-gray-500">${timeStr}</td>
                     <td class="p-2 font-medium text-gray-800 break-all">${data.title}</td>
                     <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${data.style}">${data.action}</span></td>
@@ -532,6 +569,42 @@ document.getElementById('btnUploadNote')?.addEventListener('click', async () => 
             });
         });
         window.deleteHistoryRow = async (id) => { if(confirm("Rimuovere riga?")) { await deleteDoc(doc(db, "historyHub", id)); showToast("Rimosso dallo storico."); } };
+
+// Funzione che crea i bottoni dinamicamente in base alle categorie trovate
+function updateFilterButtons(snap) {
+    const container = document.getElementById('filter-buttons-container');
+    const categories = new Set(['Tutti']);
+    
+    snap.forEach(d => {
+        categories.add(d.data().category || 'Altro');
+    });
+
+    container.innerHTML = '';
+    categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.innerText = cat;
+        btn.className = "bg-slate-100 hover:bg-slate-800 hover:text-white text-slate-700 px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer";
+        btn.onclick = () => filterDocs(cat);
+        container.appendChild(btn);
+    });
+}
+
+// Funzione che nasconde/mostra le righe
+function filterDocs(category) {
+    const rows = document.querySelectorAll('.doc-row');
+    rows.forEach(row => {
+        if (category === 'Tutti') {
+            row.style.display = ''; 
+        } else {
+            row.style.display = (row.getAttribute('data-category') === category) ? '' : 'none';
+        }
+    });
+}
+
+window.setFilter = (type) => {
+    currentFilter = type;
+    combineAndRenderArchive(); // Ridisegna la tabella con il filtro attivo
+};
 
     </script>
 </body>
