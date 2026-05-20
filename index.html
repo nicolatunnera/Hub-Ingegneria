@@ -244,6 +244,26 @@ async function sendTelegramNotification(message) {
     }
 }
 
+        document.getElementById('btnSubscribe')?.addEventListener('click', async () => {
+    const id = document.getElementById('telegramIdInput').value.trim();
+    
+    // Validazione semplice: l'ID di Telegram è solitamente un numero
+    if (!id || isNaN(id)) {
+        return alert("Per favore, incolla un ID numerico valido.");
+    }
+    
+    try {
+        await addDoc(collection(db, "subscribers"), { 
+            chatId: id, 
+            registeredAt: serverTimestamp() 
+        });
+        alert("Iscrizione completata!");
+        document.getElementById('telegramIdInput').value = "";
+    } catch (error) {
+        console.error("Errore:", error);
+    }
+});
+        
         const firebaseConfig = {
             apiKey: "AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM",
             authDomain: "hub-ingegneria.firebaseapp.com",
