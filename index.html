@@ -239,16 +239,21 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, setDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+       import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, setDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // Aggiungi questa funzione in fondo al file, prima dell'ultima parentesi
 async function sendTelegramNotification(message) {
     const BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
-    const snapshot = await getDocs(collection(db, "subscribers"));
-    snapshot.forEach(doc => {
-        const chatId = doc.data().chatId;
-        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
-    });
+    try {
+        const querySnapshot = await getDocs(collection(db, "subscribers"));
+        querySnapshot.forEach((doc) => {
+            const chatId = doc.data().chatId;
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
+        });
+        console.log("Notifiche inviate a tutti gli iscritti");
+    } catch (error) {
+        console.error("Errore notifica Telegram:", error);
+    }
 }
 
         document.getElementById('btnSubscribe')?.addEventListener('click', async () => {
@@ -483,17 +488,21 @@ async function sendTelegramNotification(message) {
             }
         };
 
+        //Blocco note
 document.getElementById('btnUploadNote')?.addEventListener('click', async () => {
     const el = document.getElementById('newNoteContent'); 
     if (!el.value.trim()) return;
     
-    // Salvataggio
-    await addDoc(collection(db, "notesHub"), { content: el.value.trim(), createdAt: serverTimestamp() });
-    
-    // --- AGGIUNTA NOTIFICA ---
-    await sendTelegramNotification("📌 Nuova Nota: " + el.value.substring(0, 30) + "...");
-    
+    // 1. Svuota subito la casella per dare feedback visivo
+    const testoNota = el.value.trim();
     el.value = ""; 
+    
+    // 2. Salvataggio
+    await addDoc(collection(db, "notesHub"), { content: testoNota, createdAt: serverTimestamp() });
+    
+    // 3. Notifica
+    await sendTelegramNotification("📌 Nuova Nota: " + testoNota.substring(0, 30) + "...");
+    
     showToast("Nota pubblicata.");
 });
 
