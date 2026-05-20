@@ -397,13 +397,20 @@ async function sendTelegramNotification(message) {
             if(!e.target.files.length) return; const file = e.target.files[0];
             selectedDocName = file.name;
             document.getElementById('textDropDoc').innerHTML = `<span class="text-blue-700 font-semibold">${file.name}</span>`;
-            const reader = new FileReader(); reader.onload = (ev) => { base64DocData = btoa(ev.target.result); };
-            reader.readAsBinaryString(file);
+            const reader = new FileReader(); 
+reader.onload = (ev) => { 
+    base64DocData = btoa(ev.target.result);
+    // AGGIUNTA: Feedback visivo che il file è pronto
+    document.getElementById('textDropDoc').innerHTML = `<span class="text-green-600 font-bold">✅ File caricato e pronto!</span>`;
+};
+reader.readAsBinaryString(file);
         });
 
         document.getElementById('btnUploadDoc')?.addEventListener('click', async () => {
     const title = document.getElementById('textTitle').value.trim();
-    if(!base64DocData || !title) { showToast("Compila tutti i campi.", true); return; }
+    // Controllo più preciso
+    if(!title) { showToast("Manca il titolo del documento!", true); return; }
+    if(!base64DocData) { showToast("Il file non è ancora pronto o non selezionato.", true); return; }
     const ext = selectedDocName.split('.').pop().toUpperCase();
     
     // Salvataggio
