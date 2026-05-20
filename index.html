@@ -230,6 +230,20 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, setDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+// Aggiungi questa funzione in fondo al file, prima dell'ultima parentesi
+async function sendTelegramNotification(message) {
+    const BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0"; // Sostituisci appena ne crei uno nuovo
+    const CHAT_ID = "822351412";
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`;
+    
+    try {
+        await fetch(url);
+        console.log("Notifica inviata");
+    } catch (error) {
+        console.error("Errore notifica Telegram:", error);
+    }
+}
+
         const firebaseConfig = {
             apiKey: "AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM",
             authDomain: "hub-ingegneria.firebaseapp.com",
@@ -315,21 +329,22 @@
         });
 
         document.getElementById('btnUploadExcel')?.addEventListener('click', async () => {
-            const branch = document.getElementById('excelBranch').value;
-            const note = document.getElementById('excelNote').value.trim();
-            if (!base64ExcelData) { showToast("Inserisci un file.", true); return; }
-            await addDoc(collection(db, "excelHub"), { name: selectedExcelName, branch, note: note || "Nessuna nota", fileData: base64ExcelData, uploadedAt: serverTimestamp() });
-
-// AGGIUNTA NOTIFICA:
-    await sendTelegramNotification("📊 Nuovo File Excel caricato: " + selectedExcelName);
+    const branch = document.getElementById('excelBranch').value;
+    const note = document.getElementById('excelNote').value.trim();
+    if (!base64ExcelData) { showToast("Inserisci un file.", true); return; }
+    
+    // 1. Salvataggio su Firebase
+    await addDoc(collection(db, "excelHub"), { name: selectedExcelName, branch, note: note || "Nessuna nota", fileData: base64ExcelData, uploadedAt: serverTimestamp() });
+    await addDoc(collection(db, "historyHub"), { title: selectedExcelName, action: "Caricato Foglio Excel", style: "bg-emerald-100 text-emerald-800 font-medium", timestamp: serverTimestamp() });
+    
+    // 2. CHIAMATA TELEGRAM (Qui sotto!)
+    await sendTelegramNotification("📊 Nuovo File Excel Caricato: " + selectedExcelName);
     
     showToast("File Excel salvato!");
-
-            await addDoc(collection(db, "historyHub"), { title: selectedExcelName, action: "Caricato Foglio Excel", style: "bg-emerald-100 text-emerald-800 font-medium", timestamp: serverTimestamp() });
-            showToast("File Excel salvato!");
-            base64ExcelData = null; document.getElementById('textDropExcel').textContent = "Trascina qui il file Excel o clicca";
-            document.getElementById('excelNote').value = "";
-        });
+    base64ExcelData = null; 
+    document.getElementById('textDropExcel').textContent = "Trascina qui il file Excel o clicca";
+    document.getElementById('excelNote').value = "";
+});
 
         const fileDocInput = document.getElementById('docFile');
         document.getElementById('dropzoneDoc')?.addEventListener('click', () => fileDocInput.click());
@@ -342,21 +357,22 @@
         });
 
         document.getElementById('btnUploadDoc')?.addEventListener('click', async () => {
-            const title = document.getElementById('textTitle').value.trim();
-            if(!base64DocData || !title) { showToast("Compila tutti i campi.", true); return; }
-            const ext = selectedDocName.split('.').pop().toUpperCase();
-            await addDoc(collection(db, "textHub"), { title, fileName: selectedDocName, fileType: ext, fileData: base64DocData, uploadedAt: serverTimestamp() });
-
-// AGGIUNTA NOTIFICA:
-    await sendTelegramNotification("📄 Nuovo Documento salvato: " + title);
+    const title = document.getElementById('textTitle').value.trim();
+    if(!base64DocData || !title) { showToast("Compila tutti i campi.", true); return; }
+    const ext = selectedDocName.split('.').pop().toUpperCase();
+    
+    // Salvataggio
+    await addDoc(collection(db, "textHub"), { title, fileName: selectedDocName, fileType: ext, fileData: base64DocData, uploadedAt: serverTimestamp() });
+    await addDoc(collection(db, "historyHub"), { title: `${title} (${selectedDocName})`, action: `Salvato Report ${ext}`, style: "bg-blue-100 text-blue-800 font-medium", timestamp: serverTimestamp() });
+    
+    // --- AGGIUNTA NOTIFICA ---
+    await sendTelegramNotification("📄 Nuovo Documento caricato: " + title);
     
     showToast("Report archiviato!");
-
-            await addDoc(collection(db, "historyHub"), { title: `${title} (${selectedDocName})`, action: `Salvato Report ${ext}`, style: "bg-blue-100 text-blue-800 font-medium", timestamp: serverTimestamp() });
-            showToast("Report archiviato!");
-            base64DocData = null; document.getElementById('textDropDoc').textContent = "Trascina qui il documento o clicca";
-            document.getElementById('textTitle').value = "";
-        });
+    base64DocData = null; 
+    document.getElementById('textDropDoc').textContent = "Trascina qui il documento o clicca";
+    document.getElementById('textTitle').value = "";
+});
 
         let allExcelFiles = [], allTextFiles = [];
         document.getElementById('searchCloud')?.addEventListener('input', () => combineAndRenderArchive());
@@ -440,16 +456,19 @@
             }
         };
 
-        document.getElementById('btnUploadNote')?.addEventListener('click', async () => {
-            const el = document.getElementById('newNoteContent'); if (!el.value.trim()) return;
-            await addDoc(collection(db, "notesHub"), { content: el.value.trim(), createdAt: serverTimestamp() });
-            el.value = ""; showToast("Nota pubblicata.");
-        });
-
-// AGGIUNTA NOTIFICA:
-    await sendTelegramNotification("📄 Nuovo Nota pubblicata: ");
+document.getElementById('btnUploadNote')?.addEventListener('click', async () => {
+    const el = document.getElementById('newNoteContent'); 
+    if (!el.value.trim()) return;
     
-    showToast("Report archiviato!");
+    // Salvataggio
+    await addDoc(collection(db, "notesHub"), { content: el.value.trim(), createdAt: serverTimestamp() });
+    
+    // --- AGGIUNTA NOTIFICA ---
+    await sendTelegramNotification("📌 Nuova Nota: " + el.value.substring(0, 30) + "...");
+    
+    el.value = ""; 
+    showToast("Nota pubblicata.");
+});
 
         onSnapshot(query(collection(db, "notesHub"), orderBy("createdAt", "desc")), (snap) => {
             const container = document.getElementById('notesContainer'); if(!container) return; container.innerHTML = "";
@@ -477,21 +496,6 @@
             });
         });
         window.deleteHistoryRow = async (id) => { if(confirm("Rimuovere riga?")) { await deleteDoc(doc(db, "historyHub", id)); showToast("Rimosso dallo storico."); } };
-
-//funzione per bot telegram
-async function sendTelegramNotification(message) {
-    const BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
-    const CHAT_ID = "822351412";
-    
-    // CORREZIONE: Usa le variabili ${BOT_TOKEN} e ${CHAT_ID}
-    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`;
-    
-    try {
-        await fetch(url);
-    } catch (error) {
-        console.error("Errore notifica:", error);
-    }
-}
 
     </script>
 </body>
