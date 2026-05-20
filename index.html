@@ -482,7 +482,9 @@
 async function sendTelegramNotification(message) {
     const BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
     const CHAT_ID = "822351412";
-    const url = `https://api.telegram.org/bot${8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0}/sendMessage?chat_id=${822351412}&text=${encodeURIComponent(message)}`;
+    
+    // CORREZIONE: Usa le variabili ${BOT_TOKEN} e ${CHAT_ID}
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`;
     
     try {
         await fetch(url);
