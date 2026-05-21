@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Cloud Hub - V1.16</title>
+    <title>Engineering Cloud Hub - V1.18</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { 
@@ -32,6 +32,9 @@
             <div class="flex items-center space-x-3">
                 <button onclick="toggleSidebar()" class="bg-slate-800 hover:bg-slate-700 text-sm py-1.5 px-3 rounded-lg border border-slate-700 cursor-pointer transition-colors flex items-center gap-1.5 font-medium" title="Apri Statistiche e Partecipanti">
                     <span>📊</span> <span>Info & Team</span>
+                </button>
+                <button onclick="toggleRightSidebar()" class="bg-slate-800 hover:bg-slate-700 text-sm py-1.5 px-3 rounded-lg border border-slate-700 cursor-pointer transition-colors flex items-center gap-1.5 font-medium text-indigo-300 border-indigo-900/50" title="Apri Bacheca News e Aggiornamenti">
+                    <span>📢</span> <span>News & Bacheca</span>
                 </button>
                 <div class="h-5 w-px bg-slate-700 hidden sm:block"></div>
                 <div class="flex items-center gap-2">
@@ -99,25 +102,19 @@
                 <button id="btnRegister" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded-lg text-xs transition-colors cursor-pointer">Entra a far parte del team</button>
             </div>
             
-            <aside class="sidebar">
-                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl mt-4 shadow-2xs">
-                    <h3 class="font-bold text-xs uppercase text-slate-700 tracking-wider mb-2">🔔 Ricevi notifiche Telegram</h3>
-                    
-                    <div class="space-y-3 text-[11px] text-gray-600 mb-3">
-                        <div class="p-2 bg-purple-50 rounded-lg border border-purple-100">
-                            <p class="mb-1.5"><strong>1. Ottieni il tuo ID:</strong> Clicca sul link qui sotto per aprire il nostro bot ufficiale e premi il tasto <strong>AVVIA</strong> (o digita /start):</p>
-                            <a href="https://t.me/HubEngineerBot" target="_blank" 
-                               class="block text-center bg-purple-600 hover:bg-purple-700 text-white font-bold py-1.5 rounded-md transition-colors cursor-pointer">
-                               🤖 Avvia il Bot del Cloud
-                            </a>
-                        </div>
-                        <p class="text-gray-500 italic px-1">Il bot ti risponderà istantaneamente inviandoti il tuo ID numerico personale.</p>
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl mt-4 shadow-2xs">
+                <h3 class="font-bold text-xs uppercase text-slate-700 tracking-wider mb-2">🔔 Ricevi notifiche Telegram</h3>
+                <div class="space-y-3 text-[11px] text-gray-600 mb-3">
+                    <div class="p-2 bg-purple-50 rounded-lg border border-purple-100">
+                        <p class="mb-1.5"><strong>1. Ottieni il tuo ID:</strong> Clicca sotto, apri il bot ufficiale e premi <strong>AVVIA</strong>:</p>
+                        <a href="https://t.me/HubEngineerBot" target="_blank" class="block text-center bg-purple-600 hover:bg-purple-700 text-white font-bold py-1.5 rounded-md transition-colors cursor-pointer">
+                            🤖 Avvia il Bot del Cloud
+                        </a>
                     </div>
-                    
-                    <input type="text" id="telegramIdInput" placeholder="2. Incolla l'ID numerico qui" class="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500">
-                    <button id="btnSubscribe" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 rounded-lg text-xs mt-2 transition-colors cursor-pointer">Salva Iscrizione</button>
                 </div>
-            </aside>
+                <input type="text" id="telegramIdInput" placeholder="2. Incolla l'ID numerico qui" class="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500">
+                <button id="btnSubscribe" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 rounded-lg text-xs mt-2 transition-colors cursor-pointer">Salva Iscrizione</button>
+            </div>
         </div>
 
         <div class="mb-6">
@@ -144,8 +141,32 @@
         </div>
     </div>
 
+    <div id="rightSidebar" class="fixed top-0 right-0 h-full w-85 bg-white/95 backdrop-blur-md shadow-2xl border-l border-gray-200 z-50 transform translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto p-5">
+        <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-5">
+            <h2 class="text-base font-bold text-indigo-700 flex items-center gap-1.5">
+                <span>📢</span> News & Aggiornamenti
+            </h2>
+            <button onclick="toggleRightSidebar()" class="text-gray-400 hover:text-red-500 font-bold p-1 text-lg cursor-pointer">✕</button>
+        </div>
+
+        <div class="space-y-5">
+            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl shadow-xs">
+                <h3 class="text-xs font-bold uppercase text-slate-700 mb-2 tracking-wider">Nuovo Annuncio Telegram</h3>
+                <textarea id="newNewsContent" rows="3" placeholder="Scrivi un update (es. Rilasciata versione V3.6 con nuova barra News)..." class="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs focus:outline-none focus:border-indigo-500 resize-none mb-2"></textarea>
+                <button id="btnUploadNews" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-lg text-xs transition-colors cursor-pointer shadow-2xs">Invia News & Notifica</button>
+            </div>
+
+            <div>
+                <h3 class="text-xs font-bold uppercase text-gray-400 mb-2 tracking-wider">Storico Comunicazioni</h3>
+                <div id="newsContainer" class="space-y-2 max-h-[55vh] overflow-y-auto pr-1"></div>
+            </div>
+        </div>
+    </div>
+
     <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
+        
         <div class="space-y-6 lg:col-span-1">
+            
             <div class="bg-white/95 p-5 rounded-xl border border-gray-200 shadow-xs">
                 <h2 class="text-lg font-bold text-emerald-700 mb-3 flex items-center gap-2">
                     <span>⚙️</span> File Excel Calcoli
@@ -191,9 +212,11 @@
                     <div id="notesContainer" class="space-y-2 max-h-48 overflow-y-auto pt-2 border-t border-gray-200"></div>
                 </div>
             </div>
+
         </div>
 
         <div class="lg:col-span-2 space-y-6 flex flex-col justify-start">
+            
             <div class="bg-white/95 p-5 rounded-xl border border-gray-200 shadow-xs">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                     <div>
@@ -212,6 +235,7 @@
 
                     <input type="text" id="searchCloud" placeholder="Cerca nell'archivio..." class="bg-gray-50 border border-gray-300 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 w-full sm:w-64">
                 </div>
+                
                 <div class="overflow-x-auto archivio-scroll-container">
                     <table class="w-full text-left border-collapse text-sm">
                         <thead>
@@ -257,9 +281,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, setDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // ==========================================
-        // FUNZIONE UNIFICATA COLORI FORMATI (SINCRO FILTRI/TABELLA)
-        // ==========================================
         function getFormatBadgeStyle(fileType) {
             const type = fileType ? fileType.toUpperCase().trim() : '';
             switch(type) {
@@ -277,37 +298,6 @@
             }
         }
 
-        async function sendTelegramNotification(message) {
-            const BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
-            try {
-                const querySnapshot = await getDocs(collection(db, "subscribers"));
-                querySnapshot.forEach((doc) => {
-                    const chatId = doc.data().chatId;
-                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
-                });
-                console.log("Notifiche inviate a tutti gli iscritti");
-            } catch (error) {
-                console.error("Errore notifica Telegram:", error);
-            }
-        }
-
-        document.getElementById('btnSubscribe')?.addEventListener('click', async () => {
-            const id = document.getElementById('telegramIdInput').value.trim();
-            if (!id || isNaN(id)) {
-                return alert("Per favore, incolla un ID numerico valido.");
-            }
-            try {
-                await addDoc(collection(db, "subscribers"), { 
-                    chatId: id, 
-                    registeredAt: serverTimestamp() 
-                });
-                alert("Iscrizione completata!");
-                document.getElementById('telegramIdInput').value = "";
-            } catch (error) {
-                console.error("Errore:", error);
-            }
-        });
-        
         const firebaseConfig = {
             apiKey: "AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM",
             authDomain: "hub-ingegneria.firebaseapp.com",
@@ -323,6 +313,19 @@
         let base64DocData = null, selectedDocName = "";
         let currentFilter = 'Tutti'; 
 
+        async function sendTelegramNotification(message) {
+            const BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
+            try {
+                const querySnapshot = await getDocs(collection(db, "subscribers"));
+                querySnapshot.forEach((doc) => {
+                    const chatId = doc.data().chatId;
+                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
+                });
+            } catch (error) {
+                console.error("Errore notifica Telegram:", error);
+            }
+        }
+
         function showToast(message, isError = false) {
             const container = document.getElementById('toastContainer');
             if (!container) return;
@@ -337,6 +340,18 @@
             }, 3500);
         }
 
+        // Gestione Iscrizione Telegram
+        document.getElementById('btnSubscribe')?.addEventListener('click', async () => {
+            const id = document.getElementById('telegramIdInput').value.trim();
+            if (!id || isNaN(id)) return alert("Inserisci un ID numerico valido.");
+            try {
+                await addDoc(collection(db, "subscribers"), { chatId: id, registeredAt: serverTimestamp() });
+                alert("Iscrizione completata!");
+                document.getElementById('telegramIdInput').value = "";
+            } catch (error) { console.error(error); }
+        });
+
+        // Gestione Guida Grafica Excel
         try {
             onSnapshot(doc(db, "settings", "excelDesignStandard"), (docSnap) => {
                 if (docSnap.exists() && docSnap.data().imageHtmlData) {
@@ -359,6 +374,7 @@
             reader.readAsDataURL(file);
         });
 
+        // Gestione Membri Team
         document.getElementById('btnRegister')?.addEventListener('click', async () => {
             const name = document.getElementById('regName').value.trim();
             const contact = document.getElementById('regContact').value.trim();
@@ -373,8 +389,7 @@
             const container = document.getElementById('participantsList'); if(!container) return; container.innerHTML = "";
             snap.forEach(d => {
                 const data = d.data(); const icon = data.avatar === 'female' ? '👩‍💻' : '👨‍💻';
-                const div = document.createElement('div'); div.id = `part-${d.id}`;
-                div.className = "bg-gray-50 p-2.5 rounded-lg border text-xs flex justify-between items-center shadow-2xs";
+                const div = document.createElement('div'); div.className = "bg-gray-50 p-2.5 rounded-lg border text-xs flex justify-between items-center shadow-2xs";
                 div.innerHTML = `<div><p class="font-bold">${icon} ${data.name}</p><p class="text-[10px] text-gray-500">${data.contact}</p></div>
                 <button onclick="removeParticipant('${d.id}')" class="text-gray-300 hover:text-red-500 font-bold cursor-pointer">✕</button>`;
                 container.appendChild(div);
@@ -383,148 +398,83 @@
 
         window.removeParticipant = async (id) => { if(confirm("Rimuovere membro?")) { await deleteDoc(doc(db, "participantsHub", id)); showToast("Rimosso."); } };
 
-        // ==========================================
-        // FIX DRAG & DROP E LETTURA EXCEL
-        // ==========================================
+        // GESTIONE EXCEL (CON FILTRO FINO A 700KB)
         const fileExcelInput = document.getElementById('excelFile');
         const dropzoneExcel = document.getElementById('dropzoneExcel');
-        
         dropzoneExcel?.addEventListener('click', () => fileExcelInput.click());
-        
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropzoneExcel?.addEventListener(eventName, (e) => e.preventDefault(), false);
-        });
-
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => dropzoneExcel?.addEventListener(ev, (e) => e.preventDefault(), false));
         dropzoneExcel?.addEventListener('drop', (e) => {
-            const dt = e.dataTransfer;
-            if (dt.files.length) {
-                fileExcelInput.files = dt.files; 
-                fileExcelInput.dispatchEvent(new Event('change')); 
-            }
+            if (e.dataTransfer.files.length) { fileExcelInput.files = e.dataTransfer.files; fileExcelInput.dispatchEvent(new Event('change')); }
         });
 
         fileExcelInput?.addEventListener('change', (e) => {
-    if(!e.target.files.length) return; 
-    const file = e.target.files[0];
-    
-    // Controllo Preventivo: max 700 KB (circa 930 KB in Base64)
-    if (file.size > 700000) { 
-        showToast("⚠️ File troppo pesante! Gli Excel non devono superare i 700KB per limiti del database Cloud.", true);
-        e.target.value = ""; // Svuota l'input
-        document.getElementById('textDropExcel').textContent = "Trascina qui il file Excel o clicca per selezionare";
-        base64ExcelData = null;
-        return;
-    }
-    
-    selectedExcelName = file.name;
-    document.getElementById('textDropExcel').innerHTML = `<span class="text-emerald-700 font-semibold">${file.name}</span>`;
-    const reader = new FileReader(); 
-    reader.onload = (ev) => { base64ExcelData = btoa(ev.target.result); };
-    reader.readAsBinaryString(file);
-});
-
-        document.getElementById('btnUploadExcel')?.addEventListener('click', async () => {
-    const branch = document.getElementById('excelBranch').value;
-    const note = document.getElementById('excelNote').value.trim();
-    if (!base64ExcelData) { showToast("Inserisci un file.", true); return; }
-    
-    try {
-        await addDoc(collection(db, "excelHub"), { name: selectedExcelName, branch, note: note || "Nessuna nota", fileData: base64ExcelData, uploadedAt: serverTimestamp() });
-        await addDoc(collection(db, "historyHub"), { title: selectedExcelName, action: "Caricato Foglio Excel", style: "bg-emerald-100 text-emerald-800 font-medium", timestamp: serverTimestamp() });
-        
-        await sendTelegramNotification("📊 Nuovo File Excel Caricato: " + selectedExcelName);
-        
-        showToast("File Excel salvato!");
-        base64ExcelData = null; 
-        document.getElementById('textDropExcel').textContent = "Trascina qui il file Excel o clicca";
-        document.getElementById('excelNote').value = "";
-    } catch (error) {
-        console.error("Errore Firebase:", error);
-        showToast("🚨 Errore Cloud: Impossibile salvare l'Excel (verifica la dimensione).", true);
-    }
-});
-
-        // ==========================================
-        // FIX DRAG & DROP E LETTURA DOCUMENTI
-        // ==========================================
-        const fileDocInput = document.getElementById('docFile');
-        const dropzoneDoc = document.getElementById('dropzoneDoc');
-
-        dropzoneDoc?.addEventListener('click', () => fileDocInput.click());
-
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropzoneDoc?.addEventListener(eventName, (e) => e.preventDefault(), false);
+            if(!e.target.files.length) return; 
+            const file = e.target.files[0];
+            if (file.size > 700000) { 
+                showToast("⚠️ File troppo pesante! Gli Excel non devono superare i 700KB per limiti del database Cloud.", true);
+                e.target.value = ""; document.getElementById('textDropExcel').textContent = "Trascina qui il file Excel o clicca per selezionare";
+                base64ExcelData = null; return;
+            }
+            selectedExcelName = file.name;
+            document.getElementById('textDropExcel').innerHTML = `<span class="text-emerald-700 font-semibold">${file.name}</span>`;
+            const reader = new FileReader(); reader.onload = (ev) => { base64ExcelData = btoa(ev.target.result); };
+            reader.readAsBinaryString(file);
         });
 
+        document.getElementById('btnUploadExcel')?.addEventListener('click', async () => {
+            const branch = document.getElementById('excelBranch').value;
+            const note = document.getElementById('excelNote').value.trim();
+            if (!base64ExcelData) { showToast("Inserisci un file.", true); return; }
+            try {
+                await addDoc(collection(db, "excelHub"), { name: selectedExcelName, branch, note: note || "Nessuna nota", fileData: base64ExcelData, uploadedAt: serverTimestamp() });
+                await addDoc(collection(db, "historyHub"), { title: selectedExcelName, action: "Caricato Foglio Excel", style: "bg-emerald-100 text-emerald-800 font-medium", timestamp: serverTimestamp() });
+                await sendTelegramNotification("📊 Nuovo File Excel Calcoli: " + selectedExcelName);
+                showToast("File Excel salvato!");
+                base64ExcelData = null; document.getElementById('textDropExcel').textContent = "Trascina qui il file Excel o clicca";
+                document.getElementById('excelNote').value = "";
+            } catch (err) { showToast("🚨 Errore Cloud: Impossibile salvare (File troppo grande).", true); }
+        });
+
+        // GESTIONE DOCUMENTI
+        const fileDocInput = document.getElementById('docFile');
+        const dropzoneDoc = document.getElementById('dropzoneDoc');
+        dropzoneDoc?.addEventListener('click', () => fileDocInput.click());
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => dropzoneDoc?.addEventListener(ev, (e) => e.preventDefault(), false));
         dropzoneDoc?.addEventListener('drop', (e) => {
-            const dt = e.dataTransfer;
-            if (dt.files.length) {
-                fileDocInput.files = dt.files;
-                fileDocInput.dispatchEvent(new Event('change')); 
-            }
+            if (e.dataTransfer.files.length) { fileDocInput.files = e.dataTransfer.files; fileDocInput.dispatchEvent(new Event('change')); }
         });
 
         fileDocInput?.addEventListener('change', (e) => {
-    if(!e.target.files.length) return;
-    const file = e.target.files[0];
-    
-    // Controllo Preventivo: max 700 KB
-    if (file.size > 700000) { 
-        showToast("⚠️ File troppo pesante! I report (Word/PDF) non devono superare i 700KB per limiti del database Cloud.", true);
-        e.target.value = ""; // Svuota l'input
-        document.getElementById('textDropDoc').textContent = "Trascina qui il documento o clicca";
-        base64DocData = null;
-        return;
-    }
-    
-    selectedDocName = file.name;
-    document.getElementById('textDropDoc').innerHTML = `<span class="text-blue-700 font-semibold animate-pulse">Lettura in corso...</span>`;
-    
-    const reader = new FileReader(); 
-    reader.onload = (ev) => { 
-        base64DocData = ev.target.result; 
-        document.getElementById('textDropDoc').innerHTML = `<span class="text-green-600 font-bold">✅ File pronto!</span>`;
-    };
-    reader.readAsDataURL(file);
-});
+            if(!e.target.files.length) return;
+            const file = e.target.files[0];
+            if (file.size > 700000) { 
+                showToast("⚠️ File troppo pesante! I report non devono superare i 700KB per limiti del database Cloud.", true);
+                e.target.value = ""; document.getElementById('textDropDoc').textContent = "Trascina qui il documento o clicca";
+                base64DocData = null; return;
+            }
+            selectedDocName = file.name;
+            document.getElementById('textDropDoc').innerHTML = `<span class="text-blue-700 font-semibold animate-pulse">Lettura in corso...</span>`;
+            const reader = new FileReader(); 
+            reader.onload = (ev) => { base64DocData = ev.target.result; document.getElementById('textDropDoc').innerHTML = `<span class="text-green-600 font-bold">✅ File pronto!</span>`; };
+            reader.readAsDataURL(file);
+        });
 
         document.getElementById('btnUploadDoc')?.addEventListener('click', async () => {
-    const title = document.getElementById('textTitle').value.trim();
-    if(!title) { showToast("Manca il titolo del documento!", true); return; }
-    if(!base64DocData) { showToast("Il file non è ancora pronto o non selezionato.", true); return; }
-    const ext = selectedDocName.split('.').pop().toUpperCase();
-    
-    try {
-        await addDoc(collection(db, "textHub"), { title, fileName: selectedDocName, fileType: ext, fileData: base64DocData, uploadedAt: serverTimestamp() });
-        await addDoc(collection(db, "historyHub"), { title: `${title} (${selectedDocName})`, action: `Salvato Report ${ext}`, style: "bg-blue-100 text-blue-800 font-medium", timestamp: serverTimestamp() });
-        
-        await sendTelegramNotification("📄 Nuovo Documento caricato: " + title);
-        
-        showToast("Report archiviato!");
-        base64DocData = null; 
-        document.getElementById('textDropDoc').textContent = "Trascina qui il documento o clicca";
-        document.getElementById('textTitle').value = "";
-    } catch (error) {
-        console.error("Errore Firebase:", error);
-        showToast("🚨 Errore Cloud: Il file è troppo grande o la connessione è stata rifiutata.", true);
-    }
-});
-
-        let allExcelFiles = [], allTextFiles = [];
-        document.getElementById('searchCloud')?.addEventListener('input', () => combineAndRenderArchive());
-
-        onSnapshot(query(collection(db, "excelHub"), orderBy("uploadedAt", "desc")), (s) => {
-            document.getElementById('statExcel').textContent = s.size;
-            allExcelFiles = []; s.forEach(d => allExcelFiles.push({id: d.id, ...d.data(), isExcel: true}));
-            combineAndRenderArchive();
-        });
-        
-        onSnapshot(query(collection(db, "textHub"), orderBy("uploadedAt", "desc")), (s) => {
-            document.getElementById('statDocs').textContent = s.size;
-            allTextFiles = []; s.forEach(d => allTextFiles.push({id: d.id, ...d.data(), isExcel: false}));
-            combineAndRenderArchive();
+            const title = document.getElementById('textTitle').value.trim();
+            if(!title) { showToast("Manca il titolo del documento!", true); return; }
+            if(!base64DocData) { showToast("Il file non è ancora pronto o selezionato.", true); return; }
+            const ext = selectedDocName.split('.').pop().toUpperCase();
+            try {
+                await addDoc(collection(db, "textHub"), { title, fileName: selectedDocName, fileType: ext, fileData: base64DocData, uploadedAt: serverTimestamp() });
+                await addDoc(collection(db, "historyHub"), { title: `${title} (${selectedDocName})`, action: `Salvato Report ${ext}`, style: "bg-blue-100 text-blue-800 font-medium", timestamp: serverTimestamp() });
+                await sendTelegramNotification("📄 Nuovo Documento: " + title);
+                showToast("Report archiviato!");
+                base64DocData = null; document.getElementById('textDropDoc').textContent = "Trascina qui il documento o clicca";
+                document.getElementById('textTitle').value = "";
+            } catch (err) { showToast("🚨 Errore Cloud: Documento troppo pesante per il database.", true); }
         });
 
+        // GESTIONE NOTE RAPIDE
         onSnapshot(query(collection(db, "notesHub"), orderBy("createdAt", "desc")), (snap) => {
             document.getElementById('statNotes').textContent = snap.size; 
             const container = document.getElementById('notesContainer'); if(!container) return; container.innerHTML = "";
@@ -536,81 +486,113 @@
             });
         });
 
-        // ==========================================
-        // FIX RENDERING TABELLA (COLORI)
-        // ==========================================
+        document.getElementById('btnUploadNote')?.addEventListener('click', async () => {
+            const el = document.getElementById('newNoteContent'); if (!el.value.trim()) return;
+            const txt = el.value.trim(); el.value = ""; 
+            await addDoc(collection(db, "notesHub"), { content: txt, createdAt: serverTimestamp() });
+            showToast("Nota pubblicata.");
+        });
+        window.deleteNote = async (id) => { if(confirm("Rimuovere nota?")) { await deleteDoc(doc(db, "notesHub", id)); showToast("Nota rimossa."); } };
+
+        // LOGICA BACHECA NEWS / AGGIORNAMENTI (DENTRO LA SIDEBAR DI DESTRA)
+        onSnapshot(query(collection(db, "newsHub"), orderBy("createdAt", "desc")), (snap) => {
+            const container = document.getElementById('newsContainer'); if(!container) return; container.innerHTML = "";
+            if(snap.empty) { container.innerHTML = `<p class="text-xs text-gray-400 italic p-1 text-center">Nessun annuncio recente.</p>`; return; }
+            snap.forEach(d => {
+                const div = document.createElement('div'); div.className = "bg-indigo-50/60 p-2.5 rounded-lg border border-indigo-100 flex justify-between items-start text-xs shadow-3xs";
+                div.innerHTML = `<p class="text-indigo-950 font-medium break-all pr-2">📢 ${d.data().content}</p><button onclick="deleteNews('${d.id}')" class="text-gray-400 hover:text-red-600 font-bold px-1 cursor-pointer">✕</button>`;
+                container.appendChild(div);
+            });
+        });
+
+        document.getElementById('btnUploadNews')?.addEventListener('click', async () => {
+            const el = document.getElementById('newNewsContent'); if (!el.value.trim()) return;
+            const newsTxt = el.value.trim(); el.value = "";
+            try {
+                await addDoc(collection(db, "newsHub"), { content: newsTxt, createdAt: serverTimestamp() });
+                await sendTelegramNotification("📢 COMUNICAZIONE HUB:\n\n" + newsTxt);
+                showToast("News inviata con successo!");
+            } catch (err) { showToast("Errore di rete.", true); }
+        });
+        window.deleteNews = async (id) => { if(confirm("Rimuovere questa news dalla bacheca?")) { await deleteDoc(doc(db, "newsHub", id)); showToast("News rimossa."); } };
+
+        // ARCHIVIO TABELLA FLUIDA CON DETTAGLI COMPLETI IN ANTEPRIMA (TOOLTIP MOUSE)
+        let allExcelFiles = [], allTextFiles = [];
+        document.getElementById('searchCloud')?.addEventListener('input', () => combineAndRenderArchive());
+
+        onSnapshot(query(collection(db, "excelHub"), orderBy("uploadedAt", "desc")), (s) => {
+            document.getElementById('statExcel').textContent = s.size;
+            allExcelFiles = []; s.forEach(d => allExcelFiles.push({id: d.id, ...d.data(), isExcel: true}));
+            combineAndRenderArchive();
+        });
+        onSnapshot(query(collection(db, "textHub"), orderBy("uploadedAt", "desc")), (s) => {
+            document.getElementById('statDocs').textContent = s.size;
+            allTextFiles = []; s.forEach(d => allTextFiles.push({id: d.id, ...d.data(), isExcel: false}));
+            combineAndRenderArchive();
+        });
+
         function combineAndRenderArchive() {
             const body = document.getElementById('archiveTableBody'); if(!body) return; body.innerHTML = "";
             const searchVal = document.getElementById('searchCloud')?.value.toLowerCase().trim() || "";
             let combined = [...allExcelFiles, ...allTextFiles];
 
-            // FILTRO LOGICA
             let filtered = combined.filter(f => {
-                // Filtro formato
                 let matchFormat = true;
                 if (currentFilter !== 'Tutti') {
                     if (currentFilter === 'EXCEL') matchFormat = f.isExcel;
                     else matchFormat = f.fileType === currentFilter;
                 }
-                
-                // Filtro ricerca testo
                 const name = f.isExcel ? f.name : f.title; 
                 const note = f.isExcel ? f.note : f.fileName;
-                const matchSearch = name.toLowerCase().includes(searchVal) || note.toLowerCase().includes(searchVal);
-                
-                return matchFormat && matchSearch;
+                return matchFormat && (name.toLowerCase().includes(searchVal) || note.toLowerCase().includes(searchVal));
             });
 
             if(!filtered.length) { 
-                body.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400 italic">Nessun elemento trovato per il filtro "${currentFilter}".</td></tr>`; 
-                return; 
+                body.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400 italic">Nessun elemento trovato.</td></tr>`; return; 
             }
-
+            
             filtered.forEach(f => {
                 const tr = document.createElement('tr'); tr.className = "hover:bg-gray-50/80 text-xs border-b border-gray-100";
-                
+                const displayType = f.isExcel ? 'EXCEL' : f.fileType;
+                const badgeStyle = getFormatBadgeStyle(displayType);
+
                 if(f.isExcel) {
                     const fullDetails = `Ramo: ${f.branch} — ${f.note}`;
                     tr.innerHTML = `
                         <td class="p-3 font-medium text-gray-900 truncate max-w-[220px] cursor-help" title="${f.name}">${f.name}</td>
-                        <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td>
+                        <td class="p-3"><span class="px-2.5 py-1 rounded-md text-[10px] uppercase ${badgeStyle}">${displayType}</span></td>
                         <td class="p-3 text-gray-500 break-words max-w-[350px] cursor-help" title="${fullDetails}">${fullDetails}</td>
                         <td class="p-3 text-center flex justify-center gap-1">
-                            <button onclick="downloadBase64File('${f.fileData}', '${f.name}')" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded hover:bg-blue-100 transition-colors cursor-pointer">Scarica</button>
-                            <button onclick="deleteCloudItem('${f.id}', true, '${f.name}')" class="bg-red-50 text-red-600 px-2 py-0.5 rounded hover:bg-red-100 transition-colors cursor-pointer">Elimina</button>
+                            <button onclick="downloadBase64File('${f.fileData}', '${f.name}')" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded cursor-pointer hover:bg-blue-100">Scarica</button>
+                            <button onclick="deleteCloudItem('${f.id}', true, '${f.name}')" class="bg-red-50 text-red-600 px-2 py-0.5 rounded cursor-pointer hover:bg-red-100">Elimina</button>
                         </td>`;
                 } else {
                     tr.innerHTML = `
                         <td class="p-3 font-medium text-gray-900 truncate max-w-[220px] cursor-help" title="${f.title}">${f.title}</td>
-                        <td class="p-3"><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${f.fileType}</span></td>
+                        <td class="p-3"><span class="px-2.5 py-1 rounded-md text-[10px] uppercase ${badgeStyle}">${displayType}</span></td>
                         <td class="p-3 text-gray-500 break-words max-w-[350px] cursor-help" title="${f.fileName}">${f.fileName}</td>
                         <td class="p-3 text-center flex justify-center gap-1">
-                            <button onclick="downloadBase64File('${f.fileData}', '${f.fileName}')" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded hover:bg-blue-100 transition-colors cursor-pointer">Scarica</button>
-                            <button onclick="deleteCloudItem('${f.id}', false, '${f.title}')" class="bg-red-50 text-red-600 px-2 py-0.5 rounded hover:bg-red-100 transition-colors cursor-pointer">Elimina</button>
+                            <button onclick="downloadBase64File('${f.fileData}', '${f.fileName}')" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded cursor-pointer hover:bg-blue-100">Scarica</button>
+                            <button onclick="deleteCloudItem('${f.id}', false, '${f.title}')" class="bg-red-50 text-red-600 px-2 py-0.5 rounded cursor-pointer hover:bg-red-100">Elimina</button>
                         </td>`;
                 }
                 body.appendChild(tr);
             });
         }
 
+        // FUNZIONI TOGGLE SIDEBARS
         window.toggleSidebar = () => { document.getElementById('sidebar')?.classList.toggle('-translate-x-full'); };
+        window.toggleRightSidebar = () => { document.getElementById('rightSidebar')?.classList.toggle('translate-x-full'); };
         window.toggleStyleModal = () => { document.getElementById('styleModal')?.classList.toggle('hidden'); };
+        window.setFilter = (type) => { currentFilter = type; combineAndRenderArchive(); };
 
         window.downloadBase64File = (data, filename) => {
             const base64 = data.includes(',') ? data.split(',')[1] : data;
-            const bin = atob(base64); 
-            const arr = new Uint8Array(bin.length);
+            const bin = atob(base64); const arr = new Uint8Array(bin.length);
             for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-            
             const blob = new Blob([arr], { type: "application/octet-stream" });
-            const url = URL.createObjectURL(blob); 
-            const a = document.createElement('a');
-            a.href = url; 
-            a.download = filename; 
-            document.body.appendChild(a); 
-            a.click(); 
-            a.remove(); 
-            URL.revokeObjectURL(url);
+            const url = URL.createObjectURL(blob); const a = document.createElement('a');
+            a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
         };
 
         window.deleteCloudItem = async (id, isExcel, label) => {
@@ -626,40 +608,14 @@
             }
         };
 
-        document.getElementById('btnUploadNote')?.addEventListener('click', async () => {
-            const el = document.getElementById('newNoteContent'); 
-            if (!el.value.trim()) return;
-            
-            const testoNota = el.value.trim();
-            el.value = ""; 
-            
-            await addDoc(collection(db, "notesHub"), { content: testoNota, createdAt: serverTimestamp() });
-            await sendTelegramNotification("📌 Nuova Nota: " + testoNota.substring(0, 30) + "...");
-            showToast("Nota pubblicata.");
-        });
-
-        window.deleteNote = async (id) => { if(confirm("Rimuovere nota?")) { await deleteDoc(doc(db, "notesHub", id)); showToast("Nota rimossa."); } };
-
+        // Storico Attività
         onSnapshot(query(collection(db, "historyHub"), orderBy("timestamp", "desc")), (snap) => {
-            const historyBody = document.getElementById('historyTableBody'); 
-            if(!historyBody) return; 
-            historyBody.innerHTML = "";
-            
-            if(snap.empty) { 
-                historyBody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-400 italic">Storico vuoto.</td></tr>`; 
-                return; 
-            }
-            
+            const historyBody = document.getElementById('historyTableBody'); if(!historyBody) return; historyBody.innerHTML = "";
+            if(snap.empty) { historyBody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-400 italic">Storico vuoto.</td></tr>`; return; }
             snap.forEach(d => {
-                const data = d.data(); 
-                let timeStr = "...";
-                if(data.timestamp) { 
-                    const date = data.timestamp.toDate(); 
-                    timeStr = date.toLocaleDateString('it-IT') + " " + date.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'}); 
-                }
-                
-                const tr = document.createElement('tr'); 
-                tr.className = "hover:bg-gray-50/50";
+                const data = d.data(); let timeStr = "...";
+                if(data.timestamp) { const date = data.timestamp.toDate(); timeStr = date.toLocaleDateString('it-IT') + " " + date.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'}); }
+                const tr = document.createElement('tr'); tr.className = "hover:bg-gray-50/50";
                 tr.innerHTML = `<td class="p-2 font-mono text-gray-500">${timeStr}</td>
                     <td class="p-2 font-medium text-gray-800 break-all">${data.title}</td>
                     <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${data.style}">${data.action}</span></td>
@@ -667,13 +623,7 @@
                 historyBody.appendChild(tr);
             });
         });
-        
         window.deleteHistoryRow = async (id) => { if(confirm("Rimuovere riga?")) { await deleteDoc(doc(db, "historyHub", id)); showToast("Rimosso dallo storico."); } };
-
-        window.setFilter = (type) => {
-            currentFilter = type;
-            combineAndRenderArchive(); 
-        };
 
     </script>
 </body>
