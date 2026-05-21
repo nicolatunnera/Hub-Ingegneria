@@ -544,13 +544,16 @@
             const searchVal = document.getElementById('searchCloud')?.value.toLowerCase().trim() || "";
             let combined = [...allExcelFiles, ...allTextFiles];
 
+            // FILTRO LOGICA
             let filtered = combined.filter(f => {
+                // Filtro formato
                 let matchFormat = true;
                 if (currentFilter !== 'Tutti') {
                     if (currentFilter === 'EXCEL') matchFormat = f.isExcel;
                     else matchFormat = f.fileType === currentFilter;
                 }
                 
+                // Filtro ricerca testo
                 const name = f.isExcel ? f.name : f.title; 
                 const note = f.isExcel ? f.note : f.fileName;
                 const matchSearch = name.toLowerCase().includes(searchVal) || note.toLowerCase().includes(searchVal);
@@ -562,27 +565,28 @@
                 body.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400 italic">Nessun elemento trovato per il filtro "${currentFilter}".</td></tr>`; 
                 return; 
             }
-            
-            filtered.forEach(f => {
-                const tr = document.createElement('tr'); tr.className = "hover:bg-gray-50/80 text-xs";
-                const displayType = f.isExcel ? 'EXCEL' : f.fileType;
-                const badgeStyle = getFormatBadgeStyle(displayType); // Applico il colore unificato
 
+            filtered.forEach(f => {
+                const tr = document.createElement('tr'); tr.className = "hover:bg-gray-50/80 text-xs border-b border-gray-100";
+                
                 if(f.isExcel) {
-                    tr.innerHTML = `<td class="p-3 font-medium text-gray-900 truncate max-w-[200px]">${f.name}</td>
-                        <td class="p-3"><span class="px-2.5 py-1 rounded-md text-[10px] uppercase ${badgeStyle}">${displayType}</span></td>
-                        <td class="p-3 text-gray-500 truncate max-w-[220px]">Ramo: ${f.branch} — ${f.note}</td>
+                    const fullDetails = `Ramo: ${f.branch} — ${f.note}`;
+                    tr.innerHTML = `
+                        <td class="p-3 font-medium text-gray-900 truncate max-w-[220px] cursor-help" title="${f.name}">${f.name}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td>
+                        <td class="p-3 text-gray-500 break-words max-w-[350px] cursor-help" title="${fullDetails}">${fullDetails}</td>
                         <td class="p-3 text-center flex justify-center gap-1">
-                            <button onclick="downloadBase64File('${f.fileData}', '${f.name}')" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded cursor-pointer">Scarica</button>
-                            <button onclick="deleteCloudItem('${f.id}', true, '${f.name}')" class="bg-red-50 text-red-600 px-2 py-0.5 rounded cursor-pointer">Elimina</button>
+                            <button onclick="downloadBase64File('${f.fileData}', '${f.name}')" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded hover:bg-blue-100 transition-colors cursor-pointer">Scarica</button>
+                            <button onclick="deleteCloudItem('${f.id}', true, '${f.name}')" class="bg-red-50 text-red-600 px-2 py-0.5 rounded hover:bg-red-100 transition-colors cursor-pointer">Elimina</button>
                         </td>`;
                 } else {
-                    tr.innerHTML = `<td class="p-3 font-medium text-gray-900 truncate max-w-[200px]">${f.title}</td>
-                        <td class="p-3"><span class="px-2.5 py-1 rounded-md text-[10px] uppercase ${badgeStyle}">${displayType}</span></td>
-                        <td class="p-3 text-gray-500 truncate max-w-[220px]">${f.fileName}</td>
+                    tr.innerHTML = `
+                        <td class="p-3 font-medium text-gray-900 truncate max-w-[220px] cursor-help" title="${f.title}">${f.title}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${f.fileType}</span></td>
+                        <td class="p-3 text-gray-500 break-words max-w-[350px] cursor-help" title="${f.fileName}">${f.fileName}</td>
                         <td class="p-3 text-center flex justify-center gap-1">
-                            <button onclick="downloadBase64File('${f.fileData}', '${f.fileName}')" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded cursor-pointer">Scarica</button>
-                            <button onclick="deleteCloudItem('${f.id}', false, '${f.title}')" class="bg-red-50 text-red-600 px-2 py-0.5 rounded cursor-pointer">Elimina</button>
+                            <button onclick="downloadBase64File('${f.fileData}', '${f.fileName}')" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded hover:bg-blue-100 transition-colors cursor-pointer">Scarica</button>
+                            <button onclick="deleteCloudItem('${f.id}', false, '${f.title}')" class="bg-red-50 text-red-600 px-2 py-0.5 rounded hover:bg-red-100 transition-colors cursor-pointer">Elimina</button>
                         </td>`;
                 }
                 body.appendChild(tr);
