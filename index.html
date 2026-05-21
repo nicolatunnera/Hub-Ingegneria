@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Cloud Hub - V3.4</title>
+    <title>Engineering Cloud Hub - V1.16</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            /* Nuovo sfondo pulito e professionale */
             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
             min-height: 100vh;
         }
@@ -99,25 +98,26 @@
                 </div>
                 <button id="btnRegister" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded-lg text-xs transition-colors cursor-pointer">Entra a far parte del team</button>
             </div>
-           <aside class="sidebar">
-    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl mt-4 shadow-2xs">
-        <h3 class="font-bold text-xs uppercase text-slate-700 tracking-wider mb-2">🔔 Ricevi notifiche Telegram</h3>
-        
-        <div class="space-y-3 text-[11px] text-gray-600 mb-3">
-            <div class="p-2 bg-purple-50 rounded-lg border border-purple-100">
-                <p class="mb-1.5"><strong>1. Ottieni il tuo ID:</strong> Clicca sul link qui sotto per aprire il nostro bot ufficiale e premi il tasto <strong>AVVIA</strong> (o digita /start):</p>
-                <a href="https://t.me/HubEngineerBot" target="_blank" 
-                   class="block text-center bg-purple-600 hover:bg-purple-700 text-white font-bold py-1.5 rounded-md transition-colors cursor-pointer">
-                   🤖 Avvia il Bot del Cloud
-                </a>
-            </div>
-            <p class="text-gray-500 italic px-1">Il bot ti risponderà istantaneamente inviandoti il tuo ID numerico personale.</p>
-        </div>
-        
-        <input type="text" id="telegramIdInput" placeholder="2. Incolla l'ID numerico qui" class="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500">
-        <button id="btnSubscribe" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 rounded-lg text-xs mt-2 transition-colors cursor-pointer">Salva Iscrizione</button>
-    </div>
-</aside>
+            
+            <aside class="sidebar">
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl mt-4 shadow-2xs">
+                    <h3 class="font-bold text-xs uppercase text-slate-700 tracking-wider mb-2">🔔 Ricevi notifiche Telegram</h3>
+                    
+                    <div class="space-y-3 text-[11px] text-gray-600 mb-3">
+                        <div class="p-2 bg-purple-50 rounded-lg border border-purple-100">
+                            <p class="mb-1.5"><strong>1. Ottieni il tuo ID:</strong> Clicca sul link qui sotto per aprire il nostro bot ufficiale e premi il tasto <strong>AVVIA</strong> (o digita /start):</p>
+                            <a href="https://t.me/HubEngineerBot" target="_blank" 
+                               class="block text-center bg-purple-600 hover:bg-purple-700 text-white font-bold py-1.5 rounded-md transition-colors cursor-pointer">
+                               🤖 Avvia il Bot del Cloud
+                            </a>
+                        </div>
+                        <p class="text-gray-500 italic px-1">Il bot ti risponderà istantaneamente inviandoti il tuo ID numerico personale.</p>
+                    </div>
+                    
+                    <input type="text" id="telegramIdInput" placeholder="2. Incolla l'ID numerico qui" class="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500">
+                    <button id="btnSubscribe" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 rounded-lg text-xs mt-2 transition-colors cursor-pointer">Salva Iscrizione</button>
+                </div>
+            </aside>
         </div>
 
         <div class="mb-6">
@@ -203,14 +203,12 @@
                         <p class="text-xs text-gray-400">File sincronizzati ad accesso condiviso</p>
                     </div>
 
-
-<div class="flex flex-wrap gap-2 mt-4 mb-2">
-    <button onclick="setFilter('Tutti')" class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded text-xs font-bold transition-colors">Tutti</button>
-    <button onclick="setFilter('EXCEL')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 px-3 py-1 rounded text-xs font-bold transition-colors">Excel</button>
-    <button onclick="setFilter('PDF')" class="bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded text-xs font-bold transition-colors">PDF</button>
-    <button onclick="setFilter('DOCX')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded text-xs font-bold transition-colors">DOCX</button>
-</div>
-
+                    <div class="flex flex-wrap gap-2 mt-4 mb-2">
+                        <button onclick="setFilter('Tutti')" class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded text-xs font-bold transition-colors">Tutti</button>
+                        <button onclick="setFilter('EXCEL')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-200 px-3 py-1 rounded text-xs font-bold transition-colors">Excel</button>
+                        <button onclick="setFilter('PDF')" class="bg-red-100 hover:bg-red-200 text-red-800 border border-red-200 px-3 py-1 rounded text-xs font-bold transition-colors">PDF</button>
+                        <button onclick="setFilter('DOCX')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-200 px-3 py-1 rounded text-xs font-bold transition-colors">DOCX</button>
+                    </div>
 
                     <input type="text" id="searchCloud" placeholder="Cerca nell'archivio..." class="bg-gray-50 border border-gray-300 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 w-full sm:w-64">
                 </div>
@@ -237,7 +235,6 @@
                     <p class="text-xs text-gray-400 mb-3">Tracciamento modifiche cronologiche</p>
                 </div>
                 <div class="overflow-x-auto storico-scroll-container border border-gray-100 rounded-lg">
-
                     <table class="w-full text-left border-collapse text-xs text-gray-700">
                         <thead>
                             <tr class="border-b border-gray-200 text-gray-500 font-bold tracking-wider uppercase bg-gray-50 sticky top-0">
@@ -247,7 +244,6 @@
                                 <th class="p-2.5 text-center">Ripulitura</th>
                             </tr>
                         </thead>
-
                         <tbody id="historyTableBody" class="divide-y divide-gray-100 bg-white"></tbody>
                     </table>
                 </div>
@@ -259,42 +255,58 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-       import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, setDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, setDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-// Aggiungi questa funzione in fondo al file, prima dell'ultima parentesi
-async function sendTelegramNotification(message) {
-    const BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
-    try {
-        const querySnapshot = await getDocs(collection(db, "subscribers"));
-        querySnapshot.forEach((doc) => {
-            const chatId = doc.data().chatId;
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
-        });
-        console.log("Notifiche inviate a tutti gli iscritti");
-    } catch (error) {
-        console.error("Errore notifica Telegram:", error);
-    }
-}
+        // ==========================================
+        // FUNZIONE UNIFICATA COLORI FORMATI (SINCRO FILTRI/TABELLA)
+        // ==========================================
+        function getFormatBadgeStyle(fileType) {
+            const type = fileType ? fileType.toUpperCase().trim() : '';
+            switch(type) {
+                case 'EXCEL':
+                case 'XLSX':
+                case 'XLS':
+                    return 'bg-emerald-100 text-emerald-800 font-bold border border-emerald-200';
+                case 'PDF':
+                    return 'bg-red-100 text-red-800 font-bold border border-red-200';
+                case 'DOCX':
+                case 'DOC':
+                    return 'bg-blue-100 text-blue-800 font-bold border border-blue-200';
+                default:
+                    return 'bg-gray-100 text-gray-800 font-bold border border-gray-200';
+            }
+        }
+
+        async function sendTelegramNotification(message) {
+            const BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
+            try {
+                const querySnapshot = await getDocs(collection(db, "subscribers"));
+                querySnapshot.forEach((doc) => {
+                    const chatId = doc.data().chatId;
+                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
+                });
+                console.log("Notifiche inviate a tutti gli iscritti");
+            } catch (error) {
+                console.error("Errore notifica Telegram:", error);
+            }
+        }
 
         document.getElementById('btnSubscribe')?.addEventListener('click', async () => {
-    const id = document.getElementById('telegramIdInput').value.trim();
-    
-    // Validazione semplice: l'ID di Telegram è solitamente un numero
-    if (!id || isNaN(id)) {
-        return alert("Per favore, incolla un ID numerico valido.");
-    }
-    
-    try {
-        await addDoc(collection(db, "subscribers"), { 
-            chatId: id, 
-            registeredAt: serverTimestamp() 
+            const id = document.getElementById('telegramIdInput').value.trim();
+            if (!id || isNaN(id)) {
+                return alert("Per favore, incolla un ID numerico valido.");
+            }
+            try {
+                await addDoc(collection(db, "subscribers"), { 
+                    chatId: id, 
+                    registeredAt: serverTimestamp() 
+                });
+                alert("Iscrizione completata!");
+                document.getElementById('telegramIdInput').value = "";
+            } catch (error) {
+                console.error("Errore:", error);
+            }
         });
-        alert("Iscrizione completata!");
-        document.getElementById('telegramIdInput').value = "";
-    } catch (error) {
-        console.error("Errore:", error);
-    }
-});
         
         const firebaseConfig = {
             apiKey: "AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM",
@@ -309,7 +321,7 @@ async function sendTelegramNotification(message) {
 
         let base64ExcelData = null, selectedExcelName = "";
         let base64DocData = null, selectedDocName = "";
-	let currentFilter = 'Tutti'; // Variabile globale per il filtro
+        let currentFilter = 'Tutti'; 
 
         function showToast(message, isError = false) {
             const container = document.getElementById('toastContainer');
@@ -371,71 +383,131 @@ async function sendTelegramNotification(message) {
 
         window.removeParticipant = async (id) => { if(confirm("Rimuovere membro?")) { await deleteDoc(doc(db, "participantsHub", id)); showToast("Rimosso."); } };
 
+        // ==========================================
+        // FIX DRAG & DROP E LETTURA EXCEL
+        // ==========================================
         const fileExcelInput = document.getElementById('excelFile');
-        document.getElementById('dropzoneExcel')?.addEventListener('click', () => fileExcelInput.click());
-        fileExcelInput?.addEventListener('change', (e) => {
-            if(!e.target.files.length) return; const file = e.target.files[0];
-            selectedExcelName = file.name;
-            document.getElementById('textDropExcel').innerHTML = `<span class="text-emerald-700 font-semibold">${file.name}</span>`;
-            const reader = new FileReader(); reader.onload = (ev) => { base64ExcelData = btoa(ev.target.result); };
-            reader.readAsBinaryString(file);
+        const dropzoneExcel = document.getElementById('dropzoneExcel');
+        
+        dropzoneExcel?.addEventListener('click', () => fileExcelInput.click());
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzoneExcel?.addEventListener(eventName, (e) => e.preventDefault(), false);
         });
+
+        dropzoneExcel?.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            if (dt.files.length) {
+                fileExcelInput.files = dt.files; 
+                fileExcelInput.dispatchEvent(new Event('change')); 
+            }
+        });
+
+        fileExcelInput?.addEventListener('change', (e) => {
+    if(!e.target.files.length) return; 
+    const file = e.target.files[0];
+    
+    // Controllo Preventivo: max 700 KB (circa 930 KB in Base64)
+    if (file.size > 700000) { 
+        showToast("⚠️ File troppo pesante! Gli Excel non devono superare i 700KB per limiti del database Cloud.", true);
+        e.target.value = ""; // Svuota l'input
+        document.getElementById('textDropExcel').textContent = "Trascina qui il file Excel o clicca per selezionare";
+        base64ExcelData = null;
+        return;
+    }
+    
+    selectedExcelName = file.name;
+    document.getElementById('textDropExcel').innerHTML = `<span class="text-emerald-700 font-semibold">${file.name}</span>`;
+    const reader = new FileReader(); 
+    reader.onload = (ev) => { base64ExcelData = btoa(ev.target.result); };
+    reader.readAsBinaryString(file);
+});
 
         document.getElementById('btnUploadExcel')?.addEventListener('click', async () => {
     const branch = document.getElementById('excelBranch').value;
     const note = document.getElementById('excelNote').value.trim();
     if (!base64ExcelData) { showToast("Inserisci un file.", true); return; }
     
-    // 1. Salvataggio su Firebase
-    await addDoc(collection(db, "excelHub"), { name: selectedExcelName, branch, note: note || "Nessuna nota", fileData: base64ExcelData, uploadedAt: serverTimestamp() });
-    await addDoc(collection(db, "historyHub"), { title: selectedExcelName, action: "Caricato Foglio Excel", style: "bg-emerald-100 text-emerald-800 font-medium", timestamp: serverTimestamp() });
-    
-    // 2. CHIAMATA TELEGRAM (Qui sotto!)
-    await sendTelegramNotification("📊 Nuovo File Excel Caricato: " + selectedExcelName);
-    
-    showToast("File Excel salvato!");
-    base64ExcelData = null; 
-    document.getElementById('textDropExcel').textContent = "Trascina qui il file Excel o clicca";
-    document.getElementById('excelNote').value = "";
+    try {
+        await addDoc(collection(db, "excelHub"), { name: selectedExcelName, branch, note: note || "Nessuna nota", fileData: base64ExcelData, uploadedAt: serverTimestamp() });
+        await addDoc(collection(db, "historyHub"), { title: selectedExcelName, action: "Caricato Foglio Excel", style: "bg-emerald-100 text-emerald-800 font-medium", timestamp: serverTimestamp() });
+        
+        await sendTelegramNotification("📊 Nuovo File Excel Caricato: " + selectedExcelName);
+        
+        showToast("File Excel salvato!");
+        base64ExcelData = null; 
+        document.getElementById('textDropExcel').textContent = "Trascina qui il file Excel o clicca";
+        document.getElementById('excelNote').value = "";
+    } catch (error) {
+        console.error("Errore Firebase:", error);
+        showToast("🚨 Errore Cloud: Impossibile salvare l'Excel (verifica la dimensione).", true);
+    }
 });
 
-const fileDocInput = document.getElementById('docFile');
-document.getElementById('dropzoneDoc')?.addEventListener('click', () => fileDocInput.click());
+        // ==========================================
+        // FIX DRAG & DROP E LETTURA DOCUMENTI
+        // ==========================================
+        const fileDocInput = document.getElementById('docFile');
+        const dropzoneDoc = document.getElementById('dropzoneDoc');
 
-fileDocInput?.addEventListener('change', (e) => {
+        dropzoneDoc?.addEventListener('click', () => fileDocInput.click());
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzoneDoc?.addEventListener(eventName, (e) => e.preventDefault(), false);
+        });
+
+        dropzoneDoc?.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            if (dt.files.length) {
+                fileDocInput.files = dt.files;
+                fileDocInput.dispatchEvent(new Event('change')); 
+            }
+        });
+
+        fileDocInput?.addEventListener('change', (e) => {
     if(!e.target.files.length) return;
     const file = e.target.files[0];
-    selectedDocName = file.name;
     
-    // Aggiorna UI
-    document.getElementById('textDropDoc').innerHTML = `<span class="text-blue-700 font-semibold animate-pulse">Caricamento...</span>`;
+    // Controllo Preventivo: max 700 KB
+    if (file.size > 700000) { 
+        showToast("⚠️ File troppo pesante! I report (Word/PDF) non devono superare i 700KB per limiti del database Cloud.", true);
+        e.target.value = ""; // Svuota l'input
+        document.getElementById('textDropDoc').textContent = "Trascina qui il documento o clicca";
+        base64DocData = null;
+        return;
+    }
+    
+    selectedDocName = file.name;
+    document.getElementById('textDropDoc').innerHTML = `<span class="text-blue-700 font-semibold animate-pulse">Lettura in corso...</span>`;
     
     const reader = new FileReader(); 
     reader.onload = (ev) => { 
-        base64DocData = ev.target.result; // Salva il file come DataURL
+        base64DocData = ev.target.result; 
         document.getElementById('textDropDoc').innerHTML = `<span class="text-green-600 font-bold">✅ File pronto!</span>`;
     };
-    reader.readAsDataURL(file); // Metodo corretto
+    reader.readAsDataURL(file);
 });
 
         document.getElementById('btnUploadDoc')?.addEventListener('click', async () => {
     const title = document.getElementById('textTitle').value.trim();
-    // Controllo più preciso
     if(!title) { showToast("Manca il titolo del documento!", true); return; }
     if(!base64DocData) { showToast("Il file non è ancora pronto o non selezionato.", true); return; }
     const ext = selectedDocName.split('.').pop().toUpperCase();
     
-    // Salvataggio
-    await addDoc(collection(db, "textHub"), { title, fileName: selectedDocName, fileType: ext, fileData: base64DocData, uploadedAt: serverTimestamp() });
-    await addDoc(collection(db, "historyHub"), { title: `${title} (${selectedDocName})`, action: `Salvato Report ${ext}`, style: "bg-blue-100 text-blue-800 font-medium", timestamp: serverTimestamp() });
-    
-    // --- AGGIUNTA NOTIFICA ---
-    await sendTelegramNotification("📄 Nuovo Documento caricato: " + title);
-    
-    showToast("Report archiviato!");
-    base64DocData = null; 
-    document.getElementById('textDropDoc').textContent = "Trascina qui il documento o clicca";
-    document.getElementById('textTitle').value = "";
+    try {
+        await addDoc(collection(db, "textHub"), { title, fileName: selectedDocName, fileType: ext, fileData: base64DocData, uploadedAt: serverTimestamp() });
+        await addDoc(collection(db, "historyHub"), { title: `${title} (${selectedDocName})`, action: `Salvato Report ${ext}`, style: "bg-blue-100 text-blue-800 font-medium", timestamp: serverTimestamp() });
+        
+        await sendTelegramNotification("📄 Nuovo Documento caricato: " + title);
+        
+        showToast("Report archiviato!");
+        base64DocData = null; 
+        document.getElementById('textDropDoc').textContent = "Trascina qui il documento o clicca";
+        document.getElementById('textTitle').value = "";
+    } catch (error) {
+        console.error("Errore Firebase:", error);
+        showToast("🚨 Errore Cloud: Il file è troppo grande o la connessione è stata rifiutata.", true);
+    }
 });
 
         let allExcelFiles = [], allTextFiles = [];
@@ -446,14 +518,15 @@ fileDocInput?.addEventListener('change', (e) => {
             allExcelFiles = []; s.forEach(d => allExcelFiles.push({id: d.id, ...d.data(), isExcel: true}));
             combineAndRenderArchive();
         });
+        
         onSnapshot(query(collection(db, "textHub"), orderBy("uploadedAt", "desc")), (s) => {
             document.getElementById('statDocs').textContent = s.size;
             allTextFiles = []; s.forEach(d => allTextFiles.push({id: d.id, ...d.data(), isExcel: false}));
             combineAndRenderArchive();
         });
-// Sincronizzazione Note (con aggiornamento contatore)
+
         onSnapshot(query(collection(db, "notesHub"), orderBy("createdAt", "desc")), (snap) => {
-            document.getElementById('statNotes').textContent = snap.size; // <--- AGGIORNAMENTO CONTATORE
+            document.getElementById('statNotes').textContent = snap.size; 
             const container = document.getElementById('notesContainer'); if(!container) return; container.innerHTML = "";
             if(snap.empty) { container.innerHTML = `<p class="text-xs text-gray-400 italic p-1">Nessuna nota attiva.</p>`; return; }
             snap.forEach(d => {
@@ -463,36 +536,41 @@ fileDocInput?.addEventListener('change', (e) => {
             });
         });
 
+        // ==========================================
+        // FIX RENDERING TABELLA (COLORI)
+        // ==========================================
         function combineAndRenderArchive() {
             const body = document.getElementById('archiveTableBody'); if(!body) return; body.innerHTML = "";
             const searchVal = document.getElementById('searchCloud')?.value.toLowerCase().trim() || "";
             let combined = [...allExcelFiles, ...allTextFiles];
-// FILTRO LOGICA
-    let filtered = combined.filter(f => {
-        // Filtro formato
-        let matchFormat = true;
-        if (currentFilter !== 'Tutti') {
-            if (currentFilter === 'EXCEL') matchFormat = f.isExcel;
-            else matchFormat = f.fileType === currentFilter;
-        }
-        
-        // Filtro ricerca testo
-        const name = f.isExcel ? f.name : f.title; 
-        const note = f.isExcel ? f.note : f.fileName;
-        const matchSearch = name.toLowerCase().includes(searchVal) || note.toLowerCase().includes(searchVal);
-        
-        return matchFormat && matchSearch;
-    });
 
-    if(!filtered.length) { 
-        body.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400 italic">Nessun elemento trovato per il filtro "${currentFilter}".</td></tr>`; 
-        return; 
-    }
+            let filtered = combined.filter(f => {
+                let matchFormat = true;
+                if (currentFilter !== 'Tutti') {
+                    if (currentFilter === 'EXCEL') matchFormat = f.isExcel;
+                    else matchFormat = f.fileType === currentFilter;
+                }
+                
+                const name = f.isExcel ? f.name : f.title; 
+                const note = f.isExcel ? f.note : f.fileName;
+                const matchSearch = name.toLowerCase().includes(searchVal) || note.toLowerCase().includes(searchVal);
+                
+                return matchFormat && matchSearch;
+            });
+
+            if(!filtered.length) { 
+                body.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-gray-400 italic">Nessun elemento trovato per il filtro "${currentFilter}".</td></tr>`; 
+                return; 
+            }
+            
             filtered.forEach(f => {
                 const tr = document.createElement('tr'); tr.className = "hover:bg-gray-50/80 text-xs";
+                const displayType = f.isExcel ? 'EXCEL' : f.fileType;
+                const badgeStyle = getFormatBadgeStyle(displayType); // Applico il colore unificato
+
                 if(f.isExcel) {
                     tr.innerHTML = `<td class="p-3 font-medium text-gray-900 truncate max-w-[200px]">${f.name}</td>
-                        <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td>
+                        <td class="p-3"><span class="px-2.5 py-1 rounded-md text-[10px] uppercase ${badgeStyle}">${displayType}</span></td>
                         <td class="p-3 text-gray-500 truncate max-w-[220px]">Ramo: ${f.branch} — ${f.note}</td>
                         <td class="p-3 text-center flex justify-center gap-1">
                             <button onclick="downloadBase64File('${f.fileData}', '${f.name}')" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded cursor-pointer">Scarica</button>
@@ -500,7 +578,7 @@ fileDocInput?.addEventListener('change', (e) => {
                         </td>`;
                 } else {
                     tr.innerHTML = `<td class="p-3 font-medium text-gray-900 truncate max-w-[200px]">${f.title}</td>
-                        <td class="p-3"><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${f.fileType}</span></td>
+                        <td class="p-3"><span class="px-2.5 py-1 rounded-md text-[10px] uppercase ${badgeStyle}">${displayType}</span></td>
                         <td class="p-3 text-gray-500 truncate max-w-[220px]">${f.fileName}</td>
                         <td class="p-3 text-center flex justify-center gap-1">
                             <button onclick="downloadBase64File('${f.fileData}', '${f.fileName}')" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded cursor-pointer">Scarica</button>
@@ -511,28 +589,26 @@ fileDocInput?.addEventListener('change', (e) => {
             });
         }
 
-// Helpers esistenti
         window.toggleSidebar = () => { document.getElementById('sidebar')?.classList.toggle('-translate-x-full'); };
         window.toggleStyleModal = () => { document.getElementById('styleModal')?.classList.toggle('hidden'); };
 
         window.downloadBase64File = (data, filename) => {
-    // Se è un DataURL, estraiamo solo la parte base64
-    const base64 = data.includes(',') ? data.split(',')[1] : data;
-    
-    const bin = atob(base64); 
-    const arr = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-    
-    const blob = new Blob([arr], { type: "application/octet-stream" });
-    const url = URL.createObjectURL(blob); 
-    const a = document.createElement('a');
-    a.href = url; 
-    a.download = filename; 
-    document.body.appendChild(a); 
-    a.click(); 
-    a.remove(); 
-    URL.revokeObjectURL(url);
-};
+            const base64 = data.includes(',') ? data.split(',')[1] : data;
+            const bin = atob(base64); 
+            const arr = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+            
+            const blob = new Blob([arr], { type: "application/octet-stream" });
+            const url = URL.createObjectURL(blob); 
+            const a = document.createElement('a');
+            a.href = url; 
+            a.download = filename; 
+            document.body.appendChild(a); 
+            a.click(); 
+            a.remove(); 
+            URL.revokeObjectURL(url);
+        };
+
         window.deleteCloudItem = async (id, isExcel, label) => {
             if(confirm(`Eliminare definitivamente ${label}?`)) {
                 if(isExcel) {
@@ -546,99 +622,54 @@ fileDocInput?.addEventListener('change', (e) => {
             }
         };
 
-        //Blocco note
-document.getElementById('btnUploadNote')?.addEventListener('click', async () => {
-    const el = document.getElementById('newNoteContent'); 
-    if (!el.value.trim()) return;
-    
-    // 1. Svuota subito la casella per dare feedback visivo
-    const testoNota = el.value.trim();
-    el.value = ""; 
-    
-    // 2. Salvataggio
-    await addDoc(collection(db, "notesHub"), { content: testoNota, createdAt: serverTimestamp() });
-    
-    // 3. Notifica
-    await sendTelegramNotification("📌 Nuova Nota: " + testoNota.substring(0, 30) + "...");
-    
-    showToast("Nota pubblicata.");
-});
-
-        onSnapshot(query(collection(db, "notesHub"), orderBy("createdAt", "desc")), (snap) => {
-            const container = document.getElementById('notesContainer'); if(!container) return; container.innerHTML = "";
-            if(snap.empty) { container.innerHTML = `<p class="text-xs text-gray-400 italic p-1">Nessuna nota attiva.</p>`; return; }
-            snap.forEach(d => {
-                const div = document.createElement('div'); div.className = "bg-gray-50/80 p-2 rounded border flex justify-between items-start text-xs shadow-2xs";
-                div.innerHTML = `<p class="text-gray-700 break-all pr-1">${d.data().content}</p><button onclick="deleteNote('${d.id}')" class="text-gray-400 hover:text-red-600 font-bold px-1 cursor-pointer">✕</button>`;
-                container.appendChild(div);
-            });
+        document.getElementById('btnUploadNote')?.addEventListener('click', async () => {
+            const el = document.getElementById('newNoteContent'); 
+            if (!el.value.trim()) return;
+            
+            const testoNota = el.value.trim();
+            el.value = ""; 
+            
+            await addDoc(collection(db, "notesHub"), { content: testoNota, createdAt: serverTimestamp() });
+            await sendTelegramNotification("📌 Nuova Nota: " + testoNota.substring(0, 30) + "...");
+            showToast("Nota pubblicata.");
         });
+
         window.deleteNote = async (id) => { if(confirm("Rimuovere nota?")) { await deleteDoc(doc(db, "notesHub", id)); showToast("Nota rimossa."); } };
 
-       onSnapshot(query(collection(db, "historyHub"), orderBy("timestamp", "desc")), (snap) => {
-    const historyBody = document.getElementById('historyTableBody'); 
-    if(!historyBody) return; 
-    historyBody.innerHTML = "";
-    
-    if(snap.empty) { 
-        historyBody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-400 italic">Storico vuoto.</td></tr>`; 
-        return; 
-    }
-    
-    snap.forEach(d => {
-        const data = d.data(); 
-        let timeStr = "...";
-        if(data.timestamp) { 
-            const date = data.timestamp.toDate(); 
-            timeStr = date.toLocaleDateString('it-IT') + " " + date.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'}); 
-        }
+        onSnapshot(query(collection(db, "historyHub"), orderBy("timestamp", "desc")), (snap) => {
+            const historyBody = document.getElementById('historyTableBody'); 
+            if(!historyBody) return; 
+            historyBody.innerHTML = "";
+            
+            if(snap.empty) { 
+                historyBody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-400 italic">Storico vuoto.</td></tr>`; 
+                return; 
+            }
+            
+            snap.forEach(d => {
+                const data = d.data(); 
+                let timeStr = "...";
+                if(data.timestamp) { 
+                    const date = data.timestamp.toDate(); 
+                    timeStr = date.toLocaleDateString('it-IT') + " " + date.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'}); 
+                }
+                
+                const tr = document.createElement('tr'); 
+                tr.className = "hover:bg-gray-50/50";
+                tr.innerHTML = `<td class="p-2 font-mono text-gray-500">${timeStr}</td>
+                    <td class="p-2 font-medium text-gray-800 break-all">${data.title}</td>
+                    <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${data.style}">${data.action}</span></td>
+                    <td class="p-2 text-center"><button onclick="deleteHistoryRow('${d.id}')" class="text-gray-300 hover:text-red-500 font-bold px-1 cursor-pointer">✕</button></td>`;
+                historyBody.appendChild(tr);
+            });
+        });
         
-        const tr = document.createElement('tr'); 
-        tr.className = "hover:bg-gray-50/50";
-        tr.innerHTML = `<td class="p-2 font-mono text-gray-500">${timeStr}</td>
-            <td class="p-2 font-medium text-gray-800 break-all">${data.title}</td>
-            <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${data.style}">${data.action}</span></td>
-            <td class="p-2 text-center"><button onclick="deleteHistoryRow('${d.id}')" class="text-gray-300 hover:text-red-500 font-bold px-1 cursor-pointer">✕</button></td>`;
-        historyBody.appendChild(tr);
-    });
-});
         window.deleteHistoryRow = async (id) => { if(confirm("Rimuovere riga?")) { await deleteDoc(doc(db, "historyHub", id)); showToast("Rimosso dallo storico."); } };
 
-// Funzione che crea i bottoni dinamicamente in base alle categorie trovate
-function updateFilterButtons(snap) {
-    const container = document.getElementById('filter-buttons-container');
-    const categories = new Set(['Tutti']);
-    
-    snap.forEach(d => {
-        categories.add(d.data().category || 'Altro');
-    });
-
-    container.innerHTML = '';
-    categories.forEach(cat => {
-        const btn = document.createElement('button');
-        btn.innerText = cat;
-        btn.className = "bg-slate-100 hover:bg-slate-800 hover:text-white text-slate-700 px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer";
-        btn.onclick = () => filterDocs(cat);
-        container.appendChild(btn);
-    });
-}
-
-// Funzione che nasconde/mostra le righe
-function filterDocs(category) {
-    const rows = document.querySelectorAll('.doc-row');
-    rows.forEach(row => {
-        if (category === 'Tutti') {
-            row.style.display = ''; 
-        } else {
-            row.style.display = (row.getAttribute('data-category') === category) ? '' : 'none';
-        }
-    });
-}
-
-window.setFilter = (type) => {
-    currentFilter = type;
-    combineAndRenderArchive(); // Ridisegna la tabella con il filtro attivo
-};
+        window.setFilter = (type) => {
+            currentFilter = type;
+            combineAndRenderArchive(); 
+        };
 
     </script>
 </body>
