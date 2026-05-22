@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Cloud Hub - V2.0.5</title>
+    <title>Engineering Cloud Hub - V2.0.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -30,6 +30,8 @@
             overflow-y: auto !important;
         }
     </style>
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body class="bg-slate-50 text-gray-800 dark:bg-slate-950 dark:text-gray-100 min-h-screen relative overflow-x-hidden">
 
@@ -45,7 +47,7 @@
                 <div class="h-5 w-px bg-slate-700 hidden sm:block mx-2"></div>
                 <div class="flex items-center gap-2">
                     <h1 class="text-lg sm:text-xl font-bold tracking-wide text-white flex items-center gap-2">
-                        Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.0.5</span>
+                        Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.0.6</span>
                     </h1>
                     <button onclick="toggleStyleModal()" class="text-gray-400 hover:text-amber-400 text-lg transition-colors cursor-pointer p-1" title="Visualizza Standard Formattazione Excel">
                         🎨
@@ -290,13 +292,13 @@
         <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
             <div class="flex items-center space-x-2">
                 <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                <span class="font-bold text-xs tracking-wide">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.0.5</span></span>
+                <span class="font-bold text-xs tracking-wide">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.0.6</span></span>
             </div>
             <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
         </div>
         
         <div id="chat-body" class="flex flex-col flex-grow">
-            <div id="chat-container" class="flex-1 p-3 chat-scroll-container space-y-2.5 text-xs">
+			<div id="chat-container" class="h-[60vh] overflow-y-auto flex flex-col p-4 bg-slate-950 rounded-lg">
         <div class="bg-slate-100 dark:bg-slate-800/50 p-2.5 rounded-lg border border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 italic">
             🤖 Benvenuto nell'Hub Co-Pilot. Chiedimi calcoli strutturali, formule o specifiche di progetto.
         </div>
@@ -354,7 +356,7 @@
                 archiveTitle: "Archivio Cloud Attivo", holderSearch: "Cerca nell'archivio...",
                 thName: "Nome Elemento", thDetails: "Note / Dettagli", historyTitle: "Registro Storico Attività",
                 thOp: "Operazione Svolta", holderAi: "Chiedi all'IA (Cerca in rete normative o formule)...",
-                aiWelcome: "Benvenuto nell'Hub V2.0.5. Come posso aiutarti nei calcoli tecnici oggi? Il mio motore di ricerca web globale è attivo.",
+                aiWelcome: "Benvenuto nell'Hub V2.0.6. Come posso aiutarti nei calcoli tecnici oggi? Il mio motore di ricerca web globale è attivo.",
 		holderNoteText: "Nota logistica o tecnica... (Invio per salvare)",
       		btnSaveNote: "Aggiungi Nota"
             },
@@ -367,7 +369,7 @@
                 archiveTitle: "Active Cloud Archive", holderSearch: "Search...",
                 thName: "Item Name", thDetails: "Notes / Details", historyTitle: "Activity History Log",
                 thOp: "Operation Performed", holderAi: "Ask AI (Search web for standards or formulas)...",
-                aiWelcome: "Welcome to Hub V2.0.5. How can I assist you with engineering calculations today? My global web search engine is active.",
+                aiWelcome: "Welcome to Hub V2.0.6. How can I assist you with engineering calculations today? My global web search engine is active.",
 		holderNoteText: "Logistic or technical note... (Enter to save)",
         	btnSaveNote: "Add Note"
             }
@@ -469,33 +471,39 @@ document.addEventListener("DOMContentLoaded", () => {
 	//ENGINE AI
 window.askAI = async () => {
     const inputEl = document.getElementById('aiInput');
+    const container = document.getElementById('chat-container');
     const queryText = inputEl.value.trim();
     if (!queryText) return;
 
-    const container = document.getElementById('chat-container');
-    container.innerHTML += `<div class="bg-blue-600/20 p-2 text-white text-right">👤 ${queryText}</div>`;
-    
-    // Mostriamo che stiamo lavorando
-    const loadingId = 'loading-' + Date.now();
-    container.innerHTML += `<div id="${loadingId}" class="p-2 text-gray-500 italic">Il sistema sta elaborando...</div>`;
+    // Aggiunge la domanda dell'utente
+    container.innerHTML += `<div class="bg-blue-600/20 p-2 text-white text-right mb-2 rounded">👤 ${queryText}</div>`;
     inputEl.value = "";
+    
+    const loadingId = 'loading-' + Date.now();
+    container.innerHTML += `<div id="${loadingId}" class="p-2 text-gray-500 italic text-xs">Elaborazione tecnica...</div>`;
+    container.scrollTop = container.scrollHeight;
 
     try {
-        // Usiamo un proxy universale che non richiede chiavi API
-        // È stabilissimo per test e piccoli progetti
-        const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(queryText)}?model=openai&seed=42`);
-        
-        if (!response.ok) throw new Error("Errore del server proxy");
-        
+        const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(queryText)}?model=claude-3-5-sonnet&system=Sei un ingegnere meccanico. Usa sempre LaTeX per le formule ($...$). Cita sempre norme tecniche o fonti se necessario.`);
         const data = await response.text();
         
         document.getElementById(loadingId)?.remove();
-        container.innerHTML += `<div class="bg-slate-800 p-2 text-white">${data}</div>`;
+        
+        // Crea il div di risposta
+        const replyDiv = document.createElement('div');
+        replyDiv.className = "bg-slate-800 p-3 text-white rounded mb-2 text-sm break-words";
+        replyDiv.innerHTML = data;
+        container.appendChild(replyDiv);
+        
+        // Forza MathJax a leggere la nuova risposta
+        if (window.MathJax) MathJax.typesetPromise([replyDiv]);
         
     } catch (err) {
         document.getElementById(loadingId)?.remove();
-        container.innerHTML += `<div class="text-red-500 p-2">Errore: ${err.message}. Controlla la tua connessione.</div>`;
+        container.innerHTML += `<div class="text-red-500 text-xs p-2">Errore di connessione.</div>`;
     }
+    
+    // Scrolla sempre in fondo
     container.scrollTop = container.scrollHeight;
 };
 
