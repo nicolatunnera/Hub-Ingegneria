@@ -296,24 +296,29 @@
         </div>
         
         <div id="chat-body" class="flex flex-col flex-grow">
-            <div id="chat-container" class="p-3 space-y-3 chat-scroll-container text-xs overflow-y-auto bg-slate-900 text-gray-100">
-                <div class="bg-slate-800 p-2.5 rounded-lg border border-slate-700">
-                    🤖 <span data-i18n="aiWelcome">Benvenuto nell'Hub. Come posso aiutarti nei calcoli tecnici oggi? Il mio motore di ricerca web globale è attivo.</span>
-                </div>
-            </div>
-           <div class="border-t border-gray-200 dark:border-slate-700 p-3 bg-gray-50 dark:bg-slate-900/50">
-    <div id="gemini-key-container" class="mb-2 flex gap-2">
-        <input type="password" id="geminiApiKey" placeholder="Incolla qui la tua API Key di Gemini..." 
-               class="flex-1 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-1.5 text-xs text-gray-700 dark:text-gray-200 focus:outline-none">
-        <button onclick="saveGeminiKey()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1 rounded-lg text-xs transition-colors">Salva</button>
+            <div id="chat-container" class="flex-1 p-3 chat-scroll-container space-y-2.5 text-xs">
+        <div class="bg-slate-100 dark:bg-slate-800/50 p-2.5 rounded-lg border border-gray-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 italic">
+            🤖 Benvenuto nell'Hub Co-Pilot. Chiedimi calcoli strutturali, formule o specifiche di progetto.
+        </div>
     </div>
 
-    <div class="flex gap-2">
-        <input type="text" id="aiInput" placeholder="Chiedi al Co-Pilot... (es. Area del cerchio)" 
-               class="flex-1 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
-        <button onclick="window.askAI()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 rounded-lg text-sm transition-colors">Invia</button>
+    <div class="border-t border-gray-200 dark:border-slate-800 p-3 bg-gray-50 dark:bg-slate-900/50 rounded-b-xl">
+        
+        <div id="gemini-key-container" style="display: none;" class="mb-2 p-2 bg-amber-500/10 border border-amber-500/30 rounded-lg flex flex-col gap-2">
+            <span class="text-[10px] text-amber-600 dark:text-amber-400 font-medium">⚠️ Configurazione richiesta: Inserisci la tua API Key di Gemini (Generata gratis su Google AI Studio)</span>
+            <div class="flex gap-2">
+                <input type="password" id="geminiApiKey" placeholder="AIzaSy..." 
+                       class="flex-1 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-1.5 text-xs text-gray-700 dark:text-gray-200 focus:outline-none">
+                <button onclick="window.saveGeminiKey()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded-lg text-[11px] transition-colors cursor-pointer">Salva</button>
+            </div>
+        </div>
+
+        <div class="flex gap-2">
+            <input type="text" id="aiInput" placeholder="Chiedi al Co-Pilot... (es. Formula momento torcente albero)" 
+                   class="flex-1 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-700 dark:text-gray-200 focus:outline-none">
+            <button onclick="window.askAI()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 rounded-lg text-xs transition-colors cursor-pointer">Invia</button>
+        </div>
     </div>
-</div>
     </div>
 
 <script type="module">
@@ -429,34 +434,65 @@ setTimeout(() => {
     }
 }, 500);
 
-// ENGINE GENERATIVO FRONTEND DI LIVELLO PROFESSIONALE V2.00
+// ========================================================
+// CONFIGURAZIONE E ENGINE CO-PILOT GEMINI V2.00 (FRONTEND)
+// ========================================================
+
+// 1. SALVATAGGIO DELLA CHIAVE NEL BROWSER LOCALE (LOCALSTORAGE)
+window.saveGeminiKey = () => {
+    const keyInput = document.getElementById('geminiApiKey');
+    const key = keyInput.value.trim();
+    if (key) {
+        localStorage.setItem('GEMINI_HUB_KEY', key);
+        document.getElementById('gemini-key-container').style.display = 'none';
+        alert('Chiave API salvata nel browser con successo! Ora puoi usare il Co-Pilot.');
+    } else {
+        alert('Per ricevere risposta, inserisci una chiave valida.');
+    }
+};
+
+// 2. VERIFICA PRESENZA CHIAVE AL CARICAMENTO DELLA PAGINA
+document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+        const savedKey = localStorage.getItem('GEMINI_HUB_KEY');
+        const container = document.getElementById('gemini-key-container');
+        if (container) {
+            if (savedKey && savedKey.startsWith("AIzaSy")) {
+                container.style.display = 'none'; 
+            } else {
+                container.style.display = 'flex'; 
+            }
+        }
+    }, 300);
+});
+
+// 3. ENGINE DI CHIAMATA NEURALE DIRETTA (Senza blocchi CORS)
 window.askAI = async () => {
     const inputEl = document.getElementById('aiInput');
     const queryText = inputEl.value.trim();
-    if(!queryText) return;
+    if (!queryText) return;
 
-    // Recupera la chiave salvata nel browser
-    const apiKey = localStorage.getItem('GEMINI_HUB_KEY') || document.getElementById('geminiApiKey').value.trim();
-    if(!apiKey) {
-        alert("Inserisci e salva prima la tua API Key di Gemini!");
+    const apiKey = localStorage.getItem('GEMINI_HUB_KEY');
+    if (!apiKey) {
+        document.getElementById('gemini-key-container').style.display = 'flex';
+        alert("Configurazione richiesta: Inserisci e salva la tua API Key di Gemini nel pannello superiore.");
         return;
     }
 
     const container = document.getElementById('chat-container');
-    container.innerHTML += `<div class="bg-blue-600/20 p-2 rounded-lg text-right border border-blue-500/30 ml-8 text-white">👤 ${queryText.toUpperCase()}</div>`;
+    container.innerHTML += `<div class="bg-blue-600/20 p-2 rounded-lg text-right border border-blue-500/30 ml-8 text-white font-medium">👤 ${queryText.toUpperCase()}</div>`;
     container.scrollTop = container.scrollHeight;
 
     const loadingId = 'ai-loading-' + Date.now();
-    container.innerHTML += `<div id="${loadingId}" class="bg-slate-800 p-2.5 rounded-lg border border-slate-700 text-gray-400 italic flex items-center gap-2">
+    container.innerHTML += `<div id="${loadingId}" class="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-lg border border-gray-200 dark:border-slate-800 text-gray-400 italic flex items-center gap-2">
         <span class="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></span>
-        <span>Co-Pilot sta sintetizzando i dati...</span>
+        <span>Co-Pilot sta elaborando i dati tecnici...</span>
     </div>`;
     container.scrollTop = container.scrollHeight;
 
     inputEl.value = "";
 
     try {
-        // Chiamata all'endpoint ufficiale CORS-free di Google
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
         const response = await fetch(url, {
@@ -465,7 +501,7 @@ window.askAI = async () => {
             body: JSON.stringify({
                 contents: [{
                     parts: [{
-                        text: `Sei un Co-Pilot esperto in ingegneria meccanica e calcoli industriali. Rispondi in italiano in modo sintetico, chiaro e schematico. Usa elenchi puntati e formule matematiche formattate se necessario. Rispondi alla seguente richiesta: ${queryText}`
+                        text: `Sei un Co-Pilot esperto in ingegneria meccanica e calcoli industriali. Rispondi in italiano in modo sintetico, chiaro, ordinato e schematico. Usa elenchi puntati per i parametri e evidenzia le formule importanti o le unità di misura. Rispondi alla seguente richiesta tecnica: ${queryText}`
                     }]
                 }]
             })
@@ -478,26 +514,27 @@ window.askAI = async () => {
 
         let aiReply = data.candidates[0].content.parts[0].text;
 
-        // Trasformazione base del Markdown dell'IA in elementi HTML stabili
+        // Formattazione per convertire i tag Markdown in HTML pulito
         let formattedReply = aiReply
             .replace(/\n/g, "<br>")
             .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
             .replace(/\*(.*?)\*/g, "<i>$1</i>");
 
-        // Citazione della fonte esterna per ricerche di controllo integrata sotto la sintesi
-        formattedReply += `<br><br><hr class="border-slate-800 my-2"><span class="text-gray-400 text-[11px]">🔍 Approfondimento web:</span> <a href="https://duckduckgo.com/?q=${encodeURIComponent(queryText)}" target="_blank" class="text-blue-400 underline font-semibold text-[11px]">Cerca fonti normative ↗️</a>`;
+        formattedReply += `<br><br><hr class="border-gray-200 dark:border-slate-800 my-2"><span class="text-gray-400 text-[10px]">🔍 Ricerca tabelle:</span> <a href="https://duckduckgo.com/?q=${encodeURIComponent(queryText)}" target="_blank" class="text-blue-500 dark:text-blue-400 underline font-semibold text-[10px]">Vedi sul web ↗️</a>`;
 
-        container.innerHTML += `<div class="bg-slate-800 p-2.5 rounded-lg border border-slate-700 text-gray-200">${formattedReply}</div>`;
+        container.innerHTML += `<div class="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-lg border border-gray-200 dark:border-slate-800 text-gray-800 dark:text-gray-200">${formattedReply}</div>`;
 
     } catch (error) {
         document.getElementById(loadingId)?.remove();
-        const localReply = `⚠️ <b>Errore di connessione neurale.</b><br>La chiave API inserita potrebbe essere errata o non attiva sul Cloud di Google.<br><br><a href="https://html.duckduckgo.com/html/?q=${encodeURIComponent(queryText)}" target="_blank" class="inline-block bg-slate-950 text-amber-400 border border-slate-800 text-xs font-bold px-3 py-1.5 rounded mt-2">Apri ricerca web esterna ↗️</a>`;
-        container.innerHTML += `<div class="bg-slate-800 p-2.5 rounded-lg border border-slate-700 text-gray-200">${localReply}</div>`;
+        
+        const errorReply = `⚠️ <b>Errore di elaborazione.</b><br>La richiesta è fallita. Verifica la chiave API o inseriscine una nuova.<br><br>
+        <button onclick="localStorage.removeItem('GEMINI_HUB_KEY'); location.reload();" class="text-[10px] bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded font-bold transition-colors cursor-pointer">Resetta Chiave API</button>`;
+        
+        container.innerHTML += `<div class="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-lg border border-gray-200 dark:border-slate-800 text-gray-800 dark:text-gray-200">${errorReply}</div>`;
     }
     
     container.scrollTop = container.scrollHeight;
 };
-
         document.getElementById('aiInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') askAI(); });
 
         // NOTIFICHE TELEGRAM AUTOMATIZZATE CON BOT PRODUZIONE
