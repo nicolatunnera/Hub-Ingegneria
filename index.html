@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Cloud Hub - V2.0.2</title>
+    <title>Engineering Cloud Hub - V2.0.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -45,7 +45,7 @@
                 <div class="h-5 w-px bg-slate-700 hidden sm:block mx-2"></div>
                 <div class="flex items-center gap-2">
                     <h1 class="text-lg sm:text-xl font-bold tracking-wide text-white flex items-center gap-2">
-                        Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.00</span>
+                        Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.0.3</span>
                     </h1>
                     <button onclick="toggleStyleModal()" class="text-gray-400 hover:text-amber-400 text-lg transition-colors cursor-pointer p-1" title="Visualizza Standard Formattazione Excel">
                         🎨
@@ -290,7 +290,7 @@
         <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
             <div class="flex items-center space-x-2">
                 <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                <span class="font-bold text-xs tracking-wide">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.00</span></span>
+                <span class="font-bold text-xs tracking-wide">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.0.3</span></span>
             </div>
             <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
         </div>
@@ -354,7 +354,7 @@
                 archiveTitle: "Archivio Cloud Attivo", holderSearch: "Cerca nell'archivio...",
                 thName: "Nome Elemento", thDetails: "Note / Dettagli", historyTitle: "Registro Storico Attività",
                 thOp: "Operazione Svolta", holderAi: "Chiedi all'IA (Cerca in rete normative o formule)...",
-                aiWelcome: "Benvenuto nell'Hub V2.00. Come posso aiutarti nei calcoli tecnici oggi? Il mio motore di ricerca web globale è attivo.",
+                aiWelcome: "Benvenuto nell'Hub V2.0.3. Come posso aiutarti nei calcoli tecnici oggi? Il mio motore di ricerca web globale è attivo.",
 		holderNoteText: "Nota logistica o tecnica... (Invio per salvare)",
       		btnSaveNote: "Aggiungi Nota"
             },
@@ -367,7 +367,7 @@
                 archiveTitle: "Active Cloud Archive", holderSearch: "Search...",
                 thName: "Item Name", thDetails: "Notes / Details", historyTitle: "Activity History Log",
                 thOp: "Operation Performed", holderAi: "Ask AI (Search web for standards or formulas)...",
-                aiWelcome: "Welcome to Hub V2.00. How can I assist you with engineering calculations today? My global web search engine is active.",
+                aiWelcome: "Welcome to Hub V2.0.3. How can I assist you with engineering calculations today? My global web search engine is active.",
 		holderNoteText: "Logistic or technical note... (Enter to save)",
         	btnSaveNote: "Add Note"
             }
@@ -490,7 +490,7 @@ window.askAI = async () => {
 
     try {
         // URL pulito da caratteri invisibili
-        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=" + apiKey;
 
         const response = await fetch(url, {
             method: "POST",
