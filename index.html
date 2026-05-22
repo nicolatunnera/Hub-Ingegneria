@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Cloud Hub - V2.0.4</title>
+    <title>Engineering Cloud Hub - V2.0.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -45,7 +45,7 @@
                 <div class="h-5 w-px bg-slate-700 hidden sm:block mx-2"></div>
                 <div class="flex items-center gap-2">
                     <h1 class="text-lg sm:text-xl font-bold tracking-wide text-white flex items-center gap-2">
-                        Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.0.4</span>
+                        Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.0.5</span>
                     </h1>
                     <button onclick="toggleStyleModal()" class="text-gray-400 hover:text-amber-400 text-lg transition-colors cursor-pointer p-1" title="Visualizza Standard Formattazione Excel">
                         🎨
@@ -290,7 +290,7 @@
         <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
             <div class="flex items-center space-x-2">
                 <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                <span class="font-bold text-xs tracking-wide">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.0.4</span></span>
+                <span class="font-bold text-xs tracking-wide">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.0.5</span></span>
             </div>
             <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
         </div>
@@ -354,7 +354,7 @@
                 archiveTitle: "Archivio Cloud Attivo", holderSearch: "Cerca nell'archivio...",
                 thName: "Nome Elemento", thDetails: "Note / Dettagli", historyTitle: "Registro Storico Attività",
                 thOp: "Operazione Svolta", holderAi: "Chiedi all'IA (Cerca in rete normative o formule)...",
-                aiWelcome: "Benvenuto nell'Hub V2.0.4. Come posso aiutarti nei calcoli tecnici oggi? Il mio motore di ricerca web globale è attivo.",
+                aiWelcome: "Benvenuto nell'Hub V2.0.5. Come posso aiutarti nei calcoli tecnici oggi? Il mio motore di ricerca web globale è attivo.",
 		holderNoteText: "Nota logistica o tecnica... (Invio per salvare)",
       		btnSaveNote: "Aggiungi Nota"
             },
@@ -367,7 +367,7 @@
                 archiveTitle: "Active Cloud Archive", holderSearch: "Search...",
                 thName: "Item Name", thDetails: "Notes / Details", historyTitle: "Activity History Log",
                 thOp: "Operation Performed", holderAi: "Ask AI (Search web for standards or formulas)...",
-                aiWelcome: "Welcome to Hub V2.0.4. How can I assist you with engineering calculations today? My global web search engine is active.",
+                aiWelcome: "Welcome to Hub V2.0.5. How can I assist you with engineering calculations today? My global web search engine is active.",
 		holderNoteText: "Logistic or technical note... (Enter to save)",
         	btnSaveNote: "Add Note"
             }
@@ -466,59 +466,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 300);
 });
 
-// 3. ENGINE DI CHIAMATA NEURALE DIRETTA
+	//ENGINE AI
 window.askAI = async () => {
     const inputEl = document.getElementById('aiInput');
     const queryText = inputEl.value.trim();
     if (!queryText) return;
 
-    const apiKey = localStorage.getItem('GEMINI_HUB_KEY');
-    if (!apiKey) {
-        document.getElementById('gemini-key-container').style.display = 'flex';
-        alert("Configurazione richiesta: Inserisci e salva la tua API Key di Gemini.");
-        return;
-    }
-
     const container = document.getElementById('chat-container');
-    container.innerHTML += `<div class="bg-blue-600/20 p-2 rounded-lg text-right border border-blue-500/30 ml-8 text-white font-medium">👤 ${queryText.toUpperCase()}</div>`;
-    container.scrollTop = container.scrollHeight;
-
-    const loadingId = 'ai-loading-' + Date.now();
-    container.innerHTML += `<div id="${loadingId}" class="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-lg border border-gray-200 dark:border-slate-800 text-gray-400 italic">Co-Pilot sta elaborando...</div>`;
-
+    container.innerHTML += `<div class="bg-blue-600/20 p-2 text-white text-right">👤 ${queryText}</div>`;
+    
+    // Mostriamo che stiamo lavorando
+    const loadingId = 'loading-' + Date.now();
+    container.innerHTML += `<div id="${loadingId}" class="p-2 text-gray-500 italic">Il sistema sta elaborando...</div>`;
     inputEl.value = "";
 
     try {
-        // URL pulito da caratteri invisibili
-const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey;
-
-        const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: "Sei un esperto ingegnere meccanico. Rispondi in italiano in modo sintetico e schematico: " + queryText
-                    }]
-                }]
-            })
-        });
-
-        const data = await response.json();
-        document.getElementById(loadingId)?.remove();
-
-        if (data.error) throw new Error(data.error.message);
-
-        let aiReply = data.candidates[0].content.parts[0].text;
+        // Usiamo un proxy universale che non richiede chiavi API
+        // È stabilissimo per test e piccoli progetti
+        const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(queryText)}?model=openai&seed=42`);
         
-        // Pulizia Markdown base
-        let formattedReply = aiReply.replace(/\n/g, "<br>").replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
-
-        container.innerHTML += `<div class="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-lg border border-gray-200 dark:border-slate-800 text-gray-800 dark:text-gray-200">${formattedReply}</div>`;
-
-    } catch (error) {
+        if (!response.ok) throw new Error("Errore del server proxy");
+        
+        const data = await response.text();
+        
         document.getElementById(loadingId)?.remove();
-        container.innerHTML += `<div class="bg-red-900/20 p-2 text-red-500 text-xs border border-red-500/30 rounded">Errore: ${error.message}</div>`;
+        container.innerHTML += `<div class="bg-slate-800 p-2 text-white">${data}</div>`;
+        
+    } catch (err) {
+        document.getElementById(loadingId)?.remove();
+        container.innerHTML += `<div class="text-red-500 p-2">Errore: ${err.message}. Controlla la tua connessione.</div>`;
     }
     container.scrollTop = container.scrollHeight;
 };
