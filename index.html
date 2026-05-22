@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Cloud Hub - V2.00</title>
+    <title>Engineering Cloud Hub - V2.0.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -466,7 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 300);
 });
 
-// 3. ENGINE DI CHIAMATA NEURALE DIRETTA (Senza blocchi CORS)
+// 3. ENGINE DI CHIAMATA NEURALE DIRETTA
 window.askAI = async () => {
     const inputEl = document.getElementById('aiInput');
     const queryText = inputEl.value.trim();
@@ -475,7 +475,7 @@ window.askAI = async () => {
     const apiKey = localStorage.getItem('GEMINI_HUB_KEY');
     if (!apiKey) {
         document.getElementById('gemini-key-container').style.display = 'flex';
-        alert("Configurazione richiesta: Inserisci e salva la tua API Key di Gemini nel pannello superiore.");
+        alert("Configurazione richiesta: Inserisci e salva la tua API Key di Gemini.");
         return;
     }
 
@@ -484,16 +484,13 @@ window.askAI = async () => {
     container.scrollTop = container.scrollHeight;
 
     const loadingId = 'ai-loading-' + Date.now();
-    container.innerHTML += `<div id="${loadingId}" class="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-lg border border-gray-200 dark:border-slate-800 text-gray-400 italic flex items-center gap-2">
-        <span class="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></span>
-        <span>Co-Pilot sta elaborando i dati tecnici...</span>
-    </div>`;
-    container.scrollTop = container.scrollHeight;
+    container.innerHTML += `<div id="${loadingId}" class="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-lg border border-gray-200 dark:border-slate-800 text-gray-400 italic">Co-Pilot sta elaborando...</div>`;
 
     inputEl.value = "";
 
     try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // URL pulito da caratteri invisibili
+        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
 
         const response = await fetch(url, {
             method: "POST",
@@ -501,41 +498,35 @@ window.askAI = async () => {
             body: JSON.stringify({
                 contents: [{
                     parts: [{
-                        text: `Sei un Co-Pilot esperto in ingegneria meccanica e calcoli industriali. Rispondi in italiano in modo sintetico, chiaro, ordinato e schematico. Usa elenchi puntati per i parametri e evidenzia le formule importanti o le unità di misura. Rispondi alla seguente richiesta tecnica: ${queryText}`
+                        text: "Sei un esperto ingegnere meccanico. Rispondi in italiano in modo sintetico e schematico: " + queryText
                     }]
                 }]
             })
         });
 
-        if (!response.ok) throw new Error("Risposta KO dal server");
-
         const data = await response.json();
         document.getElementById(loadingId)?.remove();
 
+        if (data.error) throw new Error(data.error.message);
+
         let aiReply = data.candidates[0].content.parts[0].text;
-
-        // Formattazione per convertire i tag Markdown in HTML pulito
-        let formattedReply = aiReply
-            .replace(/\n/g, "<br>")
-            .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
-            .replace(/\*(.*?)\*/g, "<i>$1</i>");
-
-        formattedReply += `<br><br><hr class="border-gray-200 dark:border-slate-800 my-2"><span class="text-gray-400 text-[10px]">🔍 Ricerca tabelle:</span> <a href="https://duckduckgo.com/?q=${encodeURIComponent(queryText)}" target="_blank" class="text-blue-500 dark:text-blue-400 underline font-semibold text-[10px]">Vedi sul web ↗️</a>`;
+        
+        // Pulizia Markdown base
+        let formattedReply = aiReply.replace(/\n/g, "<br>").replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
 
         container.innerHTML += `<div class="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-lg border border-gray-200 dark:border-slate-800 text-gray-800 dark:text-gray-200">${formattedReply}</div>`;
 
     } catch (error) {
         document.getElementById(loadingId)?.remove();
-        
-        const errorReply = `⚠️ <b>Errore di elaborazione.</b><br>La richiesta è fallita. Verifica la chiave API o inseriscine una nuova.<br><br>
-        <button onclick="localStorage.removeItem('GEMINI_HUB_KEY'); location.reload();" class="text-[10px] bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded font-bold transition-colors cursor-pointer">Resetta Chiave API</button>`;
-        
-        container.innerHTML += `<div class="bg-slate-100 dark:bg-slate-900 p-2.5 rounded-lg border border-gray-200 dark:border-slate-800 text-gray-800 dark:text-gray-200">${errorReply}</div>`;
+        container.innerHTML += `<div class="bg-red-900/20 p-2 text-red-500 text-xs border border-red-500/30 rounded">Errore: ${error.message}</div>`;
     }
-    
     container.scrollTop = container.scrollHeight;
 };
-        document.getElementById('aiInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') askAI(); });
+
+// Event listener per Enter
+document.getElementById('aiInput').addEventListener('keydown', (e) => { 
+    if(e.key === 'Enter') window.askAI(); 
+});
 
         // NOTIFICHE TELEGRAM AUTOMATIZZATE CON BOT PRODUZIONE
         async function sendTelegramNotification(message) {
