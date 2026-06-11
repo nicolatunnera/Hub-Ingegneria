@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Cloud Hub - V2.1.8</title>
+    <title>Engineering Cloud Hub - V2.1.9</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -48,7 +48,6 @@
 </head>
 <body class="bg-slate-50 text-gray-800 dark:bg-slate-950 dark:text-gray-100 min-h-screen relative overflow-x-hidden">
 
-    <!-- SCHERMATA DI LOGIN OBBLIGATORIO -->
     <div id="loginBlocker" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 max-w-sm w-full text-center">
             <div class="text-3xl mb-2">🔐</div>
@@ -62,7 +61,6 @@
         </div>
     </div>
 
-    <!-- CONTENUTO PRINCIPALE DELL'HUB -->
     <div id="hubMainContent" class="hidden">
         <nav class="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-40 dark:bg-black">
             <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
@@ -79,7 +77,7 @@
                     <div class="h-5 w-px bg-slate-700 hidden sm:block mx-2"></div>
                     <div class="flex items-center gap-2">
                         <h1 class="text-lg sm:text-xl font-bold tracking-wide text-white flex items-center gap-2">
-                            Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.1.7</span>
+                            Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.1.8</span>
                         </h1>
                     </div>
                 </div>
@@ -100,7 +98,6 @@
             </div>
         </nav>
 
-        <!-- CALCOLATORE PESO -->
         <div id="calcModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
             <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 dark:border-slate-800">
                 <div class="flex justify-between items-center p-4 border-b border-gray-100 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 z-10">
@@ -152,7 +149,6 @@
             </div>
         </div>
 
-        <!-- SIDEBAR SINISTRA (TEAM & DATI GENERALI CLOUD) -->
         <div id="sidebar" class="fixed top-0 left-0 h-full w-85 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl border-r border-gray-200 dark:border-slate-800 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto p-4">
             <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-2 mb-4">
                 <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
@@ -161,7 +157,6 @@
                 <button onclick="toggleSidebar()" class="text-gray-400 hover:text-red-500 font-bold p-1 text-lg cursor-pointer">✕</button>
             </div>
             
-            <!-- ISCRIZIONE TEAM -->
             <div class="mb-4 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xs">
                 <h3 class="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5 tracking-wider">Registrati all'Hub</h3>
                 <div class="space-y-2">
@@ -191,7 +186,6 @@
             </div>
         </div>
 
-        <!-- SIDEBAR DESTRA (NEWS & BACHECA) -->
         <div id="newsSidebar" class="fixed top-0 right-0 h-full w-85 sm:w-96 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl border-l border-gray-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto p-4">
             <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-2 mb-4">
                 <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
@@ -206,10 +200,8 @@
             <div id="newsHistoryContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
         </div>
 
-        <!-- GRIGLIA CENTRALE AZIONI -->
         <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="space-y-6 lg:col-span-1">
-                <!-- CARICA EXCEL -->
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
                     <h2 class="text-lg font-bold text-emerald-700 dark:text-emerald-400 mb-3 flex items-center gap-2">
                         <span>⚙️</span> <span>File Excel Calcoli</span>
@@ -230,7 +222,6 @@
                     </div>
                 </div>
 
-                <!-- CARICA REPORT -->
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
                     <h2 class="text-lg font-bold text-blue-700 dark:text-blue-400 mb-3 flex items-center gap-2">
                         <span>📝</span> <span>Documenti e Report</span>
@@ -246,7 +237,6 @@
                     </div>
                 </div>
 
-                <!-- NOTE CONDIVISE -->
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
                     <h2 class="text-lg font-bold text-amber-700 dark:text-amber-400 mb-3 flex items-center gap-2">
                         <span>📌</span> <span>Note Rapide Condivise</span>
@@ -259,7 +249,6 @@
                 </div>
             </div>
 
-            <!-- COLONNA REGISTRI E ARCHIVIO -->
             <div class="lg:col-span-2 space-y-6 flex flex-col justify-start">
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
@@ -283,7 +272,6 @@
                     </div>
                 </div>
 
-                <!-- REGISTRO STORICO ATTIVITÀ -->
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
                     <h2 class="text-lg font-bold text-purple-800 dark:text-purple-400 flex items-center gap-2">
                         <span>⏱️</span> <span>Registro Storico Attività</span>
@@ -305,20 +293,23 @@
             </div>
         </main>
 
-        <!-- WIDGET CHAT CO-PILOT (PRONTO PER BACKEND) -->
         <div id="ai-chat-widget" class="fixed bottom-4 right-4 w-96 bg-slate-900 text-slate-100 rounded-xl shadow-2xl border border-slate-800 z-50 overflow-hidden flex flex-col transition-all duration-300">
             <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
                 <div class="flex items-center space-x-2">
                     <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                    <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.1.7</span></span>
+                    <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.1.8</span></span>
                 </div>
                 <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
             </div>
             
             <div id="chat-body" class="flex flex-col flex-grow">
-                <div id="chat-container" class="h-[260px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
+                <div class="p-2 bg-slate-950 border-b border-slate-800">
+                    <input type="password" id="geminiApiKey" placeholder="Incolla Chiave API Gemini (AIzaSy...)" class="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-blue-500">
+                </div>
+
+                <div id="chat-container" class="h-[230px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
                     <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">
-                        🤖 Pronto ad aiutarti con calcoli strutturali, formule meccaniche e specifiche. Digita un messaggio per iniziare.
+                        🤖 Pronto ad aiutarti con calcoli strutturali, formule meccaniche e specifiche. Inserisci la tua chiave API sopra e digita un messaggio.
                     </div>
                 </div>
 
@@ -332,7 +323,6 @@
         </div>
     </div>
 
-    <!-- LOGICHE GLOBALI DI INTERFACCIA -->
     <script>
         function toggleCalcModal() { document.getElementById('calcModal')?.classList.toggle('hidden'); }
         function updateCalcFields() {
@@ -392,12 +382,13 @@
         });
     </script>
 
-    <!-- MOTORE INTEGRALE FIREBASE PER STORICI, NEWS, TEAM E CHAT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
 
+        // ==========================================
+        // TUA CONFIGURAZIONE CHIAVI DI PROGETTO
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM",
             authDomain: "hub-ingegneria.firebaseapp.com",
@@ -407,15 +398,37 @@
             appId: "1:58933321877:web:1e3f4630edc9f192865077"
         };
 
+        // INSERISCI QUI I TUOI DATI TELEGRAM REALI (Rimangono salvati nell'index.html privato)
+        const TELEGRAM_BOT_TOKEN = "IL_TUO_TELEGRAM_BOT_TOKEN"; 
+        const TELEGRAM_CHAT_ID = "IL_TUO_CHAT_ID_O_CANALE"; 
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const functions = getFunctions(app);
 
         // Menu Laterali e Utility globali
         window.toggleSidebar = () => { document.getElementById('sidebar')?.classList.toggle('-translate-x-full'); };
         window.toggleNewsSidebar = () => { document.getElementById('newsSidebar')?.classList.toggle('translate-x-full'); };
         window.changeLanguage = (lang) => { };
         window.toggleTheme = () => { document.documentElement.classList.toggle('dark'); };
+
+        // METODO DI INVIO DIRETTO A TELEGRAM DAL BROWSER (RIPRISTINATO)
+        async function inviaNotificaTelegram(testo) {
+            if(!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID || TELEGRAM_BOT_TOKEN.startsWith("IL_TUO")) return;
+            try {
+                const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CHAT_ID,
+                        text: testo,
+                        parse_mode: 'Markdown'
+                    })
+                });
+            } catch (err) {
+                console.error("Errore invio notifica Telegram:", err);
+            }
+        }
 
         // 1. GESTIONE TEAM / ISCRIZIONI
         const btnReg = document.getElementById('btnRegister');
@@ -427,6 +440,8 @@
                     await addDoc(collection(db, "teamHub"), { name, contact, joinedAt: serverTimestamp() });
                     document.getElementById('regName').value = "";
                     document.getElementById('regContact').value = "";
+                    // Notifica Telegram automatica per iscrizione team
+                    await inviaNotificaTelegram(`👤 *Nuovo membro nel Team dell'Hub!*\nNome: ${name}\nContatto: ${contact}`);
                     alert("Registrazione effettuata con successo!");
                 }
             };
@@ -444,7 +459,7 @@
             }
         });
 
-        // 2. GESTIONE NEWS & BACHECA CON TELEGRAM DAL SERVER
+        // 2. GESTIONE NEWS & BACHECA CON TELEGRAM DIRETTO
         const btnNews = document.getElementById('btnSendNews');
         if(btnNews) {
             btnNews.onclick = async () => {
@@ -452,6 +467,8 @@
                 if(content) {
                     await addDoc(collection(db, "newsHub"), { content, createdAt: serverTimestamp() });
                     document.getElementById('newsContent').value = "";
+                    // Notifica Telegram automatica per la News inserita
+                    await inviaNotificaTelegram(`📢 *Nuovo Aggiornamento in Bacheca Hub:*\n\n${content}`);
                 }
             };
         }
@@ -545,12 +562,20 @@
             }
         };
 
-        // 6. LOGICA DI CHAT TRAMITE CLOUD FUNCTION (PREPARATA)
+        // 6. CHAT CO-PILOT DIRETTA CON API KEY DAL BROWSER
         window.askAI = async () => {
+            const keyInput = document.getElementById('geminiApiKey');
             const inputEl = document.getElementById('aiInput');
             const container = document.getElementById('chat-container');
             const sendBtn = document.getElementById('aiSendBtn');
+            
+            const apiKey = keyInput.value.trim();
             const queryText = inputEl.value.trim();
+            
+            if (!apiKey) {
+                alert("Per favore, inserisci prima la tua chiave API di Gemini nel campo in alto.");
+                return;
+            }
             if (!queryText) return;
 
             inputEl.disabled = true; sendBtn.disabled = true;
@@ -563,13 +588,29 @@
 
             let replyText = "";
             try {
-                // Chiamata alla Cloud Function sicura
-                const askGeminiFunction = httpsCallable(functions, 'askGeminiCoPilot');
-                const result = await askGeminiFunction({ prompt: queryText });
-                replyText = result.data.reply;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: queryText }] }],
+                        systemInstruction: {
+                            parts: [{ text: "Rispondi in modo conciso, professionale e rigoroso in lingua italiana. Sei l'assistente IA Co-Pilot dell'Engineering Cloud Hub. Sei un esperto ingegnere strutturista e meccanico. Utilizza notazioni scientifiche se necessario e racchiudi le formule matematiche nella sintassi LaTeX standard (es. usando $ o $$) così che MathJax possa renderizzarle." }]
+                        },
+                        generationConfig: { temperature: 0.4 }
+                    })
+                });
+
+                const data = await response.json();
+                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                    replyText = data.candidates[0].content.parts[0].text;
+                } else {
+                    replyText = "⚠️ Risposta vuota dal modello. Controlla la console.";
+                    console.error(data);
+                }
             } catch (e) {
                 console.error(e);
-                replyText = "⚠️ Errore durante l'elaborazione. La Cloud Function non è ancora attiva o configurata.";
+                replyText = "⚠️ Errore di connessione o Chiave API non valida. Verifica le restrizioni su Google Cloud Console.";
             }
 
             document.getElementById(loadingId)?.remove();
