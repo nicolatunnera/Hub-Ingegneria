@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Cloud Hub - V2.1.5</title>
+    <title>Engineering Cloud Hub - V2.1.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -77,7 +77,7 @@
                     <div class="h-5 w-px bg-slate-700 hidden sm:block mx-2"></div>
                     <div class="flex items-center gap-2">
                         <h1 class="text-lg sm:text-xl font-bold tracking-wide text-white flex items-center gap-2">
-                            Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.1.5</span>
+                            Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.1.6</span>
                         </h1>
                     </div>
                 </div>
@@ -163,6 +163,7 @@
                     <input type="text" id="regContact" placeholder="Contatto / Email" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 text-gray-800 dark:text-gray-100">
                     <button id="btnRegister" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded-lg text-xs transition-colors cursor-pointer">Entra nel team</button>
                 </div>
+                <div id="teamContainer" class="mt-3 space-y-1.5 max-h-32 overflow-y-auto"></div>
             </div>
             <div class="mb-4">
                 <h3 class="text-xs font-bold uppercase text-gray-400 mb-1.5 tracking-wider">Dati Generali del Cloud</h3>
@@ -197,7 +198,7 @@
             <div id="newsHistoryContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
         </div>
 
-        <main id="main-layout-content" class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10 lg:pr-100 transition-all duration-300">
+        <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="space-y-6 lg:col-span-1">
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
                     <h2 class="text-lg font-bold text-emerald-700 dark:text-emerald-400 mb-3 flex items-center gap-2">
@@ -209,13 +210,13 @@
                             <option value="Termodinamica">🔥 Termodinamica</option>
                             <option value="Idraulica">💧 Idraulica</option>
                         </select>
-                        <input type="text" id="excelNote" placeholder="es. Calcolo fatica albero AISI 304" data-i18n-holder="holderExcelNote" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
+                        <input type="text" id="excelNote" placeholder="es. Calcolo fatica albero AISI 304" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
                         <div id="dropzoneExcel" class="border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-400 bg-gray-50/50 dark:bg-slate-800/50 transition-colors rounded-lg p-4 text-center cursor-pointer">
                             <input type="file" id="excelFile" accept=".xlsx, .xls" class="hidden">
                             <div class="text-2xl mb-1">📂</div>
-                            <p id="textDropExcel" class="text-xs text-gray-600 dark:text-gray-400" data-i18n="dropExcel">Trascina qui il file Excel o clicca</p>
+                            <p id="textDropExcel" class="text-xs text-gray-600 dark:text-gray-400">Trascina qui il file Excel o clicca</p>
                         </div>
-                        <button id="btnUploadExcel" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-sm transition-colors cursor-pointer" data-i18n="btnCloud">Carica nel Cloud</button>
+                        <button id="btnUploadExcel" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-sm transition-colors cursor-pointer">Carica nel Cloud</button>
                     </div>
                 </div>
 
@@ -224,13 +225,13 @@
                         <span>📝</span> <span data-i18n="titleDocs">Documenti e Report</span>
                     </h2>
                     <div class="space-y-3">
-                        <input type="text" id="textTitle" placeholder="es. Specifica tecnica carter" data-i18n-holder="holderDocTitle" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
+                        <input type="text" id="textTitle" placeholder="es. Specifica tecnica carter" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
                         <div id="dropzoneDoc" class="border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 bg-gray-50/50 dark:bg-slate-800/50 transition-colors rounded-lg p-4 text-center cursor-pointer">
                             <input type="file" id="docFile" accept=".txt, .pdf, .docx" class="hidden">
                             <div class="text-2xl mb-1">📄</div>
-                            <p id="textDropDoc" class="text-xs text-gray-600 dark:text-gray-400" data-i18n="dropDoc">Trascina qui il documento o clicca</p>
+                            <p id="textDropDoc" class="text-xs text-gray-600 dark:text-gray-400">Trascina qui il documento o clicca</p>
                         </div>
-                        <button id="btnUploadDoc" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-sm transition-colors cursor-pointer" data-i18n="btnSaveDoc">Salva Documento</button>
+                        <button id="btnUploadDoc" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-sm transition-colors cursor-pointer">Salva Documento</button>
                     </div>
                 </div>
 
@@ -239,8 +240,8 @@
                         <span>📌</span> <span>Note Rapide Condivise</span>
                     </h2>
                     <div class="space-y-3">
-                        <textarea id="newNoteContent" rows="2" placeholder="Nota logistica o tecnica..." data-i18n-holder="holderNoteText" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none resize-none"></textarea>
-                        <button id="btnUploadNote" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-lg text-sm transition-colors cursor-pointer" data-i18n="btnSaveNote">Aggiungi Nota</button>
+                        <textarea id="newNoteContent" rows="2" placeholder="Nota logistica o tecnica..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none resize-none"></textarea>
+                        <button id="btnUploadNote" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-lg text-sm transition-colors cursor-pointer">Aggiungi Nota</button>
                         <div id="notesContainer" class="space-y-2 max-h-48 overflow-y-auto pt-2 border-t border-gray-200 dark:border-slate-800"></div>
                     </div>
                 </div>
@@ -249,20 +250,18 @@
             <div class="lg:col-span-2 space-y-6 flex flex-col justify-start">
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                        <div>
-                            <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                                <span>📁</span> <span data-i18n="archiveTitle">Archivio Cloud Attivo</span>
-                            </h2>
-                        </div>
-                        <input type="text" id="searchCloud" placeholder="Cerca nell'archivio..." data-i18n-holder="holderSearch" class="bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-xs rounded-lg px-3 py-2 focus:outline-none text-gray-800 dark:text-gray-100 w-full sm:w-64">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                            <span>📁</span> <span data-i18n="archiveTitle">Archivio Cloud Attivo</span>
+                        </h2>
+                        <input type="text" id="searchCloud" placeholder="Cerca nell'archivio..." class="bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-xs rounded-lg px-3 py-2 focus:outline-none text-gray-800 dark:text-gray-100 w-full sm:w-64">
                     </div>
                     <div class="overflow-x-auto archivio-scroll-container">
                         <table class="w-full text-left border-collapse text-sm">
                             <thead>
                                 <tr class="border-b border-gray-200 dark:border-slate-700 text-gray-500 text-xs font-bold tracking-wider uppercase bg-gray-50/70 dark:bg-slate-800/50">
-                                    <th class="p-3" data-i18n="thName">Nome Elemento</th>
+                                    <th class="p-3">Nome Elemento</th>
                                     <th class="p-3">Formato / Tipo</th>
-                                    <th class="p-3" data-i18n="thDetails">Note / Dettagli</th>
+                                    <th class="p-3">Note / Dettagli</th>
                                     <th class="p-3 text-center">Azioni</th>
                                 </tr>
                             </thead>
@@ -280,8 +279,8 @@
                             <thead>
                                 <tr class="border-b border-gray-200 dark:border-slate-700 text-gray-500 font-bold tracking-wider uppercase bg-gray-50 dark:bg-slate-800 sticky top-0">
                                     <th class="p-2.5">Data / Ora</th>
-                                    <th class="p-2.5" data-i18n="thName">Nome File / Oggetto</th>
-                                    <th class="p-2.5" data-i18n="thOp">Operazione Svolta</th>
+                                    <th class="p-2.5">Nome File / Oggetto</th>
+                                    <th class="p-2.5">Operazione Svolta</th>
                                     <th class="p-2.5 text-center">Ripulitura</th>
                                 </tr>
                             </thead>
@@ -296,7 +295,7 @@
             <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
                 <div class="flex items-center space-x-2">
                     <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                    <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.1.5</span></span>
+                    <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.1.6</span></span>
                 </div>
                 <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
             </div>
@@ -304,9 +303,7 @@
             <div id="chat-body" class="flex flex-col flex-grow">
                 <div id="chat-container" class="h-[220px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
                     <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">
-                        🤖 Benvenuto nell'Hub Co-Pilot. Chiedimi formule, calcoli o dettagli strutturali. 
-                        <br><br>
-                        <span class="text-emerald-400 font-semibold">💡 Info Localizzazione Europea:</span> Se la tua chiave Gemini è bloccata, il sistema devierà in automatico la conversazione su un server di fallback sicuro e gratuito per garantirti risposte immediate.
+                        🤖 Benvenuto nel Co-Pilot dell'Hub. Inserisci una chiave valida (AIzaSy) nel box sottostante per iniziare ad elaborare formule e calcoli meccanici in tempo reale.
                     </div>
                 </div>
 
@@ -323,7 +320,7 @@
                     </div>
 
                     <div class="flex gap-2">
-                        <input type="text" id="aiInput" placeholder="Chiedi al Co-Pilot..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-600">
+                        <input type="text" id="aiInput" placeholder="Chiedi al Co-Pilot (Premi Invio)..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-600">
                         <button id="aiSendBtn" onclick="window.askAI()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 rounded-lg text-xs transition-colors cursor-pointer">Invia</button>
                     </div>
                 </div>
@@ -331,7 +328,6 @@
         </div>
     </div>
 
-    <!-- SCRIPT GLOBALE STABILE (GESTIONE CHAT, LOGIN E TASTO INVIO) -->
     <script>
         function toggleCalcModal() { document.getElementById('calcModal')?.classList.toggle('hidden'); }
         function updateCalcFields() {
@@ -394,13 +390,19 @@
             window.updateKeyBadge(!!(savedKey && savedKey.startsWith("AIzaSy")));
         };
 
-        // CHAT ENGINE TOTALMENTE RIVISITATA E AGGIORNATA
+        // MOTORE DI CHAT CON CHIAMATA DIRETTA AD SDK GOOGLE GEMINI
         window.askAI = async () => {
             const inputEl = document.getElementById('aiInput');
             const container = document.getElementById('chat-container');
             const sendBtn = document.getElementById('aiSendBtn');
             const queryText = inputEl.value.trim();
             if (!queryText) return;
+
+            const savedKey = localStorage.getItem('GEMINI_HUB_KEY');
+            if (!savedKey || !savedKey.startsWith("AIzaSy")) {
+                alert("Inserisci una chiave API valida (AIzaSy) nel box prima di usare il Co-Pilot.");
+                return;
+            }
 
             inputEl.disabled = true; sendBtn.disabled = true;
             container.innerHTML += `<div class="bg-blue-600/10 border border-blue-500/20 p-2.5 rounded-lg text-slate-200 font-medium text-right max-w-[85%] ml-auto">👤 ${queryText}</div>`;
@@ -410,54 +412,34 @@
             container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">⚙️ Elaborazione Co-Pilot...</div>`;
             container.scrollTop = container.scrollHeight;
 
-            const savedKey = localStorage.getItem('GEMINI_HUB_KEY');
             let replyText = "";
-            let usedFallback = false;
+            try {
+                const promptIngegnere = `${queryText} (Rispondi brevemente in italiano come ingegnere strutturista e meccanico)`;
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${savedKey}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: promptIngegnere }] }] })
+                });
 
-            if (savedKey && savedKey.startsWith("AIzaSy")) {
-                try {
-                    const promptIngegnere = `${queryText} (Rispondi brevemente in italiano come ingegnere strutturista)`;
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${savedKey}`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: promptIngegnere }] }] })
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
+                if (response.ok) {
+                    const data = await response.json();
+                    if(data.candidates && data.candidates[0].content.parts[0].text) {
                         replyText = data.candidates[0].content.parts[0].text;
                     } else {
-                        usedFallback = true;
+                        replyText = "⚠️ Risposta vuota ricevuta da Google AI Studio. Controlla i permessi della chiave.";
                     }
-                } catch (e) {
-                    usedFallback = true;
+                } else {
+                    const errData = await response.json();
+                    replyText = `⚠️ Errore API Google: ${errData.error?.message || "Chiave non valida o non attiva"}`;
                 }
-            } else {
-                usedFallback = true;
+            } catch (e) {
+                replyText = "⚠️ Errore di connessione con i server di Google Gemini.";
             }
 
-            // BACKUP ULTRA-STABILE E FUNZIONANTE CON MODELLO AGGIORNATO
-            if (usedFallback) {
-                try {
-                    const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(queryText)}?model=searchgpt&system=Sei+un+ingegnere+strutturista.+Rispondi+in+italiano+in+modo+corto.`);
-                    if (response.ok) {
-                        replyText = await response.text();
-                    } else {
-                        replyText = "⚠️ Impossibile contattare i server della chat di riserva. Riprova tra pochi istanti.";
-                    }
-                } catch (err) {
-                    replyText = "⚠️ Errore di rete durante la connessione al server europeo.";
-                }
-            }
-            
             document.getElementById(loadingId)?.remove();
             const replyDiv = document.createElement('div');
             replyDiv.className = "bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-slate-300 max-w-[90%] font-normal leading-relaxed text-xs";
             
-            if (usedFallback) {
-                replyText = "*[Nota Hub: Richiesta gestita tramite server di backup europeo]* \n\n" + replyText;
-            }
-
             replyDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(replyText) : replyText.replace(/\n/g, "<br>");
             container.appendChild(replyDiv);
             
@@ -468,26 +450,8 @@
             container.scrollTop = container.scrollHeight;
         };
 
-        // GESTIONE SBLOCCO COMODO: TASTO INVIO OVUNQUE
-        document.addEventListener('DOMContentLoaded', () => {
-            // Invio nella Chat
-            document.getElementById('aiInput')?.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') { e.preventDefault(); window.askAI(); }
-            });
-            // Invio nel Login User
-            document.getElementById('loginUser')?.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') { document.getElementById('loginPass').focus(); }
-            });
-            // Invio nel Login Password
-            document.getElementById('loginPass')?.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') { e.preventDefault(); window.verifyHubLogin(); }
-            });
-            
-            window.checkGeminiKeyStatus();
-        });
-
         let isChatCollapsed = false;
-        window.toggleChatCollapse = () => {
+        function toggleChatCollapse() {
             const body = document.getElementById('chat-body');
             const btn = document.getElementById('collapse-chat-btn');
             if(body && btn) {
@@ -495,13 +459,24 @@
                 body.classList.toggle('hidden', isChatCollapsed);
                 btn.textContent = isChatCollapsed ? "➕" : "➖";
             }
-        };
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('aiInput')?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); window.askAI(); }
+            });
+            document.getElementById('loginUser')?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { document.getElementById('loginPass').focus(); }
+            });
+            document.getElementById('loginPass')?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); window.verifyHubLogin(); }
+            });
+        });
     </script>
 
-    <!-- COMPONENTE MODULO ISOLATO SOLO PER LE CHIAMATE ESTERNE FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM",
@@ -512,61 +487,142 @@
             appId: "1:58933321877:web:1e3f4630edc9f192865077"
         };
 
-        // Avvio protetto di Firebase per evitare crash a cascata globale
-        try {
-            const db = getFirestore(initializeApp(firebaseConfig));
+        const db = getFirestore(initializeApp(firebaseConfig));
 
-            window.toggleSidebar = () => { document.getElementById('sidebar')?.classList.toggle('-translate-x-full'); };
-            window.toggleNewsSidebar = () => { document.getElementById('newsSidebar')?.classList.toggle('translate-x-full'); };
-            window.changeLanguage = (lang) => { };
-            window.toggleTheme = () => { document.documentElement.classList.toggle('dark'); };
+        // Gestione Menu Laterali
+        window.toggleSidebar = () => { document.getElementById('sidebar')?.classList.toggle('-translate-x-full'); };
+        window.toggleNewsSidebar = () => { document.getElementById('newsSidebar')?.classList.toggle('translate-x-full'); };
+        window.changeLanguage = (lang) => { };
+        window.toggleTheme = () => { document.documentElement.classList.toggle('dark'); };
 
-            onSnapshot(query(collection(db, "notesHub"), orderBy("createdAt", "desc")), (snap) => {
-                const stat = document.getElementById('statNotes'); if(stat) stat.textContent = snap.size;
-                const container = document.getElementById('notesContainer'); if(!container) return; container.innerHTML = "";
-                snap.forEach(d => {
-                    const div = document.createElement('div'); div.className = "bg-gray-50/80 dark:bg-slate-800/80 p-2 rounded border border-gray-200 dark:border-slate-700 flex justify-between items-start text-xs text-gray-700 dark:text-gray-300 shadow-2xs";
-                    div.innerHTML = `<p class="break-words pr-2">${d.data().content}</p><button onclick="window.deleteNote('${d.id}')" class="text-gray-400 hover:text-red-600">✕</button>`;
-                    container.appendChild(div);
-                });
-            });
-            window.deleteNote = async (id) => { await deleteDoc(doc(db, "notesHub", id)); };
-
-            let allExcelFiles = [], allTextFiles = [];
-            onSnapshot(query(collection(db, "excelHub"), orderBy("uploadedAt", "desc")), (s) => { 
-                const stat = document.getElementById('statExcel'); if(stat) stat.textContent = s.size; 
-                allExcelFiles = []; s.forEach(d => allExcelFiles.push({id: d.id, ...d.data(), isExcel: true})); 
-                combineAndRenderArchive(); 
-            });
-            onSnapshot(query(collection(db, "textHub"), orderBy("uploadedAt", "desc")), (s) => { 
-                const stat = document.getElementById('statDocs'); if(stat) stat.textContent = s.size; 
-                allTextFiles = []; s.forEach(d => allTextFiles.push({id: d.id, ...d.data(), isExcel: false})); 
-                combineAndRenderArchive(); 
-            });
-
-            function combineAndRenderArchive() {
-                const body = document.getElementById('archiveTableBody'); if(!body) return; body.innerHTML = "";
-                let combined = [...allExcelFiles, ...allTextFiles];
-                combined.forEach(f => {
-                    const tr = document.createElement('tr'); tr.className = "text-xs text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-800";
-                    if(f.isExcel) {
-                        tr.innerHTML = `<td class="p-3 font-medium">${f.name}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td><td class="p-3 text-gray-500">Ramo: ${f.branch}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', true)" class="text-red-500 hover:underline">Elimina</button></td>`;
-                    } else {
-                        tr.innerHTML = `<td class="p-3 font-medium">${f.title}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${f.fileType}</span></td><td class="p-3 text-gray-500">${f.fileName}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', false)" class="text-red-500 hover:underline">Elimina</button></td>`;
-                    }
-                    body.appendChild(tr);
-                });
-            }
-
-            window.deleteCloudItem = async (id, isExcel) => {
-                if(confirm("Eliminare l'elemento?")) {
-                    if(isExcel) await deleteDoc(doc(db, "excelHub", id));
-                    else await deleteDoc(doc(db, "textHub", id));
+        // 1. GESTIONE TEAM / ISCRIZIONI
+        const btnReg = document.getElementById('btnRegister');
+        if (btnReg) {
+            btnReg.onclick = async () => {
+                const name = document.getElementById('regName').value.trim();
+                const contact = document.getElementById('regContact').value.trim();
+                if(name && contact) {
+                    await addDoc(collection(db, "teamHub"), { name, contact, joinedAt: serverTimestamp() });
+                    document.getElementById('regName').value = "";
+                    document.getElementById('regContact').value = "";
+                    alert("Registrazione effettuata con successo!");
                 }
             };
-        } catch (error) {
-            console.error("Firebase init bypass:", error);
         }
+
+        onSnapshot(query(collection(db, "teamHub"), orderBy("joinedAt", "desc")), (snap) => {
+            const container = document.getElementById('teamContainer');
+            if(container) {
+                container.innerHTML = "";
+                snap.forEach(d => {
+                    const p = document.createElement('p'); p.className = "text-xs bg-white dark:bg-slate-900 p-1.5 rounded border border-gray-100 dark:border-slate-800 font-medium text-gray-700 dark:text-gray-300";
+                    p.innerHTML = `👤 <b>${d.data().name}</b> (${d.data().contact})`;
+                    container.appendChild(p);
+                });
+            }
+        });
+
+        // 2. GESTIONE NEWS & BACHECA
+        const btnNews = document.getElementById('btnSendNews');
+        if(btnNews) {
+            btnNews.onclick = async () => {
+                const content = document.getElementById('newsContent').value.trim();
+                if(content) {
+                    await addDoc(collection(db, "newsHub"), { content, createdAt: serverTimestamp() });
+                    document.getElementById('newsContent').value = "";
+                }
+            };
+        }
+
+        onSnapshot(query(collection(db, "newsHub"), orderBy("createdAt", "desc")), (snap) => {
+            const container = document.getElementById('newsHistoryContainer');
+            if(container) {
+                container.innerHTML = "";
+                snap.forEach(d => {
+                    const div = document.createElement('div'); div.className = "bg-purple-50/50 dark:bg-purple-950/10 p-2.5 rounded-lg border border-purple-100 dark:border-purple-900/40 text-xs text-gray-700 dark:text-gray-300";
+                    div.innerHTML = `<p class="break-words font-medium">${d.data().content}</p>`;
+                    container.appendChild(div);
+                });
+            }
+        });
+
+        // 3. GESTIONE NOTE RAPIDE CONDIVISE
+        const btnNote = document.getElementById('btnUploadNote');
+        if(btnNote) {
+            btnNote.onclick = async () => {
+                const content = document.getElementById('newNoteContent').value.trim();
+                if(content) {
+                    await addDoc(collection(db, "notesHub"), { content, createdAt: serverTimestamp() });
+                    document.getElementById('newNoteContent').value = "";
+                    // Registra nello storico attività
+                    await addDoc(collection(db, "historyHub"), { name: "Nota Rapida", operation: "Aggiunta nota condivisa", timestamp: serverTimestamp() });
+                }
+            };
+        }
+
+        onSnapshot(query(collection(db, "notesHub"), orderBy("createdAt", "desc")), (snap) => {
+            if(document.getElementById('statNotes')) document.getElementById('statNotes').textContent = snap.size;
+            const container = document.getElementById('notesContainer'); if(!container) return; container.innerHTML = "";
+            snap.forEach(d => {
+                const div = document.createElement('div'); div.className = "bg-gray-50/80 dark:bg-slate-800/80 p-2 rounded border border-gray-200 dark:border-slate-700 flex justify-between items-start text-xs text-gray-700 dark:text-gray-300 shadow-2xs";
+                div.innerHTML = `<p class="break-words pr-2">${d.data().content}</p><button onclick="window.deleteNote('${d.id}')" class="text-gray-400 hover:text-red-600">✕</button>`;
+                container.appendChild(div);
+            });
+        });
+        window.deleteNote = async (id) => { await deleteDoc(doc(db, "notesHub", id)); };
+
+        // 4. ARCHIVIO CLOUD (EXCEL E DOCUMENTI)
+        let allExcelFiles = [], allTextFiles = [];
+        onSnapshot(query(collection(db, "excelHub"), orderBy("uploadedAt", "desc")), (s) => { 
+            if(document.getElementById('statExcel')) document.getElementById('statExcel').textContent = s.size; 
+            allExcelFiles = []; s.forEach(d => allExcelFiles.push({id: d.id, ...d.data(), isExcel: true})); 
+            combineAndRenderArchive(); 
+        });
+        onSnapshot(query(collection(db, "textHub"), orderBy("uploadedAt", "desc")), (s) => { 
+            if(document.getElementById('statDocs')) document.getElementById('statDocs').textContent = s.size; 
+            allTextFiles = []; s.forEach(d => allTextFiles.push({id: d.id, ...d.data(), isExcel: false})); 
+            combineAndRenderArchive(); 
+        });
+
+        function combineAndRenderArchive() {
+            const body = document.getElementById('archiveTableBody'); if(!body) return; body.innerHTML = "";
+            let combined = [...allExcelFiles, ...allTextFiles];
+            combined.forEach(f => {
+                const tr = document.createElement('tr'); tr.className = "text-xs text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-800";
+                if(f.isExcel) {
+                    tr.innerHTML = `<td class="p-3 font-medium">${f.name}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td><td class="p-3 text-gray-500">Ramo: ${f.branch}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', true)" class="text-red-500 hover:underline">Elimina</button></td>`;
+                } else {
+                    tr.innerHTML = `<td class="p-3 font-medium">${f.title}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${f.fileType}</span></td><td class="p-3 text-gray-500">${f.fileName}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', false)" class="text-red-500 hover:underline">Elimina</button></td>`;
+                }
+                body.appendChild(tr);
+            });
+        }
+
+        window.deleteCloudItem = async (id, isExcel) => {
+            if(confirm("Eliminare l'elemento dall'archivio cloud?")) {
+                if(isExcel) await deleteDoc(doc(db, "excelHub", id));
+                else await deleteDoc(doc(db, "textHub", id));
+                await addDoc(collection(db, "historyHub"), { name: "File rimosso", operation: "Cancellazione file dall'archivio", timestamp: serverTimestamp() });
+            }
+        };
+
+        // 5. REGISTRO STORICO ATTIVITÀ (RIPRISTINATO)
+        onSnapshot(query(collection(db, "historyHub"), orderBy("timestamp", "desc")), (snap) => {
+            const body = document.getElementById('historyTableBody'); if(!body) return; body.innerHTML = "";
+            snap.forEach(d => {
+                const data = d.data();
+                const dateStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('it-IT') : "In corso...";
+                const tr = document.createElement('tr'); tr.className = "border-b border-gray-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors";
+                tr.innerHTML = `<td class="p-2.5 font-mono text-[11px] text-purple-600 dark:text-purple-400">${dateStr}</td><td class="p-2.5 font-medium">${data.name}</td><td class="p-2.5 text-gray-500">${data.operation}</td><td class="p-2.5 text-center"><button onclick="window.deleteHistoryItem('${d.id}')" class="text-gray-400 hover:text-red-500 font-bold">✕</button></td>`;
+                body.appendChild(tr);
+            });
+        });
+
+        window.deleteHistoryItem = async (id) => {
+            if(confirm("Rimuovere questa riga di log dallo storico?")) {
+                await deleteDoc(doc(db, "historyHub", id));
+            }
+        };
     </script>
 </body>
 </html>
