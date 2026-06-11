@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Cloud Hub - V2.1.6</title>
+    <title>Engineering Cloud Hub - V2.1.7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -48,6 +48,7 @@
 </head>
 <body class="bg-slate-50 text-gray-800 dark:bg-slate-950 dark:text-gray-100 min-h-screen relative overflow-x-hidden">
 
+    <!-- SCHERMATA DI LOGIN OBBLIGATORIO -->
     <div id="loginBlocker" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 max-w-sm w-full text-center">
             <div class="text-3xl mb-2">🔐</div>
@@ -61,6 +62,7 @@
         </div>
     </div>
 
+    <!-- CONTENUTO PRINCIPALE DELL'HUB -->
     <div id="hubMainContent" class="hidden">
         <nav class="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-40 dark:bg-black">
             <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
@@ -77,7 +79,7 @@
                     <div class="h-5 w-px bg-slate-700 hidden sm:block mx-2"></div>
                     <div class="flex items-center gap-2">
                         <h1 class="text-lg sm:text-xl font-bold tracking-wide text-white flex items-center gap-2">
-                            Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.1.6</span>
+                            Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.1.7</span>
                         </h1>
                     </div>
                 </div>
@@ -98,6 +100,7 @@
             </div>
         </nav>
 
+        <!-- CALCOLATORE PESO -->
         <div id="calcModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
             <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 dark:border-slate-800">
                 <div class="flex justify-between items-center p-4 border-b border-gray-100 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 z-10">
@@ -149,6 +152,7 @@
             </div>
         </div>
 
+        <!-- SIDEBAR SINISTRA (TEAM, ISCRIVITI & CONFIG TELEGRAM) -->
         <div id="sidebar" class="fixed top-0 left-0 h-full w-85 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl border-r border-gray-200 dark:border-slate-800 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto p-4">
             <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-2 mb-4">
                 <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
@@ -156,6 +160,8 @@
                 </h2>
                 <button onclick="toggleSidebar()" class="text-gray-400 hover:text-red-500 font-bold p-1 text-lg cursor-pointer">✕</button>
             </div>
+            
+            <!-- ISCRIZIONE TEAM -->
             <div class="mb-4 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xs">
                 <h3 class="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5 tracking-wider">Registrati all'Hub</h3>
                 <div class="space-y-2">
@@ -165,6 +171,19 @@
                 </div>
                 <div id="teamContainer" class="mt-3 space-y-1.5 max-h-32 overflow-y-auto"></div>
             </div>
+
+            <!-- INTEGRAZIONE TELEGRAM (RIPRISTINATA) -->
+            <div class="mb-4 p-3 bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-900 rounded-xl shadow-xs">
+                <h3 class="text-xs font-bold uppercase text-sky-800 dark:text-sky-400 mb-1.5 tracking-wider flex items-center gap-1">
+                    <span>✈️</span> Configurazione Telegram Bot
+                </h3>
+                <div class="space-y-2">
+                    <input type="password" id="tgToken" placeholder="Bot Token (bot123456...)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:border-sky-500 text-gray-800 dark:text-gray-100 font-mono">
+                    <input type="text" id="tgChatId" placeholder="Chat ID / Canale ID (-100...)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:border-sky-500 text-gray-800 dark:text-gray-100 font-mono">
+                    <button onclick="window.saveTelegramConfig()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-1.5 rounded-lg text-xs transition-colors cursor-pointer">Salva Credenziali Telegram</button>
+                </div>
+            </div>
+
             <div class="mb-4">
                 <h3 class="text-xs font-bold uppercase text-gray-400 mb-1.5 tracking-wider">Dati Generali del Cloud</h3>
                 <div class="grid grid-cols-1 gap-1.5">
@@ -184,6 +203,7 @@
             </div>
         </div>
 
+        <!-- SIDEBAR DESTRA (NEWS & BACHECA) -->
         <div id="newsSidebar" class="fixed top-0 right-0 h-full w-85 sm:w-96 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl border-l border-gray-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto p-4">
             <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-2 mb-4">
                 <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
@@ -192,14 +212,16 @@
                 <button onclick="toggleNewsSidebar()" class="text-gray-400 hover:text-red-500 font-bold p-1 text-lg cursor-pointer">✕</button>
             </div>
             <div class="mb-4 p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 rounded-xl shadow-xs">
-                <textarea id="newsContent" rows="3" placeholder="Scrivi un update..." class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:border-purple-500 text-gray-800 dark:text-gray-100 resize-none"></textarea>
+                <textarea id="newsContent" rows="3" placeholder="Scrivi un update da inviare anche su Telegram..." class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:border-purple-500 text-gray-800 dark:text-gray-100 resize-none"></textarea>
                 <button id="btnSendNews" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg text-xs mt-2 transition-colors cursor-pointer">Invia News</button>
             </div>
             <div id="newsHistoryContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
         </div>
 
+        <!-- GRIGLIA CENTRALE AZIONI -->
         <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="space-y-6 lg:col-span-1">
+                <!-- CARICA EXCEL -->
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
                     <h2 class="text-lg font-bold text-emerald-700 dark:text-emerald-400 mb-3 flex items-center gap-2">
                         <span>⚙️</span> <span data-i18n="titleExcel">File Excel Calcoli</span>
@@ -220,6 +242,7 @@
                     </div>
                 </div>
 
+                <!-- CARICA REPORT -->
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
                     <h2 class="text-lg font-bold text-blue-700 dark:text-blue-400 mb-3 flex items-center gap-2">
                         <span>📝</span> <span data-i18n="titleDocs">Documenti e Report</span>
@@ -235,6 +258,7 @@
                     </div>
                 </div>
 
+                <!-- NOTE CONDIVISE -->
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
                     <h2 class="text-lg font-bold text-amber-700 dark:text-amber-400 mb-3 flex items-center gap-2">
                         <span>📌</span> <span>Note Rapide Condivise</span>
@@ -247,6 +271,7 @@
                 </div>
             </div>
 
+            <!-- COLONNA REGISTRI E ARCHIVIO -->
             <div class="lg:col-span-2 space-y-6 flex flex-col justify-start">
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
@@ -270,6 +295,7 @@
                     </div>
                 </div>
 
+                <!-- REGISTRO STORICO ATTIVITÀ -->
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
                     <h2 class="text-lg font-bold text-purple-800 dark:text-purple-400 flex items-center gap-2">
                         <span>⏱️</span> <span data-i18n="historyTitle">Registro Storico Attività</span>
@@ -291,11 +317,12 @@
             </div>
         </main>
 
+        <!-- WIDGET CHAT CO-PILOT -->
         <div id="ai-chat-widget" class="fixed bottom-4 right-4 w-96 bg-slate-900 text-slate-100 rounded-xl shadow-2xl border border-slate-800 z-50 overflow-hidden flex flex-col transition-all duration-300">
             <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
                 <div class="flex items-center space-x-2">
                     <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                    <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.1.6</span></span>
+                    <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.1.7</span></span>
                 </div>
                 <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
             </div>
@@ -328,6 +355,7 @@
         </div>
     </div>
 
+    <!-- LOGICHE GLOBALI DI INTERFACCIA E CHAT BOT STRUTTURATA -->
     <script>
         function toggleCalcModal() { document.getElementById('calcModal')?.classList.toggle('hidden'); }
         function updateCalcFields() {
@@ -359,6 +387,7 @@
                 document.getElementById('loginBlocker').remove();
                 document.getElementById('hubMainContent').classList.remove('hidden');
                 window.checkGeminiKeyStatus();
+                window.loadTelegramConfig();
             } else {
                 document.getElementById('loginError').classList.remove('hidden');
             }
@@ -388,6 +417,44 @@
         window.checkGeminiKeyStatus = () => {
             const savedKey = localStorage.getItem('GEMINI_HUB_KEY');
             window.updateKeyBadge(!!(savedKey && savedKey.startsWith("AIzaSy")));
+        };
+
+        // GESTIONE TELEGRAM LOCALSTORAGE (RIPRISTINATA)
+        window.saveTelegramConfig = () => {
+            const token = document.getElementById('tgToken').value.trim();
+            const chatId = document.getElementById('tgChatId').value.trim();
+            if(token && chatId) {
+                localStorage.setItem('TG_BOT_TOKEN', token);
+                localStorage.setItem('TG_CHAT_ID', chatId);
+                alert("Configurazione Telegram salvata nel browser!");
+            } else {
+                alert("Riempi entrambi i campi di Telegram.");
+            }
+        };
+
+        window.loadTelegramConfig = () => {
+            const token = localStorage.getItem('TG_BOT_TOKEN');
+            const chatId = localStorage.getItem('TG_CHAT_ID');
+            if(token && chatId) {
+                if(document.getElementById('tgToken')) document.getElementById('tgToken').value = token;
+                if(document.getElementById('tgChatId')) document.getElementById('tgChatId').value = chatId;
+            }
+        };
+
+        // FUNZIONE LOGICA COMPLETA INVIO TELEGRAM
+        window.sendTelegramNotification = async (message) => {
+            const token = localStorage.getItem('TG_BOT_TOKEN');
+            const chatId = localStorage.getItem('TG_CHAT_ID');
+            if(!token || !chatId) return; // Ignora se non configurato
+            try {
+                await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ chat_id: chatId, text: message })
+                });
+            } catch (e) {
+                console.error("Errore nell'invio a Telegram: ", e);
+            }
         };
 
         // MOTORE DI CHAT CON CHIAMATA DIRETTA AD SDK GOOGLE GEMINI
@@ -474,6 +541,7 @@
         });
     </script>
 
+    <!-- MOTORE INTEGRALE FIREBASE PER STORICI, NEWS E TEAM -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -522,13 +590,16 @@
             }
         });
 
-        // 2. GESTIONE NEWS & BACHECA
+        // 2. GESTIONE NEWS & BACHECA + INVIO TELEGRAM CONTEMPORANEO
         const btnNews = document.getElementById('btnSendNews');
         if(btnNews) {
             btnNews.onclick = async () => {
                 const content = document.getElementById('newsContent').value.trim();
                 if(content) {
+                    // Salva su Firebase
                     await addDoc(collection(db, "newsHub"), { content, createdAt: serverTimestamp() });
+                    // Notifica Telegram in Background
+                    window.sendTelegramNotification(`📢 NUOVO UPDATE HUB:\n${content}`);
                     document.getElementById('newsContent').value = "";
                 }
             };
@@ -554,7 +625,6 @@
                 if(content) {
                     await addDoc(collection(db, "notesHub"), { content, createdAt: serverTimestamp() });
                     document.getElementById('newNoteContent').value = "";
-                    // Registra nello storico attività
                     await addDoc(collection(db, "historyHub"), { name: "Nota Rapida", operation: "Aggiunta nota condivisa", timestamp: serverTimestamp() });
                 }
             };
@@ -606,7 +676,7 @@
             }
         };
 
-        // 5. REGISTRO STORICO ATTIVITÀ (RIPRISTINATO)
+        // 5. REGISTRO STORICO ATTIVITÀ
         onSnapshot(query(collection(db, "historyHub"), orderBy("timestamp", "desc")), (snap) => {
             const body = document.getElementById('historyTableBody'); if(!body) return; body.innerHTML = "";
             snap.forEach(d => {
