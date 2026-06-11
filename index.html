@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Cloud Hub - V2.0.7</title>
+    <title>Engineering Cloud Hub - V2.0.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -51,7 +51,7 @@
                 <div class="h-5 w-px bg-slate-700 hidden sm:block mx-2"></div>
                 <div class="flex items-center gap-2">
                     <h1 class="text-lg sm:text-xl font-bold tracking-wide text-white flex items-center gap-2">
-                        Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.0.7</span>
+                        Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.0.6</span>
                     </h1>
                     <button onclick="toggleStyleModal()" class="text-gray-400 hover:text-amber-400 text-lg transition-colors cursor-pointer p-1" title="Visualizza Standard Formattazione Excel">
                         🎨
@@ -347,7 +347,7 @@
         <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
             <div class="flex items-center space-x-2">
                 <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.0.7</span></span>
+                <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.0.6</span></span>
             </div>
             <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
         </div>
@@ -360,20 +360,19 @@
             </div>
 
             <div class="border-t border-slate-800 p-3 bg-slate-900">
-                <div id="gemini-key-container" class="mb-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex flex-col gap-2.5 hidden">
+                <div id="gemini-key-container" class="mb-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex flex-col gap-2.5">
                     <div class="flex items-center justify-between border-b border-amber-500/20 pb-1.5">
-                        <span class="text-[11px] font-bold text-amber-500 uppercase tracking-wide flex items-center gap-1">
+                        <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wide flex items-center gap-1">
                             🔑 Configurazione API Gemini
                         </span>
-                        <span class="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded font-mono font-bold">Gratuito</span>
+                        <span class="text-[9px] bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded font-mono font-bold">Gratuito</span>
                     </div>
                     
                     <div class="text-[10px] text-slate-400 leading-normal space-y-1 bg-slate-950/40 p-2 rounded border border-slate-800">
                         <p class="text-slate-300 font-medium">Come ottenere la chiave in 30 secondi:</p>
-                        <p>1. Vai su <a href="https://aistudio.google.com/" target="_blank" class="text-amber-400 hover:underline inline-flex items-center font-semibold">Google AI Studio ↗</a> ed effettua l'accesso con il tuo account Google.</p>
-                        <p>2. Clicca sul pulsante blu in alto a sinistra <strong>"Get API key"</strong>.</p>
-                        <p>3. Clicca su <strong>"Create API key"</strong>, seleziona un progetto e copia il codice generato (inizia con <code>AIzaSy...</code>).</p>
-                        <p class="text-slate-500 italic mt-1">Nota: La chiave rimane memorizzata esclusivamente in locale sul tuo browser (localStorage).</p>
+                        <p>1. Vai su <a href="https://aistudio.google.com/" target="_blank" class="text-amber-400 hover:underline inline-flex items-center font-semibold">Google AI Studio ↗</a></p>
+                        <p>2. Clicca in alto a sinistra su <strong>"Get API key"</strong>.</p>
+                        <p>3. Crea la chiave e incolla il codice (inizia con <code>AIzaSy...</code>) sotto.</p>
                     </div>
 
                     <div class="flex gap-2 mt-0.5">
@@ -532,41 +531,40 @@
             }
         };
 
-// 1. SALVATAGGIO DELLA CHIAVE AGGANCIATO A WINDOW
+        // SALVATAGGIO DELLA CHIAVE CORRETTO CON RIMOZIONE CLASSI TAILWIND TAILORED
         window.saveGeminiKey = () => {
             const keyInput = document.getElementById('geminiApiKey');
+            const container = document.getElementById('gemini-key-container');
             const key = keyInput.value.trim();
+            
             if (key) {
                 localStorage.setItem('GEMINI_HUB_KEY', key);
-                document.getElementById('gemini-key-container').classList.add('hidden');
-                // Usiamo la funzione showToast nativa del tuo Hub
-                if (typeof showToast === "function") {
-                    showToast("Chiave API salvata! Connessione Gemini attiva.");
-                } else {
-                    alert("Chiave API salvata con successo!");
+                if (container) {
+                    container.classList.add('hidden'); 
                 }
+                showToast("Chiave API Gemini memorizzata in locale!");
             } else {
                 alert('Inserisci una chiave valida.');
             }
         };
 
-        // 2. FUNZIONE SINCRA PER CONTROLLARE LA CHIAVE ALL'AVVIO
+        // CONTROLLO STATO CHIAVE ALL'AVVIO AGGIORNATO E FLUIDO
         window.checkGeminiKeyStatus = () => {
             const savedKey = localStorage.getItem('GEMINI_HUB_KEY');
             const container = document.getElementById('gemini-key-container');
             if (container) {
                 if (savedKey && savedKey.startsWith("AIzaSy")) {
-                    container.classList.add('hidden'); 
+                    container.classList.add('hidden');
                 } else {
-                    container.classList.remove('hidden'); 
+                    container.classList.remove('hidden');
                 }
             }
         };
 
-        // Esegui il controllo al caricamento completo
+        // Eseguiamo il controllo della chiave all'avvio della pagina
         window.addEventListener('load', window.checkGeminiKeyStatus);
 
-        // 3. ENGINE AI COMPLETO - LEGGE LA CHIAVE REAL-TIME AD OGNI INVIA
+        // ASYNC CORE ENGINE CON STRUTTURA LOGICA CORRETTA PER LOCAL/PAGES E PARSER ESTERNO
         window.askAI = async () => {
             const inputEl = document.getElementById('aiInput');
             const container = document.getElementById('chat-container');
@@ -577,7 +575,6 @@
             inputEl.disabled = true;
             sendBtn.disabled = true;
 
-            // Mostra il messaggio dell'utente nella chat
             container.innerHTML += `<div class="bg-blue-600/10 border border-blue-500/20 p-2.5 rounded-lg text-slate-200 font-medium text-right max-w-[85%] ml-auto">👤 ${queryText}</div>`;
             inputEl.value = "";
             
@@ -585,38 +582,32 @@
             container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">⚙️ Elaborazione Co-Pilot...</div>`;
             container.scrollTop = container.scrollHeight;
 
-            // RECUOPERO CRITICO: Leggiamo dal localStorage ORA, non all'avvio della pagina
             const savedKey = localStorage.getItem('GEMINI_HUB_KEY');
             let replyText = "";
 
             try {
-                // Se c'è la chiave valida, interroga direttamente i server ufficiali di Google Gemini
                 if (savedKey && savedKey.startsWith("AIzaSy")) {
-                   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${savedKey}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-        contents: [{
-            parts: [{
-                text: queryText + " (Rispondi brevemente come ingegnere strutturista, usa LaTeX $...$ per le formule)"
-            }]
-        }]
-    })
-});
-                    
-                    if (!response.ok) {
-                        throw new Error("Errore API Gemini: " + response.status);
-                    }
-                    
+                    // Chiamata standard robusta per Google Gemini API
+                    const promptIngegnere = `${queryText} (Rispondi brevemente in italiano come ingegnere strutturista, usa LaTeX $...$ per le formule matematiche)`;
+
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${savedKey}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            contents: [{
+                                role: "user",
+                                parts: [{ text: promptIngegnere }]
+                            }]
+                        })
+                    });
+
+                    if (!response.ok) throw new Error("Errore API Gemini: " + response.status);
+
                     const data = await response.json();
-                    if (data.candidates && data.candidates[0].content.parts[0].text) {
-                        replyText = data.candidates[0].content.parts[0].text;
-                    } else {
-                        throw new Error("Risposta Gemini non valida");
-                    }
+                    replyText = data.candidates[0].content.parts[0].text;
                 } else {
-                    // Se non c'è la chiave, usa Pollinations come server di riserva
-                    const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(queryText)}?model=openai&system=Sei un ingegnere strutturista. Risposte corte. Usa LaTeX per formule $...$.`);
+                    // Fallback di cortesia su Pollinations
+                    const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(queryText)}?model=openai&system=Sei un ingegnere strutturista. Risposte corte e coincise. Usa LaTeX per formule $...$.`);
                     if (!response.ok) throw new Error("Server di riserva saturo");
                     replyText = await response.text();
                 }
@@ -626,15 +617,15 @@
                 const replyDiv = document.createElement('div');
                 replyDiv.className = "bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-slate-300 max-w-[90%] font-normal leading-relaxed text-xs";
                 
-                // Formatta l'output usando marked se presente
+                // Formattazione coerente con marked.js per proteggere i font dell'Hub
                 replyDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(replyText) : replyText.replace(/\n/g, "<br>");
                 container.appendChild(replyDiv);
                 
             } catch (err) {
                 console.error(err);
                 document.getElementById(loadingId)?.remove();
-                // Se fallisce, mostra il messaggio di errore cliccabile per riaprire il box e controllare la chiave
-                container.innerHTML += `<div onclick="document.getElementById('gemini-key-container').classList.remove('hidden')" class="text-amber-500 font-mono text-[11px] p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg cursor-pointer hover:bg-amber-500/20 transition-colors">⚠️ Connessione interrotta o Chiave errata. Clicca qui per verificare o reimpostare la tua API Key di Gemini.</div>`;
+                // FIX CRITICO DEL CLIC: rimosso .style.display, ora usa classList.remove per battere Tailwind
+                container.innerHTML += `<div onclick="document.getElementById('gemini-key-container').classList.remove('hidden')" class="text-amber-500 font-mono text-[11px] p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg cursor-pointer hover:bg-amber-500/20 transition-colors">⚠️ Connessione interrotta o Chiave errata. Clicca qui per configurare o reimpostare la tua API Key di Gemini.</div>`;
             }
             
             inputEl.disabled = false;
@@ -647,7 +638,6 @@
             container.scrollTop = container.scrollHeight;
         };
 
-        // Listener per l'invio premendo "Invio" nella chat
         document.getElementById('aiInput')?.addEventListener('keydown', (e) => { 
             if(e.key === 'Enter') window.askAI(); 
         });
