@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Cloud Hub - V2.0.9</title>
+    <title>Engineering Cloud Hub - V2.1.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -28,6 +28,20 @@
         .chat-scroll-container {
             max-height: 280px !important;
             overflow-y: auto !important;
+        }
+        /* SCROLLBAR PERSONALIZZATA ED ELEGANTE PER LA CHATBOT */
+        #chat-container::-webkit-scrollbar {
+            width: 5px;
+        }
+        #chat-container::-webkit-scrollbar-track {
+            background: #020617; /* bg-slate-950 */
+        }
+        #chat-container::-webkit-scrollbar-thumb {
+            background: #334155; /* bg-slate-700 */
+            border-radius: 9999px;
+        }
+        #chat-container::-webkit-scrollbar-thumb:hover {
+            background: #475569; /* bg-slate-650 */
         }
     </style>
 	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -65,7 +79,7 @@
                     <div class="h-5 w-px bg-slate-700 hidden sm:block mx-2"></div>
                     <div class="flex items-center gap-2">
                         <h1 class="text-lg sm:text-xl font-bold tracking-wide text-white flex items-center gap-2">
-                            Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.0.9</span>
+                            Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.1.0</span>
                         </h1>
                         <button onclick="toggleStyleModal()" class="text-gray-400 hover:text-amber-400 text-lg transition-colors cursor-pointer p-1" title="Visualizza Standard Formattazione Excel">
                             🎨
@@ -358,13 +372,13 @@
             <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
                 <div class="flex items-center space-x-2">
                     <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                    <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.0.9</span></span>
+                    <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.1.0</span></span>
                 </div>
                 <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
             </div>
             
             <div id="chat-body" class="flex flex-col flex-grow">
-                <div id="chat-container" class="h-[220px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed">
+                <div id="chat-container" class="h-[220px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
                     <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">
                         🤖 Benvenuto nell'Hub Co-Pilot. Chiedimi calcoli strutturali, formule o specifiche di progetto. Imposta la tua API Key qui sotto per connetterti direttamente a Google Gemini.
                     </div>
@@ -553,12 +567,19 @@
 
             try {
                 if (savedKey && savedKey.startsWith("AIzaSy")) {
+                    const promptIngegnere = `${queryText} (Rispondi brevemente in italiano come ingegnere strutturista, usa LaTeX $...$ per le formule matematiche)`;
+
                     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${savedKey}`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: queryText + " (Rispondi brevemente in italiano come ingegnere strutturista, usa LaTeX $...$ per le formule)" }] }] })
+                        body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: promptIngegnere }] }] })
                     });
-                    if (!response.ok) throw new Error("API_ERR");
+
+                    if (!response.ok) {
+                        if(response.status === 400 || response.status === 403) throw new Error("CHIAVE_ERRATA");
+                        throw new Error("Errore API");
+                    }
+
                     const data = await response.json();
                     replyText = data.candidates[0].content.parts[0].text;
                 } else {
@@ -566,21 +587,32 @@
                     if (!response.ok) throw new Error("SATURO");
                     replyText = await response.text();
                 }
+                
                 document.getElementById(loadingId)?.remove();
                 const replyDiv = document.createElement('div');
-                replyDiv.className = "bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-slate-300 max-w-[90%] text-xs leading-relaxed";
+                replyDiv.className = "bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-slate-300 max-w-[90%] font-normal leading-relaxed text-xs";
                 replyDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(replyText) : replyText.replace(/\n/g, "<br>");
                 container.appendChild(replyDiv);
+                
             } catch (err) {
                 document.getElementById(loadingId)?.remove();
-                container.innerHTML += `<div class="text-amber-500 font-mono text-[11px] p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">⚠️ Coda server satura o chiave geobloccata. Inserisci una chiave API Gemini valida.</div>`;
+                if(err.message === "CHIAVE_ERRATA") {
+                    container.innerHTML += `<div class="text-red-400 font-mono text-[11px] p-2 bg-red-500/10 border border-red-500/20 rounded-lg">⚠️ Chiave API Gemini non valida o bloccata da Google. Controllala o inseriscine una nuova nel box.</div>`;
+                    localStorage.removeItem('GEMINI_HUB_KEY');
+                    window.updateKeyBadge(false);
+                } else {
+                    container.innerHTML += `<div class="text-amber-500 font-mono text-[11px] p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">⚠️ Connessione interrotta o coda server satura. Inserisci una chiave API Gemini valida sotto.</div>`;
+                }
             }
-            inputEl.disabled = false; sendBtn.disabled = false;
-            if (window.MathJax) MathJax.typesetPromise([container]);
+            
+            inputEl.disabled = false; sendBtn.disabled = false; inputEl.focus();
+            if (window.MathJax && typeof window.MathJax.typesetPromise === "function") {
+                window.MathJax.typesetPromise([container]).catch((err) => console.log(err));
+            }
             container.scrollTop = container.scrollHeight;
         };
 
-        // NOTIFICHE TELEGRAM E LOGICHE INTEGRALI FIRESTORE DATABASE
+        // NOTIFICHE E DATABASE LOGIC
         async function sendTelegramNotification(message) {
             const BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
             try {
@@ -603,33 +635,63 @@
         window.toggleStyleModal = () => { document.getElementById('styleModal')?.classList.toggle('hidden'); };
 
         document.getElementById('btnSubscribe')?.addEventListener('click', async () => {
-            const id = document.getElementById('telegramIdInput').value.trim(); if (!id || isNaN(id)) return alert("Inserisci un ID numerico valido.");
-            await addDoc(collection(db, "subscribers"), { chatId: id, registeredAt: serverTimestamp() }); alert("Iscrizione completata!"); document.getElementById('telegramIdInput').value = "";
+            const id = document.getElementById('telegramIdInput').value.trim(); if (!id || isNaN(id)) return alert("ID non valido.");
+            await addDoc(collection(db, "subscribers"), { chatId: id, registeredAt: serverTimestamp() }); alert("Sottoscritto!");
         });
 
         document.getElementById('btnRegister')?.addEventListener('click', async () => {
             const name = document.getElementById('regName').value.trim(); const contact = document.getElementById('regContact').value.trim();
             const avatar = document.querySelector('input[name="regAvatar"]:checked')?.value || "male"; if(!name) return;
             await addDoc(collection(db, "participantsHub"), { name, contact: contact || "Nessuno", avatar, registeredAt: serverTimestamp() });
-            document.getElementById('regName').value = ""; document.getElementById('regContact').value = ""; showToast("Membro aggiunto!");
+            document.getElementById('regName').value = ""; document.getElementById('regContact').value = ""; showToast("Registrato!");
         });
 
-        onSnapshot(query(collection(db, "participantsHub"), orderBy("registeredAt", "asc")), (snap) => {
-            const container = document.getElementById('participantsList'); if(!container) return; container.innerHTML = "";
+        // NOTIFICHE TELEGRAM INTERNE IN TEMPO REALE (FIX BACHECA SVUOTATA)
+        onSnapshot(query(collection(db, "newsHub"), orderBy("createdAt", "desc")), (snap) => {
+            const container = document.getElementById('newsHistoryContainer'); if(!container) return; container.innerHTML = "";
+            if(snap.empty) { container.innerHTML = `<p class="text-xs text-gray-400 italic p-1">Nessun annuncio inserito.</p>`; return; }
             snap.forEach(d => {
-                const data = d.data(); const icon = data.avatar === 'female' ? '👩‍💻' : '👨‍💻';
-                const div = document.createElement('div'); div.className = "bg-gray-50 dark:bg-slate-800 p-2 rounded border border-gray-200 dark:border-slate-700 text-xs flex justify-between items-center text-gray-800 dark:text-gray-200";
-                div.innerHTML = `<div><p class="font-bold">${icon} ${data.name}</p><p class="text-[10px] text-gray-500">${data.contact}</p></div><button onclick="window.removeParticipant('${d.id}')" class="text-gray-400 hover:text-red-500 font-bold">✕</button>`;
+                const data = d.data(); let timeStr = "...";
+                if(data.createdAt) { const date = data.createdAt.toDate(); timeStr = date.toLocaleDateString('it-IT') + " " + date.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'}); }
+                const div = document.createElement('div');
+                div.className = "bg-red-50/80 dark:bg-red-950/20 p-3 rounded-xl border border-red-100 dark:border-red-900/50 flex flex-col gap-1.5 text-xs relative group transition-all";
+                div.innerHTML = `<div class="flex justify-between items-center border-b border-red-100/50 dark:border-red-900/30 pb-1 mb-1">
+                    <span class="text-gray-400 font-mono text-[10px] bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded border border-gray-100 dark:border-slate-800 shadow-3xs">${timeStr}</span>
+                    <button onclick="window.deleteNews('${d.id}')" class="text-gray-400 hover:text-red-600 font-bold text-xs cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                </div><p class="text-gray-800 dark:text-gray-200 break-words font-normal leading-relaxed whitespace-pre-wrap">🚨 ${data.content}</p>`;
                 container.appendChild(div);
             });
         });
-        window.removeParticipant = async (id) => { if(confirm("Rimuovere?")) { await deleteDoc(doc(db, "participantsHub", id)); showToast("Rimosso."); } };
+        window.deleteNews = async (id) => { if(confirm("Rimuovere annuncio?")) { await deleteDoc(doc(db, "newsHub", id)); showToast("Annuncio rimosso."); } };
 
-        // REAL-TIME FIRESTORE LISTENER E AGGREGATORE TABELLE
+        document.getElementById('btnSendNews')?.addEventListener('click', async () => {
+            const el = document.getElementById('newsContent'); if (!el.value.trim()) return;
+            const txt = el.value.trim(); el.value = "";
+            await addDoc(collection(db, "newsHub"), { content: txt, createdAt: serverTimestamp() });
+            await sendTelegramNotification("📢 NEWS: " + txt); showToast("Inviata!");
+        });
+
+        // GESTIONE CO-PILOT DELLE NOTE RAPIDE E DEI LISTENER DI ARCHIVIAZIONE
+        onSnapshot(query(collection(db, "notesHub"), orderBy("createdAt", "desc")), (snap) => {
+            document.getElementById('statNotes').textContent = snap.size;
+            const container = document.getElementById('notesContainer'); if(!container) return; container.innerHTML = "";
+            snap.forEach(d => {
+                const div = document.createElement('div'); div.className = "bg-gray-50/80 dark:bg-slate-800/80 p-2 rounded border border-gray-200 dark:border-slate-700 flex justify-between items-start text-xs text-gray-700 dark:text-gray-300 shadow-2xs";
+                div.innerHTML = `<p class="break-words pr-2 leading-normal">${d.data().content}</p><button onclick="window.deleteNote('${d.id}')" class="text-gray-400 hover:text-red-600 font-bold">✕</button>`;
+                container.appendChild(div);
+            });
+        });
+
+        document.getElementById('btnUploadNote')?.addEventListener('click', async () => {
+            const el = document.getElementById('newNoteContent'); if(!el.value.trim()) return;
+            const txt = el.value.trim(); el.value = "";
+            await addDoc(collection(db, "notesHub"), { content: txt, createdAt: serverTimestamp() }); showToast("Nota salvata.");
+        });
+        window.deleteNote = async (id) => { await deleteDoc(doc(db, "notesHub", id)); };
+
         let allExcelFiles = [], allTextFiles = [];
         onSnapshot(query(collection(db, "excelHub"), orderBy("uploadedAt", "desc")), (s) => { document.getElementById('statExcel').textContent = s.size; allExcelFiles = []; s.forEach(d => allExcelFiles.push({id: d.id, ...d.data(), isExcel: true})); combineAndRenderArchive(); });
         onSnapshot(query(collection(db, "textHub"), orderBy("uploadedAt", "desc")), (s) => { document.getElementById('statDocs').textContent = s.size; allTextFiles = []; s.forEach(d => allTextFiles.push({id: d.id, ...d.data(), isExcel: false})); combineAndRenderArchive(); });
-        onSnapshot(collection(db, "notesHub"), (s) => { document.getElementById('statNotes').textContent = s.size; });
 
         function combineAndRenderArchive() {
             const body = document.getElementById('archiveTableBody'); if(!body) return; body.innerHTML = "";
@@ -637,9 +699,9 @@
             combined.forEach(f => {
                 const tr = document.createElement('tr'); tr.className = "hover:bg-gray-50/80 dark:hover:bg-slate-800/50 text-xs text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-800";
                 if(f.isExcel) {
-                    tr.innerHTML = `<td class="p-3 font-medium">${f.name}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td><td class="p-3 text-gray-500">Ramo: ${f.branch} — ${f.note}</td><td class="p-3 text-center"><button onclick="window.downloadBase64File('${f.fileData}', '${f.name}')" class="text-blue-500 hover:underline mr-2">Scarica</button><button onclick="window.deleteCloudItem('${f.id}', true, '${f.name}')" class="text-red-500 hover:underline">Elimina</button></td>`;
+                    tr.innerHTML = `<td class="p-3 font-medium">${f.name}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td><td class="p-3 text-gray-500">Ramo: ${f.branch} — ${f.note}</td><td class="p-3 text-center flex justify-center gap-2"><button onclick="window.downloadBase64File('${f.fileData}', '${f.name}')" class="text-blue-500 hover:underline">Scarica</button><button onclick="window.deleteCloudItem('${f.id}', true, '${f.name}')" class="text-red-500 hover:underline">Elimina</button></td>`;
                 } else {
-                    tr.innerHTML = `<td class="p-3 font-medium">${f.title}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${f.fileType}</span></td><td class="p-3 text-gray-500">${f.fileName}</td><td class="p-3 text-center"><button onclick="window.downloadBase64File('${f.fileData}', '${f.fileName}')" class="text-blue-500 hover:underline mr-2">Scarica</button><button onclick="window.deleteCloudItem('${f.id}', false, '${f.title}')" class="text-red-500 hover:underline">Elimina</button></td>`;
+                    tr.innerHTML = `<td class="p-3 font-medium">${f.title}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${f.fileType}</span></td><td class="p-3 text-gray-500">${f.fileName}</td><td class="p-3 text-center flex justify-center gap-2"><button onclick="window.downloadBase64File('${f.fileData}', '${f.fileName}')" class="text-blue-500 hover:underline">Scarica</button><button onclick="window.deleteCloudItem('${f.id}', false, '${f.title}')" class="text-red-500 hover:underline">Elimina</button></td>`;
                 }
                 body.appendChild(tr);
             });
@@ -671,7 +733,7 @@
         window.deleteHistoryRow = async (id) => { await deleteDoc(doc(db, "historyHub", id)); };
         window.setFilter = (type) => { currentFilter = type; combineAndRenderArchive(); };
 
-        // GESTIONE DRAG & DROP FOGLI EXCEL
+        // DROPZONE & CARICAMENTO FILE EXCEL
         const fileExcelInput = document.getElementById('excelFile');
         const dropzoneExcel = document.getElementById('dropzoneExcel');
         dropzoneExcel?.addEventListener('click', () => fileExcelInput.click());
@@ -691,6 +753,30 @@
             await addDoc(collection(db, "historyHub"), { title: selectedExcelName, action: "Caricato Foglio Excel", style: "bg-emerald-100 text-emerald-800", timestamp: serverTimestamp() });
             showToast("Excel caricato!"); base64ExcelData = null; document.getElementById('textDropExcel').textContent = "Trascina qui il file Excel o clicca";
         });
+
+        // GESTIONE DRAG & DROP DOCUMENTI IN TEMPO REALE
+        const fileDocInput = document.getElementById('docFile');
+        const dropzoneDoc = document.getElementById('dropzoneDoc');
+        dropzoneDoc?.addEventListener('click', () => fileDocInput.click());
+        dropzoneDoc?.addEventListener('dragover', (e) => e.preventDefault());
+        dropzoneDoc?.addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer.files.length) handleDocFile(e.dataTransfer.files[0]); });
+        fileDocInput?.addEventListener('change', (e) => { if(e.target.files.length) handleDocFile(e.target.files[0]); });
+
+        function handleDocFile(file) {
+            selectedDocName = file.name; document.getElementById('textDropDoc').innerHTML = `<span class="text-blue-500 font-bold">📄 ${file.name}</span>`;
+            const reader = new FileReader(); reader.onload = (ev) => { base64DocData = ev.target.result; }; reader.readAsDataURL(file);
+        }
+
+        document.getElementById('btnUploadDoc')?.addEventListener('click', async () => {
+            const title = document.getElementById('textTitle').value.trim();
+            if(!title || !base64DocData) return showToast("Dati mancanti per salvare il report.", true);
+            const ext = selectedDocName.split('.').pop().toUpperCase();
+            await addDoc(collection(db, "textHub"), { title, fileName: selectedDocName, fileType: ext, fileData: base64DocData, uploadedAt: serverTimestamp() });
+            await addDoc(collection(db, "historyHub"), { title: `${title} (${selectedDocName})`, action: `Salvato Report ${ext}`, style: "bg-blue-100 text-blue-800", timestamp: serverTimestamp() });
+            showToast("Documento salvato!"); base64DocData = null; document.getElementById('textDropDoc').textContent = "Trascina qui il documento o clicca"; document.getElementById('textTitle').value = "";
+        });
+
+        window.addEventListener('load', window.checkGeminiKeyStatus);
     </script>
 </body>
 </html>
