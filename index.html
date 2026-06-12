@@ -3,45 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Cloud Hub - V2.1.9</title>
+    <title>Engineering Cloud Hub - V2.2.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
+        tailwind.config = { darkMode: 'class' }
     </script>
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .archivio-scroll-container {
-            height: auto !important;
-            max-height: 400px !important;
-            overflow-y: auto !important;
-        }
-        .storico-scroll-container {
-            height: auto !important;
-            max-height: 350px !important;
-            overflow-y: auto !important;
-        }
-        .chat-scroll-container {
-            max-height: 280px !important;
-            overflow-y: auto !important;
-        }
-        #chat-container::-webkit-scrollbar {
-            width: 5px;
-        }
-        #chat-container::-webkit-scrollbar-track {
-            background: #020617;
-        }
-        #chat-container::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 9999px;
-        }
-        #chat-container::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: background-color 0.3s, color 0.3s; }
+        .archivio-scroll-container { height: auto !important; max-height: 400px !important; overflow-y: auto !important; }
+        .storico-scroll-container { height: auto !important; max-height: 350px !important; overflow-y: auto !important; }
+        .chat-scroll-container { max-height: 280px !important; overflow-y: auto !important; }
+        #chat-container::-webkit-scrollbar { width: 5px; }
+        #chat-container::-webkit-scrollbar-track { background: #020617; }
+        #chat-container::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
     </style>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -53,11 +27,11 @@
             <div class="text-3xl mb-2">🔐</div>
             <h2 class="text-base font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Accesso Engineering Hub</h2>
             <div class="space-y-3">
-                <input type="text" id="loginUser" placeholder="Nome Utente" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 font-medium text-gray-800 dark:text-white">
-                <input type="password" id="loginPass" placeholder="Password" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 font-medium text-gray-800 dark:text-white">
+                <input type="text" id="loginUser" placeholder="Nome Utente" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium text-gray-800 dark:text-white focus:outline-none">
+                <input type="password" id="loginPass" placeholder="Password" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium text-gray-800 dark:text-white focus:outline-none">
                 <button onclick="window.verifyHubLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-xs tracking-wider uppercase transition-colors cursor-pointer mt-2">Verifica ed Entra</button>
             </div>
-            <p id="loginError" class="text-red-500 text-[11px] font-medium mt-3 hidden">⚠️ Credenziali errate. Riprova.</p>
+            <p id="loginError" class="text-red-500 text-[11px] font-medium mt-3 hidden">⚠️ Credenziali errate.</p>
         </div>
     </div>
 
@@ -65,137 +39,93 @@
         <nav class="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-40 dark:bg-black">
             <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
                 <div class="flex items-center space-x-3 flex-wrap gap-2 sm:gap-0">
-                    <button onclick="toggleSidebar()" class="bg-slate-800 hover:bg-slate-700 text-sm py-1.5 px-3 rounded-lg border border-slate-700 cursor-pointer transition-colors flex items-center gap-1.5 font-medium">
-                        <span>📊</span> <span>Info & Team</span>
-                    </button>
-                    <button onclick="toggleNewsSidebar()" class="bg-slate-800 hover:bg-slate-700 text-sm py-1.5 px-3 rounded-lg border border-slate-700 cursor-pointer transition-colors flex items-center gap-1.5 font-medium">
-                        <span>📢</span> <span>News & Bacheca</span>
-                    </button>
-                    <button onclick="toggleCalcModal()" class="bg-amber-600 hover:bg-amber-700 text-slate-950 text-sm py-1.5 px-3 rounded-lg cursor-pointer transition-colors flex items-center gap-1.5 font-bold">
-                        <span>🧮</span> <span>Calcolatore Peso</span>
-                    </button>
+                    <button onclick="toggleSidebar()" class="bg-slate-800 hover:bg-slate-700 text-sm py-1.5 px-3 rounded-lg border border-slate-700 cursor-pointer font-medium">📊 Info & Team</button>
+                    <button onclick="toggleNewsSidebar()" class="bg-slate-800 hover:bg-slate-700 text-sm py-1.5 px-3 rounded-lg border border-slate-700 cursor-pointer font-medium">📢 News & Bacheca</button>
+                    <button onclick="toggleCalcModal()" class="bg-amber-600 hover:bg-amber-700 text-slate-950 text-sm py-1.5 px-3 rounded-lg cursor-pointer font-bold">🧮 Calcolatore Peso</button>
                     <div class="h-5 w-px bg-slate-700 hidden sm:block mx-2"></div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="text-lg sm:text-xl font-bold tracking-wide text-white flex items-center gap-2">
-                            Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.1.8</span>
-                        </h1>
-                    </div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-wide flex items-center gap-2">
+                        Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.2.0</span>
+                    </h1>
                 </div>
-                
                 <div class="flex items-center space-x-4">
-                    <div class="flex bg-slate-800 rounded-lg p-0.5 border border-slate-700 text-xs font-bold">
-                        <button onclick="changeLanguage('it')" id="lang-it" class="px-2 py-1 rounded-md bg-blue-600 text-white transition-all">IT</button>
-                        <button onclick="changeLanguage('en')" id="lang-en" class="px-2 py-1 rounded-md text-gray-400 hover:text-white transition-all">EN</button>
-                    </div>
-                    <button onclick="toggleTheme()" class="bg-slate-800 hover:bg-slate-700 text-sm p-2 rounded-lg border border-slate-700 cursor-pointer text-center min-w-[36px]">
-                        <span id="theme-icon">🌙</span>
-                    </button>
+                    <button onclick="toggleTheme()" class="bg-slate-800 hover:bg-slate-700 text-sm p-2 rounded-lg border border-slate-700 cursor-pointer">🌙</button>
                     <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-full border border-slate-800 text-xs hidden sm:flex">
                         <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                        <span class="text-emerald-400 font-medium font-mono">Cloud Sincronizzato</span>
+                        <span class="text-emerald-400 font-medium font-mono">Cloud V2.2 Backend Node</span>
                     </div>
                 </div>
             </div>
         </nav>
 
         <div id="calcModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
-            <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 dark:border-slate-800">
-                <div class="flex justify-between items-center p-4 border-b border-gray-100 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 z-10">
-                    <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                        <span>🧮</span> <span>Calcolatore Peso Barre Metalliche</span>
-                    </h3>
-                    <button onclick="toggleCalcModal()" class="text-gray-400 hover:text-red-500 font-bold text-lg cursor-pointer">✕</button>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 dark:border-slate-800 p-5 space-y-4">
+                <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-2">
+                    <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">🧮 Calcolatore Peso Barre</h3>
+                    <button onclick="toggleCalcModal()" class="text-gray-400 hover:text-red-500 font-bold">✕</button>
                 </div>
-                <div class="p-5 space-y-4">
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase text-gray-400 mb-1">Materiale</label>
-                        <select id="calcMaterial" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100 font-medium focus:outline-none">
-                            <option value="7.85">Acciaio al Carbonio (7.85 kg/dm³)</option>
-                            <option value="8.00">Acciaio Inox (8.00 kg/dm³)</option>
-                            <option value="2.70">Alluminio (2.70 kg/dm³)</option>
-                            <option value="8.90">Rame (8.90 kg/dm³)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase text-gray-400 mb-1">Geometria Sezione</label>
-                        <select id="calcShape" onchange="updateCalcFields()" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100 font-medium focus:outline-none">
-                            <option value="tondo">Tondo Pieno (Diametro)</option>
-                            <option value="quadro">Quadro Pieno (Lato)</option>
-                            <option value="piatto">Piatto / Rettangolo (Base x Altezza)</option>
-                        </select>
-                    </div>
-                    <div id="calcDimensions" class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label id="labelDim1" class="block text-[11px] font-bold uppercase text-gray-400 mb-1">Diametro (mm)</label>
-                            <input type="number" id="calcDim1" value="20" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100 font-medium">
-                        </div>
-                        <div id="divDim2" class="hidden">
-                            <label class="block text-[11px] font-bold uppercase text-gray-400 mb-1">Altezza (mm)</label>
-                            <input type="number" id="calcDim2" value="10" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100 font-medium">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase text-gray-400 mb-1">Lunghezza Totale Barra (mm)</label>
-                        <input type="number" id="calcLength" value="1000" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100 font-medium">
-                    </div>
-                    <button onclick="calculateWeight()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2 rounded-lg text-xs transition-colors shadow-2xs cursor-pointer">
-                        📊 Esegui Calcolo Massa Lineare
-                    </button>
-                    <div class="p-3 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-xl mt-2 flex justify-between items-center shadow-2xs">
-                        <span class="text-xs font-semibold text-gray-500">Massa Totale:</span>
-                        <span id="calcResult" class="text-sm font-bold text-amber-500">0.00 kg</span>
-                    </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-gray-400 mb-1">Materiale</label>
+                    <select id="calcMaterial" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100">
+                        <option value="7.85">Acciaio al Carbonio (7.85 kg/dm³)</option>
+                        <option value="8.00">Acciaio Inox (8.00 kg/dm³)</option>
+                        <option value="2.70">Alluminio (2.70 kg/dm³)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-gray-400 mb-1">Geometria</label>
+                    <select id="calcShape" onchange="updateCalcFields()" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100">
+                        <option value="tondo">Tondo Pieno</option>
+                        <option value="quadro">Quadro Pieno</option>
+                    </select>
+                </div>
+                <div>
+                    <label id="labelDim1" class="block text-[11px] font-bold uppercase text-gray-400 mb-1">Diametro (mm)</label>
+                    <input type="number" id="calcDim1" value="20" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-gray-400 mb-1">Lunghezza (mm)</label>
+                    <input type="number" id="calcLength" value="1000" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100">
+                </div>
+                <button onclick="calculateWeight()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2 rounded-lg text-xs">Calcola Peso</button>
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/40 border rounded-xl flex justify-between items-center">
+                    <span class="text-xs font-semibold">Massa Totale:</span>
+                    <span id="calcResult" class="text-sm font-bold text-amber-500">0.00 kg</span>
                 </div>
             </div>
         </div>
 
-        <div id="sidebar" class="fixed top-0 left-0 h-full w-85 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl border-r border-gray-200 dark:border-slate-800 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto p-4">
-            <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-2 mb-4">
-                <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
-                    <span>📊</span> Pannello Hub & Team
-                </h2>
-                <button onclick="toggleSidebar()" class="text-gray-400 hover:text-red-500 font-bold p-1 text-lg cursor-pointer">✕</button>
+        <div id="sidebar" class="fixed top-0 left-0 h-full w-85 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl border-r border-gray-200 dark:border-slate-800 z-50 transform -translate-x-full transition-transform duration-300 p-4 overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-2 mb-4">
+                <h2 class="text-base font-bold">📊 Pannello Hub & Team</h2>
+                <button onclick="toggleSidebar()" class="text-gray-400 hover:text-red-500 font-bold">✕</button>
             </div>
-            
-            <div class="mb-4 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xs">
-                <h3 class="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5 tracking-wider">Registrati all'Hub</h3>
+            <div class="mb-4 p-3 bg-slate-50 dark:bg-slate-800 border rounded-xl">
+                <h3 class="text-xs font-bold uppercase text-gray-400 mb-1.5">Registrati all'Hub</h3>
                 <div class="space-y-2">
-                    <input type="text" id="regName" placeholder="Il tuo Nome (es. Ing. Rossi)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 text-gray-800 dark:text-gray-100">
-                    <input type="text" id="regContact" placeholder="Contatto / Email" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500 text-gray-800 dark:text-gray-100">
-                    <button id="btnRegister" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded-lg text-xs transition-colors cursor-pointer">Entra nel team</button>
+                    <input type="text" id="regName" placeholder="Nome (es. Ing. Rossi)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100">
+                    <input type="text" id="regContact" placeholder="Contatto / Email" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100">
+                    <button id="btnRegister" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded-lg text-xs cursor-pointer">Entra nel Team</button>
                 </div>
                 <div id="teamContainer" class="mt-3 space-y-1.5 max-h-32 overflow-y-auto"></div>
             </div>
-
-            <div class="mb-4">
-                <h3 class="text-xs font-bold uppercase text-gray-400 mb-1.5 tracking-wider">Dati Generali del Cloud</h3>
-                <div class="grid grid-cols-1 gap-1.5">
-                    <div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 p-2.5 rounded-lg flex justify-between items-center">
-                        <span class="text-xs font-semibold text-emerald-800 dark:text-emerald-300">File Excel:</span>
-                        <span id="statExcel" class="text-sm font-mono font-bold text-emerald-700 dark:text-emerald-400">0</span>
-                    </div>
-                    <div class="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 p-2.5 rounded-lg flex justify-between items-center">
-                        <span class="text-xs font-semibold text-blue-800 dark:text-blue-300">Documenti:</span>
-                        <span id="statDocs" class="text-sm font-mono font-bold text-blue-700 dark:text-blue-400">0</span>
-                    </div>
-                    <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 p-2.5 rounded-lg flex justify-between items-center">
-                        <span class="text-xs font-semibold text-amber-800 dark:text-amber-300">Note:</span>
-                        <span id="statNotes" class="text-sm font-mono font-bold text-amber-700 dark:text-amber-400">0</span>
-                    </div>
+            <div>
+                <h3 class="text-xs font-bold uppercase text-gray-400 mb-1.5">Statistiche Cloud</h3>
+                <div class="space-y-1.5 text-xs">
+                    <div class="bg-emerald-50 dark:bg-emerald-950/30 p-2.5 rounded-lg flex justify-between"><span>Excel:</span><span id="statExcel" class="font-bold">0</span></div>
+                    <div class="bg-blue-50 dark:bg-blue-950/30 p-2.5 rounded-lg flex justify-between"><span>Documenti:</span><span id="statDocs" class="font-bold">0</span></div>
+                    <div class="bg-amber-50 dark:bg-amber-950/30 p-2.5 rounded-lg flex justify-between"><span>Note:</span><span id="statNotes" class="font-bold">0</span></div>
                 </div>
             </div>
         </div>
 
-        <div id="newsSidebar" class="fixed top-0 right-0 h-full w-85 sm:w-96 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl border-l border-gray-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto p-4">
-            <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-2 mb-4">
-                <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
-                    <span>📢</span> News & Aggiornamenti
-                </h2>
-                <button onclick="toggleNewsSidebar()" class="text-gray-400 hover:text-red-500 font-bold p-1 text-lg cursor-pointer">✕</button>
+        <div id="newsSidebar" class="fixed top-0 right-0 h-full w-85 sm:w-96 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl border-l border-gray-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 p-4 overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-2 mb-4">
+                <h2 class="text-base font-bold">📢 News & Aggiornamenti</h2>
+                <button onclick="toggleNewsSidebar()" class="text-gray-400 hover:text-red-500 font-bold">✕</button>
             </div>
-            <div class="mb-4 p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 rounded-xl shadow-xs">
-                <textarea id="newsContent" rows="3" placeholder="Scrivi un update..." class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:border-purple-500 text-gray-800 dark:text-gray-100 resize-none"></textarea>
-                <button id="btnSendNews" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg text-xs mt-2 transition-colors cursor-pointer">Invia News</button>
+            <div class="mb-4 p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 rounded-xl">
+                <textarea id="newsContent" rows="3" placeholder="Scrivi una news per il team..." class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100 resize-none focus:outline-none"></textarea>
+                <button id="btnSendNews" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg text-xs mt-2 cursor-pointer">Invia News</button>
             </div>
             <div id="newsHistoryContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
         </div>
@@ -203,120 +133,72 @@
         <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="space-y-6 lg:col-span-1">
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
-                    <h2 class="text-lg font-bold text-emerald-700 dark:text-emerald-400 mb-3 flex items-center gap-2">
-                        <span>⚙️</span> <span>File Excel Calcoli</span>
-                    </h2>
+                    <h2 class="text-lg font-bold text-emerald-700 dark:text-emerald-400 mb-3">⚙️ File Excel Calcoli</h2>
                     <div class="space-y-3">
-                        <select id="excelBranch" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
-                            <option value="Meccanica">⚙️ Meccanica</option>
-                            <option value="Termodinamica">🔥 Termodinamica</option>
-                            <option value="Idraulica">💧 Idraulica</option>
-                        </select>
-                        <input type="text" id="excelNote" placeholder="es. Calcolo fatica albero AISI 304" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
-                        <div id="dropzoneExcel" class="border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-400 bg-gray-50/50 dark:bg-slate-800/50 transition-colors rounded-lg p-4 text-center cursor-pointer">
-                            <input type="file" id="excelFile" accept=".xlsx, .xls" class="hidden">
-                            <div class="text-2xl mb-1">📂</div>
-                            <p id="textDropExcel" class="text-xs text-gray-600 dark:text-gray-400">Trascina qui il file Excel o clicca</p>
-                        </div>
-                        <button id="btnUploadExcel" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-sm transition-colors cursor-pointer">Carica nel Cloud</button>
+                        <select id="excelBranch" class="w-full bg-gray-50 dark:bg-slate-800 border rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none"><option value="Meccanica">⚙️ Meccanica</option><option value="Termodinamica">🔥 Termodinamica</option></select>
+                        <input type="text" id="excelNote" placeholder="es. Verifica albero flessione" class="w-full bg-gray-50 dark:bg-slate-800 border rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
+                        <div class="border-2 border-dashed border-gray-300 dark:border-slate-700 p-4 text-center rounded-lg bg-gray-50/50 dark:bg-slate-800/50"><p class="text-xs text-gray-400">Trascina qui l'Excel (.xlsx)</p></div>
+                        <button id="btnUploadExcel" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-sm">Carica nel Cloud</button>
                     </div>
                 </div>
 
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
-                    <h2 class="text-lg font-bold text-blue-700 dark:text-blue-400 mb-3 flex items-center gap-2">
-                        <span>📝</span> <span>Documenti e Report</span>
-                    </h2>
+                    <h2 class="text-lg font-bold text-blue-700 dark:text-blue-400 mb-3">📝 Documenti e Report</h2>
                     <div class="space-y-3">
-                        <input type="text" id="textTitle" placeholder="es. Specifica tecnica carter" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
-                        <div id="dropzoneDoc" class="border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 bg-gray-50/50 dark:bg-slate-800/50 transition-colors rounded-lg p-4 text-center cursor-pointer">
-                            <input type="file" id="docFile" accept=".txt, .pdf, .docx" class="hidden">
-                            <div class="text-2xl mb-1">📄</div>
-                            <p id="textDropDoc" class="text-xs text-gray-600 dark:text-gray-400">Trascina qui il documento o clicca</p>
-                        </div>
-                        <button id="btnUploadDoc" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-sm transition-colors cursor-pointer">Salva Documento</button>
+                        <input type="text" id="textTitle" placeholder="es. Relazione tecnica d'asse" class="w-full bg-gray-50 dark:bg-slate-800 border rounded-lg p-2 text-sm focus:outline-none">
+                        <div class="border-2 border-dashed border-gray-300 dark:border-slate-700 p-4 text-center rounded-lg bg-gray-50/50 dark:bg-slate-800/50"><p class="text-xs text-gray-400">Trascina qui il documento (.pdf, .txt)</p></div>
+                        <button id="btnUploadDoc" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-sm">Salva Documento</button>
                     </div>
                 </div>
 
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
-                    <h2 class="text-lg font-bold text-amber-700 dark:text-amber-400 mb-3 flex items-center gap-2">
-                        <span>📌</span> <span>Note Rapide Condivise</span>
-                    </h2>
+                    <h2 class="text-lg font-bold text-amber-700 dark:text-amber-400 mb-3">📌 Note Rapide Condivise</h2>
                     <div class="space-y-3">
-                        <textarea id="newNoteContent" rows="2" placeholder="Nota logistica o tecnica..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none resize-none"></textarea>
-                        <button id="btnUploadNote" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-lg text-sm transition-colors cursor-pointer">Aggiungi Nota</button>
+                        <textarea id="newNoteContent" rows="2" placeholder="Nota logistica o appunto..." class="w-full bg-gray-50 dark:bg-slate-800 border rounded-lg p-2 text-sm focus:outline-none resize-none"></textarea>
+                        <button id="btnUploadNote" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-lg text-sm">Aggiungi Nota</button>
                         <div id="notesContainer" class="space-y-2 max-h-48 overflow-y-auto pt-2 border-t border-gray-200 dark:border-slate-800"></div>
                     </div>
                 </div>
             </div>
 
-            <div class="lg:col-span-2 space-y-6 flex flex-col justify-start">
+            <div class="lg:col-span-2 space-y-6">
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                            <span>📁</span> <span>Archivio Cloud Attivo</span>
-                        </h2>
-                        <input type="text" id="searchCloud" placeholder="Cerca nell'archivio..." class="bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-xs rounded-lg px-3 py-2 focus:outline-none text-gray-800 dark:text-gray-100 w-full sm:w-64">
-                    </div>
+                    <h2 class="text-lg font-bold mb-4">📁 Archivio Cloud Attivo</h2>
                     <div class="overflow-x-auto archivio-scroll-container">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead>
-                                <tr class="border-b border-gray-200 dark:border-slate-700 text-gray-500 text-xs font-bold tracking-wider uppercase bg-gray-50/70 dark:bg-slate-800/50">
-                                    <th class="p-3">Nome Elemento</th>
-                                    <th class="p-3">Formato / Tipo</th>
-                                    <th class="p-3">Note / Dettagli</th>
-                                    <th class="p-3 text-center">Azioni</th>
-                                </tr>
-                            </thead>
-                            <tbody id="archiveTableBody" class="divide-y divide-gray-100 dark:divide-slate-800"></tbody>
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead><tr class="border-b bg-gray-50/70 dark:bg-slate-800/50 text-xs text-gray-500 uppercase"><th class="p-3">Nome Elemento</th><th class="p-3">Tipo</th><th class="p-3">Note</th><th class="p-3 text-center">Azioni</th></tr></thead>
+                            <tbody id="archiveTableBody" class="divide-y dark:divide-slate-800"></tbody>
                         </table>
                     </div>
                 </div>
 
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
-                    <h2 class="text-lg font-bold text-purple-800 dark:text-purple-400 flex items-center gap-2">
-                        <span>⏱️</span> <span>Registro Storico Attività</span>
-                    </h2>
-                    <div class="overflow-x-auto storico-scroll-container border border-gray-100 dark:border-slate-800 rounded-lg mt-2">
-                        <table class="w-full text-left border-collapse text-xs text-gray-700 dark:text-gray-300">
-                            <thead>
-                                <tr class="border-b border-gray-200 dark:border-slate-700 text-gray-500 font-bold tracking-wider uppercase bg-gray-50 dark:bg-slate-800 sticky top-0">
-                                    <th class="p-2.5">Data / Ora</th>
-                                    <th class="p-2.5">Nome File / Oggetto</th>
-                                    <th class="p-2.5">Operazione Svolta</th>
-                                    <th class="p-2.5 text-center">Ripulitura</th>
-                                </tr>
-                            </thead>
-                            <tbody id="historyTableBody" class="divide-y divide-gray-100 dark:divide-slate-800 bg-white dark:bg-slate-900"></tbody>
+                    <h2 class="text-lg font-bold text-purple-800 dark:text-purple-400">⏱️ Registro Storico Attività</h2>
+                    <div class="overflow-x-auto storico-scroll-container border dark:border-slate-800 rounded-lg mt-2">
+                        <table class="w-full text-left text-xs text-gray-700 dark:text-gray-300">
+                            <thead><tr class="border-b bg-gray-50 dark:bg-slate-800 font-bold uppercase"><th class="p-2.5">Data / Ora</th><th class="p-2.5">Oggetto</th><th class="p-2.5">Operazione</th><th class="p-2.5 text-center">X</th></tr></thead>
+                            <tbody id="historyTableBody" class="divide-y dark:divide-slate-800"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </main>
 
-        <div id="ai-chat-widget" class="fixed bottom-4 right-4 w-96 bg-slate-900 text-slate-100 rounded-xl shadow-2xl border border-slate-800 z-50 overflow-hidden flex flex-col transition-all duration-300">
+        <div id="ai-chat-widget" class="fixed bottom-4 right-4 w-96 bg-slate-900 text-slate-100 rounded-xl shadow-2xl border border-slate-800 z-50 overflow-hidden flex flex-col">
             <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
-                <div class="flex items-center space-x-2">
-                    <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                    <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-blue-400">v2.1.8</span></span>
-                </div>
-                <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
+                <span class="font-bold text-xs text-white">Ingegnere Co-Pilot IA <span class="text-blue-400 font-mono">v2.2.0</span></span>
+                <button id="collapse-chat-btn" class="text-gray-400 font-bold text-xs">➖</button>
             </div>
-            
             <div id="chat-body" class="flex flex-col flex-grow">
-                <div class="p-2 bg-slate-950 border-b border-slate-800">
-                    <input type="password" id="geminiApiKey" placeholder="Incolla Chiave API Gemini (AIzaSy...)" class="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-[11px] text-slate-300 focus:outline-none focus:border-blue-500">
-                </div>
-
-                <div id="chat-container" class="h-[230px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
-                    <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">
-                        🤖 Pronto ad aiutarti con calcoli strutturali, formule meccaniche e specifiche. Inserisci la tua chiave API sopra e digita un messaggio.
+                <div id="chat-container" class="h-[250px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
+                    <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-400">
+                        🤖 Pronto per calcoli strutturali, formule meccaniche e analisi. Elaborazione protetta tramite Cloud Functions.
                     </div>
                 </div>
-
                 <div class="border-t border-slate-800 p-3 bg-slate-900">
                     <div class="flex gap-2">
-                        <input type="text" id="aiInput" placeholder="Chiedi al Co-Pilot (Premi Invio)..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-600">
-                        <button id="aiSendBtn" onclick="window.askAI()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 rounded-lg text-xs transition-colors cursor-pointer">Invia</button>
+                        <input type="text" id="aiInput" placeholder="Chiedi qualcosa al Co-Pilot..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
+                        <button id="aiSendBtn" onclick="window.askAI()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 rounded-lg text-xs cursor-pointer">Invia</button>
                     </div>
                 </div>
             </div>
@@ -327,68 +209,39 @@
         function toggleCalcModal() { document.getElementById('calcModal')?.classList.toggle('hidden'); }
         function updateCalcFields() {
             const shape = document.getElementById('calcShape').value;
-            const labelDim1 = document.getElementById('labelDim1');
-            const divDim2 = document.getElementById('divDim2');
-            if (shape === 'tondo') { labelDim1.textContent = "Diametro (mm)"; divDim2.classList.add('hidden'); }
-            else if (shape === 'quadro') { labelDim1.textContent = "Lato (mm)"; divDim2.classList.add('hidden'); }
-            else if (shape === 'piatto') { labelDim1.textContent = "Base (mm)"; divDim2.classList.remove('hidden'); }
+            document.getElementById('labelDim1').textContent = shape === 'tondo' ? "Diametro (mm)" : "Lato (mm)";
         }
         function calculateWeight() {
             const density = parseFloat(document.getElementById('calcMaterial').value);
             const shape = document.getElementById('calcShape').value;
             const dim1 = parseFloat(document.getElementById('calcDim1').value) || 0;
-            const dim2 = parseFloat(document.getElementById('calcDim2').value) || 0;
             const length = parseFloat(document.getElementById('calcLength').value) || 0;
-            const resultEl = document.getElementById('calcResult');
-            let volume = 0;
-            if (shape === 'tondo') { const radius = dim1 / 2; volume = Math.PI * Math.pow(radius, 2) * length; }
-            else if (shape === 'quadro') { volume = Math.pow(dim1, 2) * length; }
-            else if (shape === 'piatto') { volume = dim1 * dim2 * length; }
-            resultEl.textContent = ((volume / 1000000) * density).toFixed(2) + " kg";
+            let vol = shape === 'tondo' ? Math.PI * Math.pow(dim1 / 2, 2) * length : Math.pow(dim1, 2) * length;
+            document.getElementById('calcResult').textContent = ((vol / 1000000) * density).toFixed(2) + " kg";
         }
-
         window.verifyHubLogin = () => {
-            const user = document.getElementById('loginUser').value.trim();
-            const pass = document.getElementById('loginPass').value.trim();
-            if (user === 'Ing' && pass === 'Ing') {
+            if (document.getElementById('loginUser').value === 'Ing' && document.getElementById('loginPass').value === 'Ing') {
                 document.getElementById('loginBlocker').remove();
                 document.getElementById('hubMainContent').classList.remove('hidden');
-            } else {
-                document.getElementById('loginError').classList.remove('hidden');
-            }
+            } else { alert("Credenziali errate!"); }
         }
-
         let isChatCollapsed = false;
         function toggleChatCollapse() {
-            const body = document.getElementById('chat-body');
-            const btn = document.getElementById('collapse-chat-btn');
-            if(body && btn) {
-                isChatCollapsed = !isChatCollapsed;
-                body.classList.toggle('hidden', isChatCollapsed);
-                btn.textContent = isChatCollapsed ? "➕" : "➖";
-            }
+            isChatCollapsed = !isChatCollapsed;
+            document.getElementById('chat-body').classList.toggle('hidden', isChatCollapsed);
+            document.getElementById('collapse-chat-btn').textContent = isChatCollapsed ? "➕" : "➖";
         }
-
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('aiInput')?.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') { e.preventDefault(); window.askAI(); }
-            });
-            document.getElementById('loginUser')?.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') { document.getElementById('loginPass').focus(); }
-            });
-            document.getElementById('loginPass')?.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') { e.preventDefault(); window.verifyHubLogin(); }
-            });
+            document.getElementById('aiInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.askAI(); });
         });
     </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
 
-        // ==========================================
-        // TUA CONFIGURAZIONE CHIAVI DI PROGETTO
-        // ==========================================
+        // CONFIGURAZIONE HUB REALE
         const firebaseConfig = {
             apiKey: "AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM",
             authDomain: "hub-ingegneria.firebaseapp.com",
@@ -398,225 +251,118 @@
             appId: "1:58933321877:web:1e3f4630edc9f192865077"
         };
 
-        // INSERISCI QUI I TUOI DATI TELEGRAM REALI (Rimangono salvati nell'index.html privato)
-        const TELEGRAM_BOT_TOKEN = "IL_TUO_TELEGRAM_BOT_TOKEN"; 
-        const TELEGRAM_CHAT_ID = "IL_TUO_CHAT_ID_O_CANALE"; 
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const functions = getFunctions(app);
 
-        // Menu Laterali e Utility globali
         window.toggleSidebar = () => { document.getElementById('sidebar')?.classList.toggle('-translate-x-full'); };
         window.toggleNewsSidebar = () => { document.getElementById('newsSidebar')?.classList.toggle('translate-x-full'); };
-        window.changeLanguage = (lang) => { };
         window.toggleTheme = () => { document.documentElement.classList.toggle('dark'); };
 
-        // METODO DI INVIO DIRETTO A TELEGRAM DAL BROWSER (RIPRISTINATO)
-        async function inviaNotificaTelegram(testo) {
-            if(!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID || TELEGRAM_BOT_TOKEN.startsWith("IL_TUO")) return;
-            try {
-                const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-                await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: TELEGRAM_CHAT_ID,
-                        text: testo,
-                        parse_mode: 'Markdown'
-                    })
-                });
-            } catch (err) {
-                console.error("Errore invio notifica Telegram:", err);
+        // TEAM & REGISTRAZIONE (Trigger automatico Telegram gestito lato server su Firestore)
+        document.getElementById('btnRegister').onclick = async () => {
+            const name = document.getElementById('regName').value.trim();
+            const contact = document.getElementById('regContact').value.trim();
+            if(name && contact) {
+                await addDoc(collection(db, "teamHub"), { name, contact, joinedAt: serverTimestamp() });
+                document.getElementById('regName').value = ""; document.getElementById('regContact').value = "";
             }
-        }
-
-        // 1. GESTIONE TEAM / ISCRIZIONI
-        const btnReg = document.getElementById('btnRegister');
-        if (btnReg) {
-            btnReg.onclick = async () => {
-                const name = document.getElementById('regName').value.trim();
-                const contact = document.getElementById('regContact').value.trim();
-                if(name && contact) {
-                    await addDoc(collection(db, "teamHub"), { name, contact, joinedAt: serverTimestamp() });
-                    document.getElementById('regName').value = "";
-                    document.getElementById('regContact').value = "";
-                    // Notifica Telegram automatica per iscrizione team
-                    await inviaNotificaTelegram(`👤 *Nuovo membro nel Team dell'Hub!*\nNome: ${name}\nContatto: ${contact}`);
-                    alert("Registrazione effettuata con successo!");
-                }
-            };
-        }
-
+        };
         onSnapshot(query(collection(db, "teamHub"), orderBy("joinedAt", "desc")), (snap) => {
-            const container = document.getElementById('teamContainer');
-            if(container) {
-                container.innerHTML = "";
-                snap.forEach(d => {
-                    const p = document.createElement('p'); p.className = "text-xs bg-white dark:bg-slate-900 p-1.5 rounded border border-gray-100 dark:border-slate-800 font-medium text-gray-700 dark:text-gray-300";
-                    p.innerHTML = `👤 <b>${d.data().name}</b> (${d.data().contact})`;
-                    container.appendChild(p);
-                });
-            }
+            const c = document.getElementById('teamContainer'); if(!c) return; c.innerHTML = "";
+            snap.forEach(d => { c.innerHTML += `<p class="text-xs bg-white dark:bg-slate-900 p-1.5 rounded border border-gray-100 dark:border-slate-800 text-gray-700 dark:text-gray-300">👤 <b>${d.data().name}</b> (${d.data().contact})</p>`; });
         });
 
-        // 2. GESTIONE NEWS & BACHECA CON TELEGRAM DIRETTO
-        const btnNews = document.getElementById('btnSendNews');
-        if(btnNews) {
-            btnNews.onclick = async () => {
-                const content = document.getElementById('newsContent').value.trim();
-                if(content) {
-                    await addDoc(collection(db, "newsHub"), { content, createdAt: serverTimestamp() });
-                    document.getElementById('newsContent').value = "";
-                    // Notifica Telegram automatica per la News inserita
-                    await inviaNotificaTelegram(`📢 *Nuovo Aggiornamento in Bacheca Hub:*\n\n${content}`);
-                }
-            };
-        }
-
+        // NEWS & BACHECA (Trigger automatico Telegram gestito lato server su Firestore)
+        document.getElementById('btnSendNews').onclick = async () => {
+            const content = document.getElementById('newsContent').value.trim();
+            if(content) {
+                await addDoc(collection(db, "newsHub"), { content, createdAt: serverTimestamp() });
+                document.getElementById('newsContent').value = "";
+            }
+        };
         onSnapshot(query(collection(db, "newsHub"), orderBy("createdAt", "desc")), (snap) => {
-            const container = document.getElementById('newsHistoryContainer');
-            if(container) {
-                container.innerHTML = "";
-                snap.forEach(d => {
-                    const div = document.createElement('div'); div.className = "bg-purple-50/50 dark:bg-purple-950/10 p-2.5 rounded-lg border border-purple-100 dark:border-purple-900/40 text-xs text-gray-700 dark:text-gray-300";
-                    div.innerHTML = `<p class="break-words font-medium">${d.data().content}</p>`;
-                    container.appendChild(div);
-                });
-            }
+            const c = document.getElementById('newsHistoryContainer'); if(!c) return; c.innerHTML = "";
+            snap.forEach(d => { c.innerHTML += `<div class="bg-purple-50/50 dark:bg-purple-950/10 p-2.5 rounded-lg border border-purple-100 dark:border-purple-900/40 text-xs text-gray-700 dark:text-gray-300 font-medium break-words">${d.data().content}</div>`; });
         });
 
-        // 3. GESTIONE NOTE RAPIDE CONDIVISE
-        const btnNote = document.getElementById('btnUploadNote');
-        if(btnNote) {
-            btnNote.onclick = async () => {
-                const content = document.getElementById('newNoteContent').value.trim();
-                if(content) {
-                    await addDoc(collection(db, "notesHub"), { content, createdAt: serverTimestamp() });
-                    document.getElementById('newNoteContent').value = "";
-                    await addDoc(collection(db, "historyHub"), { name: "Nota Rapida", operation: "Aggiunta nota condivisa", timestamp: serverTimestamp() });
-                }
-            };
-        }
-
+        // NOTE RAPIDE
+        document.getElementById('btnUploadNote').onclick = async () => {
+            const content = document.getElementById('newNoteContent').value.trim();
+            if(content) {
+                await addDoc(collection(db, "notesHub"), { content, createdAt: serverTimestamp() });
+                document.getElementById('newNoteContent').value = "";
+                await addDoc(collection(db, "historyHub"), { name: "Nota Rapida", operation: "Aggiunta nota condivisa", timestamp: serverTimestamp() });
+            }
+        };
         onSnapshot(query(collection(db, "notesHub"), orderBy("createdAt", "desc")), (snap) => {
-            if(document.getElementById('statNotes')) document.getElementById('statNotes').textContent = snap.size;
-            const container = document.getElementById('notesContainer'); if(!container) return; container.innerHTML = "";
-            snap.forEach(d => {
-                const div = document.createElement('div'); div.className = "bg-gray-50/80 dark:bg-slate-800/80 p-2 rounded border border-gray-200 dark:border-slate-700 flex justify-between items-start text-xs text-gray-700 dark:text-gray-300 shadow-2xs";
-                div.innerHTML = `<p class="break-words pr-2">${d.data().content}</p><button onclick="window.deleteNote('${d.id}')" class="text-gray-400 hover:text-red-600">✕</button>`;
-                container.appendChild(div);
-            });
+            document.getElementById('statNotes').textContent = snap.size;
+            const c = document.getElementById('notesContainer'); if(!c) return; c.innerHTML = "";
+            snap.forEach(d => { c.innerHTML += `<div class="bg-gray-50/80 dark:bg-slate-800/80 p-2 rounded border border-gray-200 dark:border-slate-700 flex justify-between items-start text-xs shadow-2xs"><p class="break-words pr-2">${d.data().content}</p><button onclick="window.deleteNote('${d.id}')" class="text-gray-400 hover:text-red-600">✕</button></div>`; });
         });
         window.deleteNote = async (id) => { await deleteDoc(doc(db, "notesHub", id)); };
 
-        // 4. ARCHIVIO CLOUD (EXCEL E DOCUMENTI)
-        let allExcelFiles = [], allTextFiles = [];
-        onSnapshot(query(collection(db, "excelHub"), orderBy("uploadedAt", "desc")), (s) => { 
-            if(document.getElementById('statExcel')) document.getElementById('statExcel').textContent = s.size; 
-            allExcelFiles = []; s.forEach(d => allExcelFiles.push({id: d.id, ...d.data(), isExcel: true})); 
-            combineAndRenderArchive(); 
-        });
-        onSnapshot(query(collection(db, "textHub"), orderBy("uploadedAt", "desc")), (s) => { 
-            if(document.getElementById('statDocs')) document.getElementById('statDocs').textContent = s.size; 
-            allTextFiles = []; s.forEach(d => allTextFiles.push({id: d.id, ...d.data(), isExcel: false})); 
-            combineAndRenderArchive(); 
-        });
-
-        function combineAndRenderArchive() {
-            const body = document.getElementById('archiveTableBody'); if(!body) return; body.innerHTML = "";
-            let combined = [...allExcelFiles, ...allTextFiles];
-            combined.forEach(f => {
-                const tr = document.createElement('tr'); tr.className = "text-xs text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-800";
-                if(f.isExcel) {
-                    tr.innerHTML = `<td class="p-3 font-medium">${f.name}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td><td class="p-3 text-gray-500">Ramo: ${f.branch}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', true)" class="text-red-500 hover:underline">Elimina</button></td>`;
-                } else {
-                    tr.innerHTML = `<td class="p-3 font-medium">${f.title}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${f.fileType}</span></td><td class="p-3 text-gray-500">${f.fileName}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', false)" class="text-red-500 hover:underline">Elimina</button></td>`;
-                }
-                body.appendChild(tr);
+        // FILE & REGISTRO ATTIVITÀ
+        let allExcel = [], allText = [];
+        onSnapshot(query(collection(db, "excelHub"), orderBy("uploadedAt", "desc")), (s) => { document.getElementById('statExcel').textContent = s.size; allExcel = []; s.forEach(d => allExcel.push({id: d.id, ...d.data(), isExcel: true})); renderArchive(); });
+        onSnapshot(query(collection(db, "textHub"), orderBy("uploadedAt", "desc")), (s) => { document.getElementById('statDocs').textContent = s.size; allText = []; s.forEach(d => allText.push({id: d.id, ...d.data(), isExcel: false})); renderArchive(); });
+        
+        function renderArchive() {
+            const b = document.getElementById('archiveTableBody'); if(!b) return; b.innerHTML = "";
+            [...allExcel, ...allText].forEach(f => {
+                const tr = document.createElement('tr'); tr.className = "text-xs text-gray-700 dark:text-gray-300 border-b";
+                tr.innerHTML = f.isExcel ? 
+                    `<td class="p-3 font-medium">${f.name}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td><td class="p-3 text-gray-500">Ramo: ${f.branch}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', true)" class="text-red-500 hover:underline">Elimina</button></td>` :
+                    `<td class="p-3 font-medium">${f.title}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${f.fileType}</span></td><td class="p-3 text-gray-500">${f.fileName}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', false)" class="text-red-500 hover:underline">Elimina</button></td>`;
+                b.appendChild(tr);
             });
         }
-
         window.deleteCloudItem = async (id, isExcel) => {
-            if(confirm("Eliminare l'elemento dall'archivio cloud?")) {
-                if(isExcel) await deleteDoc(doc(db, "excelHub", id));
-                else await deleteDoc(doc(db, "textHub", id));
-                await addDoc(collection(db, "historyHub"), { name: "File rimosso", operation: "Cancellazione file dall'archivio", timestamp: serverTimestamp() });
+            if(confirm("Eliminare l'elemento?")) {
+                await deleteDoc(doc(db, isExcel ? "excelHub" : "textHub", id));
+                await addDoc(collection(db, "historyHub"), { name: "File rimosso", operation: "Cancellazione file", timestamp: serverTimestamp() });
             }
         };
 
-        // 5. REGISTRO STORICO ATTIVITÀ
         onSnapshot(query(collection(db, "historyHub"), orderBy("timestamp", "desc")), (snap) => {
-            const body = document.getElementById('historyTableBody'); if(!body) return; body.innerHTML = "";
+            const b = document.getElementById('historyTableBody'); if(!b) return; b.innerHTML = "";
             snap.forEach(d => {
-                const data = d.data();
-                const dateStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('it-IT') : "In corso...";
-                const tr = document.createElement('tr'); tr.className = "border-b border-gray-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors";
-                tr.innerHTML = `<td class="p-2.5 font-mono text-[11px] text-purple-600 dark:text-purple-400">${dateStr}</td><td class="p-2.5 font-medium">${data.name}</td><td class="p-2.5 text-gray-500">${data.operation}</td><td class="p-2.5 text-center"><button onclick="window.deleteHistoryItem('${d.id}')" class="text-gray-400 hover:text-red-500 font-bold">✕</button></td>`;
-                body.appendChild(tr);
+                const data = d.data(); const dStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('it-IT') : "In corso...";
+                b.innerHTML += `<tr class="border-b hover:bg-slate-50 dark:hover:bg-slate-800/40"><td class="p-2.5 font-mono text-[11px] text-purple-600 dark:text-purple-400">${dStr}</td><td class="p-2.5 font-medium">${data.name}</td><td class="p-2.5 text-gray-500">${data.operation}</td><td class="p-2.5 text-center"><button onclick="window.deleteHistoryItem('${d.id}')" class="text-gray-400 hover:text-red-500">✕</button></td></tr>`;
             });
         });
+        window.deleteHistoryItem = async (id) => { if(confirm("Rimuovere log?")) await deleteDoc(doc(db, "historyHub", id)); };
 
-        window.deleteHistoryItem = async (id) => {
-            if(confirm("Rimuovere questa riga di log dallo storico?")) {
-                await deleteDoc(doc(db, "historyHub", id));
-            }
-        };
-
-        // 6. CHAT CO-PILOT DIRETTA CON API KEY DAL BROWSER
+        // 🚀 CHIAMATA CHAT CO-PILOT ALLA CLOUD FUNCTION DI FIREBASE
         window.askAI = async () => {
-            const keyInput = document.getElementById('geminiApiKey');
             const inputEl = document.getElementById('aiInput');
             const container = document.getElementById('chat-container');
             const sendBtn = document.getElementById('aiSendBtn');
-            
-            const apiKey = keyInput.value.trim();
             const queryText = inputEl.value.trim();
-            
-            if (!apiKey) {
-                alert("Per favore, inserisci prima la tua chiave API di Gemini nel campo in alto.");
-                return;
-            }
             if (!queryText) return;
 
             inputEl.disabled = true; sendBtn.disabled = true;
             container.innerHTML += `<div class="bg-blue-600/10 border border-blue-500/20 p-2.5 rounded-lg text-slate-200 font-medium text-right max-w-[85%] ml-auto">👤 ${queryText}</div>`;
-            inputEl.value = "";
+            inputEl.value = ""; container.scrollTop = container.scrollHeight;
             
             const loadingId = 'loading-' + Date.now();
-            container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">⚙️ Elaborazione Co-Pilot...</div>`;
+            container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">⚙️ Cloud Function in elaborazione...</div>`;
             container.scrollTop = container.scrollHeight;
 
             let replyText = "";
             try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: queryText }] }],
-                        systemInstruction: {
-                            parts: [{ text: "Rispondi in modo conciso, professionale e rigoroso in lingua italiana. Sei l'assistente IA Co-Pilot dell'Engineering Cloud Hub. Sei un esperto ingegnere strutturista e meccanico. Utilizza notazioni scientifiche se necessario e racchiudi le formule matematiche nella sintassi LaTeX standard (es. usando $ o $$) così che MathJax possa renderizzarle." }]
-                        },
-                        generationConfig: { temperature: 0.4 }
-                    })
-                });
-
-                const data = await response.json();
-                if (data.candidates && data.candidates[0].content.parts[0].text) {
-                    replyText = data.candidates[0].content.parts[0].text;
-                } else {
-                    replyText = "⚠️ Risposta vuota dal modello. Controlla la console.";
-                    console.error(data);
-                }
+                // Invocazione della Cloud Function caricata su Firebase
+                const askGeminiCoPilot = httpsCallable(functions, 'askGeminiCoPilot');
+                const result = await askGeminiCoPilot({ prompt: queryText });
+                replyText = result.data.reply;
             } catch (e) {
                 console.error(e);
-                replyText = "⚠️ Errore di connessione o Chiave API non valida. Verifica le restrizioni su Google Cloud Console.";
+                replyText = "⚠️ Impossibile raggiungere il backend Cloud di Firebase. Controlla i log e assicurati di aver abilitato il piano Blaze.";
             }
 
             document.getElementById(loadingId)?.remove();
             const replyDiv = document.createElement('div');
-            replyDiv.className = "bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-slate-300 max-w-[90%] font-normal leading-relaxed text-xs";
-            
+            replyDiv.className = "bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-slate-300 max-w-[90%] font-normal text-xs";
             replyDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(replyText) : replyText.replace(/\n/g, "<br>");
             container.appendChild(replyDiv);
             
