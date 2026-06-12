@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Cloud Hub - V2.2.0</title>
+    <title>Engineering Cloud Hub - V2.2.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
@@ -31,7 +31,6 @@
                 <input type="password" id="loginPass" placeholder="Password" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium text-gray-800 dark:text-white focus:outline-none">
                 <button onclick="window.verifyHubLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-xs tracking-wider uppercase transition-colors cursor-pointer mt-2">Verifica ed Entra</button>
             </div>
-            <p id="loginError" class="text-red-500 text-[11px] font-medium mt-3 hidden">⚠️ Credenziali errate.</p>
         </div>
     </div>
 
@@ -39,20 +38,16 @@
         <nav class="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-40 dark:bg-black">
             <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
                 <div class="flex items-center space-x-3 flex-wrap gap-2 sm:gap-0">
-                    <button onclick="toggleSidebar()" class="bg-slate-800 hover:bg-slate-700 text-sm py-1.5 px-3 rounded-lg border border-slate-700 cursor-pointer font-medium">📊 Info & Team</button>
+                    <button onclick="toggleSidebar()" class="bg-slate-800 hover:bg-slate-700 text-sm py-1.5 px-3 rounded-lg border border-slate-700 cursor-pointer font-medium">📊 Info & Telegram</button>
                     <button onclick="toggleNewsSidebar()" class="bg-slate-800 hover:bg-slate-700 text-sm py-1.5 px-3 rounded-lg border border-slate-700 cursor-pointer font-medium">📢 News & Bacheca</button>
                     <button onclick="toggleCalcModal()" class="bg-amber-600 hover:bg-amber-700 text-slate-950 text-sm py-1.5 px-3 rounded-lg cursor-pointer font-bold">🧮 Calcolatore Peso</button>
                     <div class="h-5 w-px bg-slate-700 hidden sm:block mx-2"></div>
                     <h1 class="text-lg sm:text-xl font-bold tracking-wide flex items-center gap-2">
-                        Engineering Cloud Hub <span class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">V2.2.0</span>
+                        Engineering Cloud Hub <span class="text-xs bg-amber-600 text-slate-950 px-2 py-0.5 rounded-full font-bold">V2.2.1 Smart</span>
                     </h1>
                 </div>
                 <div class="flex items-center space-x-4">
                     <button onclick="toggleTheme()" class="bg-slate-800 hover:bg-slate-700 text-sm p-2 rounded-lg border border-slate-700 cursor-pointer">🌙</button>
-                    <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-full border border-slate-800 text-xs hidden sm:flex">
-                        <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                        <span class="text-emerald-400 font-medium font-mono">Cloud V2.2 Backend Node</span>
-                    </div>
                 </div>
             </div>
         </nav>
@@ -96,24 +91,28 @@
 
         <div id="sidebar" class="fixed top-0 left-0 h-full w-85 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl border-r border-gray-200 dark:border-slate-800 z-50 transform -translate-x-full transition-transform duration-300 p-4 overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-2 mb-4">
-                <h2 class="text-base font-bold">📊 Pannello Hub & Team</h2>
+                <h2 class="text-base font-bold">📊 Notifiche & Team</h2>
                 <button onclick="toggleSidebar()" class="text-gray-400 hover:text-red-500 font-bold">✕</button>
             </div>
-            <div class="mb-4 p-3 bg-slate-50 dark:bg-slate-800 border rounded-xl">
-                <h3 class="text-xs font-bold uppercase text-gray-400 mb-1.5">Registrati all'Hub</h3>
+            <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-xl">
+                <h3 class="text-xs font-bold uppercase text-blue-600 dark:text-blue-400 mb-1">Iscrizione Notifiche Telegram</h3>
+                <p class="text-[11px] text-gray-500 mb-2">1. Clicca sul link e premi <b>AVVIA</b> sul Bot per ricevere il tuo ID personale.<br>2. Incolla l'ID qui sotto per attivare/rimuovere i tuoi avvisi.</p>
+                <a href="https://t.me/IL_TUO_BOT_TELEGRAM" target="_blank" class="block text-center text-xs bg-blue-600 text-white font-bold py-1 rounded-lg mb-2 hover:bg-blue-700">🤖 Apri Bot Telegram</a>
                 <div class="space-y-2">
-                    <input type="text" id="regName" placeholder="Nome (es. Ing. Rossi)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100">
-                    <input type="text" id="regContact" placeholder="Contatto / Email" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100">
-                    <button id="btnRegister" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded-lg text-xs cursor-pointer">Entra nel Team</button>
+                    <input type="text" id="telChatIdInput" placeholder="Inserisci il tuo Chat ID (es. 1234567)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100 focus:outline-none">
+                    <input type="text" id="telNameInput" placeholder="Tuo Nome (opzionale)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100 focus:outline-none">
+                    <div class="flex gap-2">
+                        <button id="btnSubscribeTelegram" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 rounded-lg text-xs cursor-pointer">Attiva</button>
+                        <button id="btnUnsubscribeTelegram" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 rounded-lg text-xs cursor-pointer">Disattiva</button>
+                    </div>
                 </div>
-                <div id="teamContainer" class="mt-3 space-y-1.5 max-h-32 overflow-y-auto"></div>
+                <div id="subscribersContainer" class="mt-3 space-y-1.5 max-h-32 overflow-y-auto"></div>
             </div>
             <div>
-                <h3 class="text-xs font-bold uppercase text-gray-400 mb-1.5">Statistiche Cloud</h3>
+                <h3 class="text-xs font-bold uppercase text-gray-400 mb-1.5">Statistiche Elementi</h3>
                 <div class="space-y-1.5 text-xs">
-                    <div class="bg-emerald-50 dark:bg-emerald-950/30 p-2.5 rounded-lg flex justify-between"><span>Excel:</span><span id="statExcel" class="font-bold">0</span></div>
-                    <div class="bg-blue-50 dark:bg-blue-950/30 p-2.5 rounded-lg flex justify-between"><span>Documenti:</span><span id="statDocs" class="font-bold">0</span></div>
-                    <div class="bg-amber-50 dark:bg-amber-950/30 p-2.5 rounded-lg flex justify-between"><span>Note:</span><span id="statNotes" class="font-bold">0</span></div>
+                    <div class="bg-emerald-50 dark:bg-emerald-950/30 p-2.5 rounded-lg flex justify-between"><span>Excel Caricati:</span><span id="statExcel" class="font-bold">0</span></div>
+                    <div class="bg-blue-50 dark:bg-blue-950/30 p-2.5 rounded-lg flex justify-between"><span>Documenti / Note:</span><span id="statDocs" class="font-bold">0</span></div>
                 </div>
             </div>
         </div>
@@ -124,8 +123,8 @@
                 <button onclick="toggleNewsSidebar()" class="text-gray-400 hover:text-red-500 font-bold">✕</button>
             </div>
             <div class="mb-4 p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 rounded-xl">
-                <textarea id="newsContent" rows="3" placeholder="Scrivi una news per il team..." class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100 resize-none focus:outline-none"></textarea>
-                <button id="btnSendNews" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg text-xs mt-2 cursor-pointer">Invia News</button>
+                <textarea id="newsContent" rows="3" placeholder="Scrivi una news (Invierà una notifica a tutti gli iscritti)..." class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100 resize-none focus:outline-none"></textarea>
+                <button id="btnSendNews" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg text-xs mt-2 cursor-pointer">Invia e Notifica</button>
             </div>
             <div id="newsHistoryContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
         </div>
@@ -137,43 +136,33 @@
                     <div class="space-y-3">
                         <select id="excelBranch" class="w-full bg-gray-50 dark:bg-slate-800 border rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none"><option value="Meccanica">⚙️ Meccanica</option><option value="Termodinamica">🔥 Termodinamica</option></select>
                         <input type="text" id="excelNote" placeholder="es. Verifica albero flessione" class="w-full bg-gray-50 dark:bg-slate-800 border rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
-                        <div class="border-2 border-dashed border-gray-300 dark:border-slate-700 p-4 text-center rounded-lg bg-gray-50/50 dark:bg-slate-800/50"><p class="text-xs text-gray-400">Trascina qui l'Excel (.xlsx)</p></div>
-                        <button id="btnUploadExcel" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-sm">Carica nel Cloud</button>
+                        <button id="btnUploadExcel" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-sm">Carica Excel</button>
                     </div>
                 </div>
 
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
-                    <h2 class="text-lg font-bold text-blue-700 dark:text-blue-400 mb-3">📝 Documenti e Report</h2>
+                    <h2 class="text-lg font-bold text-blue-700 dark:text-blue-400 mb-3">📝 Aggiungi Documento / Nota</h2>
                     <div class="space-y-3">
-                        <input type="text" id="textTitle" placeholder="es. Relazione tecnica d'asse" class="w-full bg-gray-50 dark:bg-slate-800 border rounded-lg p-2 text-sm focus:outline-none">
-                        <div class="border-2 border-dashed border-gray-300 dark:border-slate-700 p-4 text-center rounded-lg bg-gray-50/50 dark:bg-slate-800/50"><p class="text-xs text-gray-400">Trascina qui il documento (.pdf, .txt)</p></div>
-                        <button id="btnUploadDoc" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-sm">Salva Documento</button>
-                    </div>
-                </div>
-
-                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
-                    <h2 class="text-lg font-bold text-amber-700 dark:text-amber-400 mb-3">📌 Note Rapide Condivise</h2>
-                    <div class="space-y-3">
-                        <textarea id="newNoteContent" rows="2" placeholder="Nota logistica o appunto..." class="w-full bg-gray-50 dark:bg-slate-800 border rounded-lg p-2 text-sm focus:outline-none resize-none"></textarea>
-                        <button id="btnUploadNote" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-lg text-sm">Aggiungi Nota</button>
-                        <div id="notesContainer" class="space-y-2 max-h-48 overflow-y-auto pt-2 border-t border-gray-200 dark:border-slate-800"></div>
+                        <input type="text" id="textTitle" placeholder="Titolo (es. Specifica Tecnica Albero)" class="w-full bg-gray-50 dark:bg-slate-800 border rounded-lg p-2 text-sm focus:outline-none">
+                        <textarea id="textContentBody" rows="5" placeholder="Incolla qui il testo o il contenuto del report. Questo testo sarà memorizzato e studiato dall'IA Co-Pilot..." class="w-full bg-gray-50 dark:bg-slate-800 border rounded-lg p-2 text-xs focus:outline-none resize-none"></textarea>
+                        <button id="btnUploadDoc" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-sm">Salva in Archivio</button>
                     </div>
                 </div>
             </div>
 
             <div class="lg:col-span-2 space-y-6">
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
-                    <h2 class="text-lg font-bold mb-4">📁 Archivio Cloud Attivo</h2>
+                    <h2 class="text-lg font-bold mb-4">📁 Archivio Cloud Attivo (Letto da IA)</h2>
                     <div class="overflow-x-auto archivio-scroll-container">
                         <table class="w-full text-left text-sm border-collapse">
-                            <thead><tr class="border-b bg-gray-50/70 dark:bg-slate-800/50 text-xs text-gray-500 uppercase"><th class="p-3">Nome Elemento</th><th class="p-3">Tipo</th><th class="p-3">Note</th><th class="p-3 text-center">Azioni</th></tr></thead>
+                            <thead><tr class="border-b bg-gray-50/70 dark:bg-slate-800/50 text-xs text-gray-500 uppercase"><th class="p-3">Nome Elemento</th><th class="p-3">Tipo</th><th class="p-3">Dettagli / Anteprima Testo</th><th class="p-3 text-center">Azioni</th></tr></thead>
                             <tbody id="archiveTableBody" class="divide-y dark:divide-slate-800"></tbody>
                         </table>
                     </div>
                 </div>
 
                 <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
-                    <h2 class="text-lg font-bold text-purple-800 dark:text-purple-400">⏱️ Registro Storico Attività</h2>
+                    <h2 class="text-lg font-bold text-purple-800 dark:text-purple-400">⏱️ Registro Attività</h2>
                     <div class="overflow-x-auto storico-scroll-container border dark:border-slate-800 rounded-lg mt-2">
                         <table class="w-full text-left text-xs text-gray-700 dark:text-gray-300">
                             <thead><tr class="border-b bg-gray-50 dark:bg-slate-800 font-bold uppercase"><th class="p-2.5">Data / Ora</th><th class="p-2.5">Oggetto</th><th class="p-2.5">Operazione</th><th class="p-2.5 text-center">X</th></tr></thead>
@@ -186,18 +175,18 @@
 
         <div id="ai-chat-widget" class="fixed bottom-4 right-4 w-96 bg-slate-900 text-slate-100 rounded-xl shadow-2xl border border-slate-800 z-50 overflow-hidden flex flex-col">
             <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
-                <span class="font-bold text-xs text-white">Ingegnere Co-Pilot IA <span class="text-blue-400 font-mono">v2.2.0</span></span>
+                <span class="font-bold text-xs text-white">Co-Pilot Documentale IA <span class="text-emerald-400 font-mono">v2.2.1 Smart</span></span>
                 <button id="collapse-chat-btn" class="text-gray-400 font-bold text-xs">➖</button>
             </div>
             <div id="chat-body" class="flex flex-col flex-grow">
                 <div id="chat-container" class="h-[250px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
                     <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-400">
-                        🤖 Pronto per calcoli strutturali, formule meccaniche e analisi. Elaborazione protetta tramite Cloud Functions.
+                        🤖 Sono il navigatore dell'Hub. Conosco alla perfezione tutti i documenti e le note salvate sopra. Chiedimi dove trovare un dato o un riassunto dei file!
                     </div>
                 </div>
                 <div class="border-t border-slate-800 p-3 bg-slate-900">
                     <div class="flex gap-2">
-                        <input type="text" id="aiInput" placeholder="Chiedi qualcosa al Co-Pilot..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
+                        <input type="text" id="aiInput" placeholder="Chiedimi dei file nell'archivio..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
                         <button id="aiSendBtn" onclick="window.askAI()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 rounded-lg text-xs cursor-pointer">Invia</button>
                     </div>
                 </div>
@@ -238,10 +227,13 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // CONFIGURAZIONE HUB REALE
+        // ==========================================
+        // TELEGRAM BOT CONFIGURATION (Metti qui il Token)
+        // ==========================================
+        const TELEGRAM_BOT_TOKEN = "IL_TUO_BOT_TELEGRAM_TOKEN";
+
         const firebaseConfig = {
             apiKey: "AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM",
             authDomain: "hub-ingegneria.firebaseapp.com",
@@ -253,32 +245,70 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const functions = getFunctions(app);
 
         window.toggleSidebar = () => { document.getElementById('sidebar')?.classList.toggle('-translate-x-full'); };
         window.toggleNewsSidebar = () => { document.getElementById('newsSidebar')?.classList.toggle('translate-x-full'); };
         window.toggleTheme = () => { document.documentElement.classList.toggle('dark'); };
 
-        // TEAM & REGISTRAZIONE (Trigger automatico Telegram gestito lato server su Firestore)
-        document.getElementById('btnRegister').onclick = async () => {
-            const name = document.getElementById('regName').value.trim();
-            const contact = document.getElementById('regContact').value.trim();
-            if(name && contact) {
-                await addDoc(collection(db, "teamHub"), { name, contact, joinedAt: serverTimestamp() });
-                document.getElementById('regName').value = ""; document.getElementById('regContact').value = "";
-            }
+        // --- SISTEMA TELEGRAM FAN-OUT (NOTIFICA A TUTTI I SELEZIONATI) ---
+        async function broadcastTelegramMessage(text) {
+            if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN.startsWith("IL_TUO")) return;
+            try {
+                // Recupera l'elenco completo di tutti gli iscritti attivi
+                const snap = await getDocs(collection(db, "subscribers"));
+                snap.forEach(async (uDoc) => {
+                    const userData = uDoc.data();
+                    if(userData.chatId) {
+                        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ chat_id: userData.chatId, text: text, parse_mode: "Markdown" })
+                        });
+                    }
+                });
+            } catch (e) { console.error("Errore invio multi-notifica:", e); }
+        }
+
+        // GESTIONE ISCRIZIONE/DISISCRIZIONE TELEGRAM
+        document.getElementById('btnSubscribeTelegram').onclick = async () => {
+            const chatId = document.getElementById('telChatIdInput').value.trim();
+            const name = document.getElementById('telNameInput').value.trim() || "Membro Hub";
+            if(!chatId) return alert("Inserisci un Chat ID valido!");
+            
+            await addDoc(collection(db, "subscribers"), { chatId, name, subscribedAt: serverTimestamp() });
+            document.getElementById('telChatIdInput').value = ""; document.getElementById('telNameInput').value = "";
+            alert("Notifiche Telegram attivate con successo!");
         };
-        onSnapshot(query(collection(db, "teamHub"), orderBy("joinedAt", "desc")), (snap) => {
-            const c = document.getElementById('teamContainer'); if(!c) return; c.innerHTML = "";
-            snap.forEach(d => { c.innerHTML += `<p class="text-xs bg-white dark:bg-slate-900 p-1.5 rounded border border-gray-100 dark:border-slate-800 text-gray-700 dark:text-gray-300">👤 <b>${d.data().name}</b> (${d.data().contact})</p>`; });
+
+        document.getElementById('btnUnsubscribeTelegram').onclick = async () => {
+            const chatId = document.getElementById('telChatIdInput').value.trim();
+            if(!chatId) return alert("Inserisci il tuo Chat ID per disattivare!");
+            
+            const snap = await getDocs(collection(db, "subscribers"));
+            let trovato = false;
+            snap.forEach(async (uDoc) => {
+                if(uDoc.data().chatId === chatId) {
+                    await deleteDoc(doc(db, "subscribers", uDoc.id));
+                    trovato = true;
+                }
+            });
+            document.getElementById('telChatIdInput').value = "";
+            alert(trovato ? "Notifiche rimosse correttamente." : "Chat ID non trovato nell'elenco.");
+        };
+
+        onSnapshot(collection(db, "subscribers"), (snap) => {
+            const c = document.getElementById('subscribersContainer'); if(!c) return; c.innerHTML = "";
+            snap.forEach(d => { c.innerHTML += `<p class="text-[10px] bg-white dark:bg-slate-900 p-1 rounded border border-gray-100 dark:border-slate-800 text-gray-400">🔔 <b>${d.data().name}</b> (${d.data().chatId})</p>`; });
         });
 
-        // NEWS & BACHECA (Trigger automatico Telegram gestito lato server su Firestore)
+        // BACHECA NEWS CON BROADCAST TELEGRAM
         document.getElementById('btnSendNews').onclick = async () => {
             const content = document.getElementById('newsContent').value.trim();
             if(content) {
                 await addDoc(collection(db, "newsHub"), { content, createdAt: serverTimestamp() });
                 document.getElementById('newsContent').value = "";
+                // Invio automatico a tutte le chat registrate
+                await broadcastTelegramMessage(`📢 *Nuovo Aggiornamento Bacheca Hub:*\n\n${content}`);
             }
         };
         onSnapshot(query(collection(db, "newsHub"), orderBy("createdAt", "desc")), (snap) => {
@@ -286,23 +316,37 @@
             snap.forEach(d => { c.innerHTML += `<div class="bg-purple-50/50 dark:bg-purple-950/10 p-2.5 rounded-lg border border-purple-100 dark:border-purple-900/40 text-xs text-gray-700 dark:text-gray-300 font-medium break-words">${d.data().content}</div>`; });
         });
 
-        // NOTE RAPIDE
-        document.getElementById('btnUploadNote').onclick = async () => {
-            const content = document.getElementById('newNoteContent').value.trim();
-            if(content) {
-                await addDoc(collection(db, "notesHub"), { content, createdAt: serverTimestamp() });
-                document.getElementById('newNoteContent').value = "";
-                await addDoc(collection(db, "historyHub"), { name: "Nota Rapida", operation: "Aggiunta nota condivisa", timestamp: serverTimestamp() });
+        // CARICAMENTO EXCEL
+        document.getElementById('btnUploadExcel').onclick = async () => {
+            const branch = document.getElementById('excelBranch').value;
+            const note = document.getElementById('excelNote').value.trim();
+            if(note) {
+                await addDoc(collection(db, "excelHub"), { name: note, branch: branch, uploadedAt: serverTimestamp() });
+                document.getElementById('excelNote').value = "";
+                await addDoc(collection(db, "historyHub"), { name: `Excel: ${note}`, operation: `Caricato nel ramo ${branch}`, timestamp: serverTimestamp() });
+                await broadcastTelegramMessage(`⚙️ *Nuovo File Excel:* ${note}\nSezione: ${branch}`);
             }
         };
-        onSnapshot(query(collection(db, "notesHub"), orderBy("createdAt", "desc")), (snap) => {
-            document.getElementById('statNotes').textContent = snap.size;
-            const c = document.getElementById('notesContainer'); if(!c) return; c.innerHTML = "";
-            snap.forEach(d => { c.innerHTML += `<div class="bg-gray-50/80 dark:bg-slate-800/80 p-2 rounded border border-gray-200 dark:border-slate-700 flex justify-between items-start text-xs shadow-2xs"><p class="break-words pr-2">${d.data().content}</p><button onclick="window.deleteNote('${d.id}')" class="text-gray-400 hover:text-red-600">✕</button></div>`; });
-        });
-        window.deleteNote = async (id) => { await deleteDoc(doc(db, "notesHub", id)); };
 
-        // FILE & REGISTRO ATTIVITÀ
+        // CARICAMENTO DOCUMENTO COMPLETO (STUDIATO DALL'IA)
+        document.getElementById('btnUploadDoc').onclick = async () => {
+            const title = document.getElementById('textTitle').value.trim();
+            const bodyContent = document.getElementById('textContentBody').value.trim();
+            if(title && bodyContent) {
+                await addDoc(collection(db, "textHub"), { 
+                    title: title, 
+                    fileName: title + ".txt", 
+                    fileType: "TEXT", 
+                    extractedText: bodyContent, // Salviamo il testo completo per darlo in pasto al RAG
+                    uploadedAt: serverTimestamp() 
+                });
+                document.getElementById('textTitle').value = ""; document.getElementById('textContentBody').value = "";
+                await addDoc(collection(db, "historyHub"), { name: title, operation: "Caricata specifica documentale", timestamp: serverTimestamp() });
+                await broadcastTelegramMessage(`📝 *Nuovo Documento Inserito:* ${title}\nDisponibile per l'interrogazione Co-Pilot.`);
+            }
+        };
+
+        // RENDER ARCHIVIO E STATISTICHE
         let allExcel = [], allText = [];
         onSnapshot(query(collection(db, "excelHub"), orderBy("uploadedAt", "desc")), (s) => { document.getElementById('statExcel').textContent = s.size; allExcel = []; s.forEach(d => allExcel.push({id: d.id, ...d.data(), isExcel: true})); renderArchive(); });
         onSnapshot(query(collection(db, "textHub"), orderBy("uploadedAt", "desc")), (s) => { document.getElementById('statDocs').textContent = s.size; allText = []; s.forEach(d => allText.push({id: d.id, ...d.data(), isExcel: false})); renderArchive(); });
@@ -311,16 +355,19 @@
             const b = document.getElementById('archiveTableBody'); if(!b) return; b.innerHTML = "";
             [...allExcel, ...allText].forEach(f => {
                 const tr = document.createElement('tr'); tr.className = "text-xs text-gray-700 dark:text-gray-300 border-b";
-                tr.innerHTML = f.isExcel ? 
-                    `<td class="p-3 font-medium">${f.name}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td><td class="p-3 text-gray-500">Ramo: ${f.branch}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', true)" class="text-red-500 hover:underline">Elimina</button></td>` :
-                    `<td class="p-3 font-medium">${f.title}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${f.fileType}</span></td><td class="p-3 text-gray-500">${f.fileName}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', false)" class="text-red-500 hover:underline">Elimina</button></td>`;
+                if(f.isExcel) {
+                    tr.innerHTML = `<td class="p-3 font-medium">${f.name}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td><td class="p-3 text-gray-500 italic">Ramo: ${f.branch}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', true)" class="text-red-500 hover:underline">Elimina</button></td>`;
+                } else {
+                    const anteprima = f.extractedText ? f.extractedText.substring(0, 60) + "..." : "Nessun testo.";
+                    tr.innerHTML = `<td class="p-3 font-medium">${f.title}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">DOC TXT</span></td><td class="p-3 text-gray-400 font-mono">${anteprima}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', false)" class="text-red-500 hover:underline">Elimina</button></td>`;
+                }
                 b.appendChild(tr);
             });
         }
         window.deleteCloudItem = async (id, isExcel) => {
             if(confirm("Eliminare l'elemento?")) {
                 await deleteDoc(doc(db, isExcel ? "excelHub" : "textHub", id));
-                await addDoc(collection(db, "historyHub"), { name: "File rimosso", operation: "Cancellazione file", timestamp: serverTimestamp() });
+                await addDoc(collection(db, "historyHub"), { name: "Rimozione", operation: "Cancellazione dall'archivio", timestamp: serverTimestamp() });
             }
         };
 
@@ -333,7 +380,8 @@
         });
         window.deleteHistoryItem = async (id) => { if(confirm("Rimuovere log?")) await deleteDoc(doc(db, "historyHub", id)); };
 
-        // 🚀 CHIAMATA CHAT CO-PILOT ALLA CLOUD FUNCTION DI FIREBASE
+
+        // --- 🚀 STRUTTURA CO-PILOT CON LOGICA RAG & ENGINE GRATUITO (MISTRAL) ---
         window.askAI = async () => {
             const inputEl = document.getElementById('aiInput');
             const container = document.getElementById('chat-container');
@@ -346,18 +394,43 @@
             inputEl.value = ""; container.scrollTop = container.scrollHeight;
             
             const loadingId = 'loading-' + Date.now();
-            container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">⚙️ Cloud Function in elaborazione...</div>`;
+            container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">⚙️ Analisi database e calcolo IA...</div>`;
             container.scrollTop = container.scrollHeight;
+
+            // 1. FASE DI RETRIEVAL (Estraggo la conoscenza attuale dell'archivio)
+            let databaseContext = "ARCHIVIO DOCUMENTI DISPONIBILI NELL'HUB:\n";
+            
+            allText.forEach(doc => {
+                databaseContext += `\n--- DOCUMENTO: ${doc.title} ---\nContenuto integrale:\n${doc.extractedText || "Nessun contenuto"}\n`;
+            });
+            allExcel.forEach(exc => {
+                databaseContext += `\n--- FILE EXCEL: ${exc.name} (Sezione: ${exc.branch}) ---\n`;
+            });
+
+            // 2. FORMULAZIONE PROMPT DIRETTO CON AI INJECTED CONTEXT
+            const fullSystemPrompt = `Sei l'assistente Co-Pilot dell'Engineering Cloud Hub. Sei un esperto ingegnere meccanico e strutturista. Ti viene fornito tutto l'archivio dei documenti caricati sull'Hub dagli utenti sotto forma di testo. Rispondi alle domande degli utenti basandoti RIGOROSAMENTE sul testo dei documenti fornito. Se un utente chiede dove trovare un dato o una relazione, digli esattamente il titolo del documento. Rispondi in italiano in modo chiaro e coinciso. Se inserisci formule matematiche, racchiudile nella sintassi LaTeX standard usando $ o $$. Ecco il materiale caricato nell'Hub: \n\n ${databaseContext}`;
 
             let replyText = "";
             try {
-                // Invocazione della Cloud Function caricata su Firebase
-                const askGeminiCoPilot = httpsCallable(functions, 'askGeminiCoPilot');
-                const result = await askGeminiCoPilot({ prompt: queryText });
-                replyText = result.data.reply;
+                // Chiamata REST a Pollinations forzando il modello Mistral (Gratuito, senza API Key e potente)
+                const apiUrl = `https://text.pollinations.ai/`;
+                const response = await fetch(apiUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        messages: [
+                            { role: "system", content: fullSystemPrompt },
+                            { role: "user", content: queryText }
+                        ],
+                        model: "mistral",
+                        temperature: 0.3
+                    })
+                });
+
+                replyText = await response.text();
             } catch (e) {
                 console.error(e);
-                replyText = "⚠️ Impossibile raggiungere il backend Cloud di Firebase. Controlla i log e assicurati di aver abilitato il piano Blaze.";
+                replyText = "⚠️ Errore di connessione con il motore IA. Riprova tra pochi istanti.";
             }
 
             document.getElementById(loadingId)?.remove();
