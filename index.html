@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Cloud Hub - V2.2.2</title>
+    <title>Engineering Cloud Hub - V2.2.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
@@ -50,7 +50,7 @@
                     </button>
                     <div class="h-5 w-px bg-slate-700 hidden sm:block mx-2"></div>
                     <h1 class="text-lg sm:text-xl font-bold tracking-wide text-white flex items-center gap-2">
-                        Engineering Cloud Hub <span class="text-xs bg-amber-600 text-slate-950 px-2 py-0.5 rounded-full font-bold">V2.2.2 Smart</span>
+                        Engineering Cloud Hub <span class="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold">V2.2.3 Smart</span>
                     </h1>
                 </div>
                 
@@ -284,30 +284,19 @@
             <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
                 <div class="flex items-center space-x-2">
                     <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                    <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.2.2 Smart</span></span>
+                    <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.2.3 Smart</span></span>
                 </div>
                 <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
             </div>
             
             <div id="chat-body" class="flex flex-col flex-grow">
-                <div id="chat-container" class="h-[220px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
+                <div id="chat-container" class="h-[260px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
                     <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">
-                        🤖 Sono l'Ingegnere Co-Pilot V2.2.2. Conosco l'intero archivio dei documenti e file Excel caricati nel sistema grazie alla tecnologia RAG locale. 
+                        🤖 Sono l'Ingegnere Co-Pilot V2.2.3. Conosco l'intero archivio dei documenti e file Excel caricati nel sistema grazie alla tecnologia RAG automatica. Interrogami liberamente, senza bisogno di chiavi API.
                     </div>
                 </div>
 
                 <div class="border-t border-slate-800 p-3 bg-slate-900 space-y-2">
-                    <div id="gemini-key-container" class="p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg flex flex-col gap-1.5">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wide flex items-center gap-1">🔑 API Key Gemini (Opzionale):</span>
-                            <span id="keyStatusBadge" class="text-[9px] bg-red-500/20 text-red-400 px-1.5 py-0.2 rounded font-bold">Mancante</span>
-                        </div>
-                        <div class="flex gap-1.5">
-                            <input type="password" id="geminiApiKey" placeholder="Incolla chiave AIzaSy..." class="flex-1 bg-slate-950 border border-slate-800 rounded-md p-1 text-[11px] text-slate-200 focus:outline-none font-mono">
-                            <button onclick="window.saveGeminiKey()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-2.5 py-1 rounded-md text-[10px] uppercase cursor-pointer shadow-xs">Salva</button>
-                        </div>
-                    </div>
-
                     <div class="flex gap-2">
                         <input type="text" id="aiInput" placeholder="Interroga l'archivio dei file..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
                         <button id="aiSendBtn" onclick="window.askAI()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 rounded-lg text-xs transition-colors cursor-pointer">Invia</button>
@@ -343,7 +332,6 @@
             if (document.getElementById('loginUser').value.trim() === 'Ing' && document.getElementById('loginPass').value.trim() === 'Ing') {
                 document.getElementById('loginBlocker').remove();
                 document.getElementById('hubMainContent').classList.remove('hidden');
-                if(window.checkGeminiKeyStatus) window.checkGeminiKeyStatus();
             } else { document.getElementById('loginError').classList.remove('hidden'); }
         }
         let isChatCollapsed = false;
@@ -390,7 +378,7 @@
             document.getElementById('lang-en').className = lang === 'en' ? "px-2 py-1 rounded-md bg-blue-600 text-white transition-all" : "px-2 py-1 rounded-md text-gray-400 hover:text-white transition-all";
         };
 
-        // DRAG & DROP GESTORI GRAFICI VISIVI ORIGINALMENTE PRESENTI
+        // DRAG & DROP GESTORI GRAFICI
         const setupDropzone = (zoneId, inputId, textId, defaultText) => {
             const zone = document.getElementById(zoneId); const input = document.getElementById(inputId);
             if(!zone || !input) return;
@@ -420,7 +408,7 @@
             } catch (e) { console.error("Errore notifica Telegram:", e); }
         }
 
-        // AZIONI ISCRIZIONI TELEGRAM
+        // AZIONI ISCRIZIONI TELEGRAM (SEPARATE DAI CONTATORI CLOUD)
         document.getElementById('btnSubscribeTelegram').onclick = async () => {
             const chatId = document.getElementById('telChatIdInput').value.trim();
             const name = document.getElementById('telNameInput').value.trim() || "Membro Hub";
@@ -465,13 +453,13 @@
             }
         };
 
-        // AZIONI CARICAMENTO FILE ED EXCEL CON STRUTTURA LOG INTEGRA CORRETTA
+        // AZIONI CARICAMENTO FILE (CON LOGICA STORICO CORRETTA)
         document.getElementById('btnUploadExcel').onclick = async () => {
             const branch = document.getElementById('excelBranch').value;
             const note = document.getElementById('excelNote').value.trim();
             if(note) {
                 await addDoc(collection(db, "excelHub"), { name: note, branch: branch, uploadedAt: serverTimestamp() });
-                await addDoc(collection(db, "historyHub"), { name: note, operation: `Caricato Excel nel ramo ${branch}`, timestamp: serverTimestamp() });
+                await addDoc(collection(db, "historyHub"), { name: note, operation: `Caricato Excel (${branch})`, timestamp: serverTimestamp() });
                 document.getElementById('excelNote').value = ""; document.getElementById('textDropExcel').textContent = "Trascina qui il file Excel o clicca";
                 await sendTelegramBroadcast(`⚙️ *Nuovo File Excel:* ${note}\nRamo: ${branch}`);
             }
@@ -481,7 +469,7 @@
             const bodyContent = document.getElementById('textContentBody').value.trim() || "Nessun testo estratto inserito.";
             if(title) {
                 await addDoc(collection(db, "textHub"), { title: title, fileName: title + ".txt", fileType: "TXT", extractedText: bodyContent, uploadedAt: serverTimestamp() });
-                await addDoc(collection(db, "historyHub"), { name: title, operation: "Caricata specifica documentale report", timestamp: serverTimestamp() });
+                await addDoc(collection(db, "historyHub"), { name: title, operation: "Caricato Documento / Report", timestamp: serverTimestamp() });
                 document.getElementById('textTitle').value = ""; document.getElementById('textContentBody').value = ""; document.getElementById('textDropDoc').textContent = "Trascina qui il documento o clicca";
                 await sendTelegramBroadcast(`📝 *Nuovo Documento:* ${title}\nAnalizzabile dal Co-Pilot.`);
             }
@@ -492,7 +480,7 @@
             const content = document.getElementById('newNoteContent').value.trim();
             if(content) {
                 await addDoc(collection(db, "notesHub"), { content: content, createdAt: serverTimestamp() });
-                await addDoc(collection(db, "historyHub"), { name: "Nota Rapida", operation: "Aggiunta nota logistica", timestamp: serverTimestamp() });
+                await addDoc(collection(db, "historyHub"), { name: "Nota Rapida", operation: "Aggiunta nota condivisa", timestamp: serverTimestamp() });
                 document.getElementById('newNoteContent').value = "";
             }
         };
@@ -517,22 +505,26 @@
             [...allExcelFiles, ...allTextFiles].forEach(f => {
                 const tr = document.createElement('tr'); tr.className = "text-xs text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-800 hover:bg-slate-50/50";
                 if(f.isExcel) {
-                    tr.innerHTML = `<td class="p-3 font-medium">${f.name}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td><td class="p-3 text-gray-500 italic">Ramo: ${f.branch}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', true)" class="text-red-500 hover:underline">Elimina</button></td>`;
+                    const safeName = f.name ? f.name.replace(/'/g, "\\'") : "File Excel";
+                    tr.innerHTML = `<td class="p-3 font-medium">${f.name}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td><td class="p-3 text-gray-500 italic">Ramo: ${f.branch}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', true, '${safeName}')" class="text-red-500 hover:underline">Elimina</button></td>`;
                 } else {
+                    const safeName = f.title ? f.title.replace(/'/g, "\\'") : "Documento";
                     const preview = f.extractedText ? f.extractedText.substring(0, 45) + "..." : f.fileName;
-                    tr.innerHTML = `<td class="p-3 font-medium">${f.title}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${f.fileType}</span></td><td class="p-3 text-gray-400 font-mono">${preview}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', false)" class="text-red-500 hover:underline">Elimina</button></td>`;
+                    tr.innerHTML = `<td class="p-3 font-medium">${f.title}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${f.fileType}</span></td><td class="p-3 text-gray-400 font-mono">${preview}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', false, '${safeName}')" class="text-red-500 hover:underline">Elimina</button></td>`;
                 }
                 body.appendChild(tr);
             });
         }
-        window.deleteCloudItem = async (id, isExcel) => {
-            if(confirm("Eliminare l'elemento definitivo dal Cloud?")) {
+        
+        // CANCELLAZIONE FILE CON SCRITTURA CORRETTA SULLO STORICO
+        window.deleteCloudItem = async (id, isExcel, itemName) => {
+            if(confirm(`Eliminare l'elemento "${itemName}" dal Cloud?`)) {
                 await deleteDoc(doc(db, isExcel ? "excelHub" : "textHub", id));
-                await addDoc(collection(db, "historyHub"), { name: "Rimozione", operation: "Cancellazione file", timestamp: serverTimestamp() });
+                await addDoc(collection(db, "historyHub"), { name: itemName, operation: "Cancellazione file dal Cloud", timestamp: serverTimestamp() });
             }
         };
 
-        // GESTIONE STORICO ATTIVITÀ CON PROTEZIONE UNDEFINED
+        // GESTIONE STORICO ATTIVITÀ FIXATA
         onSnapshot(query(collection(db, "historyHub"), orderBy("timestamp", "desc")), (snap) => {
             const b = document.getElementById('historyTableBody'); if(!b) return; b.innerHTML = "";
             snap.forEach(d => {
@@ -545,22 +537,8 @@
         });
         window.deleteHistoryItem = async (id) => { if(confirm("Rimuovere log storico?")) await deleteDoc(doc(db, "historyHub", id)); };
 
-        // CONFIGURAZIONE API GEMINI LOCALE
-        window.saveGeminiKey = () => {
-            const key = document.getElementById('geminiApiKey').value.trim();
-            if (key && key.startsWith("AIzaSy")) {
-                localStorage.setItem('GEMINI_HUB_KEY', key); window.updateKeyBadge(true); alert("Chiave API salvata!"); document.getElementById('geminiApiKey').value = "";
-            } else { alert('Chiave non valida.'); }
-        };
-        window.updateKeyBadge = (isActive) => {
-            const badge = document.getElementById('keyStatusBadge'); if (!badge) return;
-            badge.textContent = isActive ? "Attiva" : "Mancante";
-            badge.className = isActive ? "text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.2 rounded font-bold" : "text-[9px] bg-red-500/20 text-red-400 px-1.5 py-0.2 rounded font-bold";
-        };
-        window.checkGeminiKeyStatus = () => { const saved = localStorage.getItem('GEMINI_HUB_KEY'); window.updateKeyBadge(!!(saved && saved.startsWith("AIzaSy"))); };
-
         // ==========================================
-        // STRUTTURA CO-PILOT CON ALIMENTAZIONE RAG  
+        // STRUTTURA CO-PILOT CHIAMATA DIRETTA POLLINATIONS  
         // ==========================================
         window.askAI = async () => {
             const inputEl = document.getElementById('aiInput'); const container = document.getElementById('chat-container');
@@ -575,8 +553,7 @@
             container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">⚙️ Ricerca RAG nell'archivio e sintesi IA...</div>`;
             container.scrollTop = container.scrollHeight;
 
-            const savedKey = localStorage.getItem('GEMINI_HUB_KEY');
-            let replyText = ""; let usedFallback = false;
+            let replyText = "";
 
             // Iniezione del contesto recuperato da Firestore per la logica RAG
             let contextText = "Documenti dell'ufficio tecnico disponibili:\n";
@@ -585,41 +562,25 @@
 
             const systemInstruction = `Sei l'Ingegnere Co-Pilot dell'Engineering Cloud Hub. Rispondi in italiano in modo chiaro e coinciso basandoti rigorosamente sull'archivio qui fornito. Se l'utente chiede informazioni su calcoli o report, menziona i file corrispondenti presenti nell'elenco. Usa la sintassi LaTeX standard ($ o $$) solo per equazioni complesse. Ecco l'archivio: ${contextText}`;
 
-            if (savedKey && savedKey.startsWith("AIzaSy")) {
-                try {
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${savedKey}`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: `${systemInstruction}\n\nDomanda utente: ${queryText}` }] }] })
-                    });
-                    if (response.ok) { const data = await response.json(); replyText = data.candidates[0].content.parts[0].text; }
-                    else { usedFallback = true; }
-                } catch (e) { usedFallback = true; }
-            } else { usedFallback = true; }
-
-            // FALLBACK STABILE SENZA CONGESTIONE DI CODA
-            if (usedFallback) {
-                try {
-                    const response = await fetch(`https://text.pollinations.ai/`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            messages: [
-                                { role: "system", content: systemInstruction },
-                                { role: "user", content: queryText }
-                            ],
-                            model: "mistral"
-                        })
-                    });
-                    if (response.ok) { replyText = await response.text(); }
-                    else { replyText = "⚠️ Impossibile contattare i server della chat. Riprova tra pochi istanti."; }
-                } catch (err) { replyText = "⚠️ Errore di rete durante la generazione."; }
-            }
+            try {
+                const response = await fetch(`https://text.pollinations.ai/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        messages: [
+                            { role: "system", content: systemInstruction },
+                            { role: "user", content: queryText }
+                        ],
+                        model: "mistral"
+                    })
+                });
+                if (response.ok) { replyText = await response.text(); }
+                else { replyText = "⚠️ Impossibile contattare i server della chat. Riprova tra pochi istanti."; }
+            } catch (err) { replyText = "⚠️ Errore di rete durante la generazione."; }
             
             document.getElementById(loadingId)?.remove();
             const replyDiv = document.createElement('div');
             replyDiv.className = "bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-slate-300 max-w-[90%] text-xs font-normal";
-            if (usedFallback && savedKey) { replyText = "*[Nota Hub: Richiesta instradata su server di backup europeo]*\n\n" + replyText; }
             
             replyDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(replyText) : replyText.replace(/\n/g, "<br>");
             container.appendChild(replyDiv);
@@ -629,7 +590,6 @@
             container.scrollTop = container.scrollHeight;
         };
 
-        window.addEventListener('load', window.checkGeminiKeyStatus);
         document.getElementById('aiInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.askAI(); });
     </script>
 </body>
