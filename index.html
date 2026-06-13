@@ -10,12 +10,27 @@
     </script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: background-color 0.3s, color 0.3s; }
+        html::-webkit-scrollbar { width: 6px; }
+        html::-webkit-scrollbar-track { background: #0f172a; }
+        html::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #3b82f6, #8b5cf6); border-radius: 9999px; border: 1px solid #1e293b; }
+        html::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, #60a5fa, #a78bfa); }
         .archivio-scroll-container { height: auto !important; max-height: 400px !important; overflow-y: auto !important; }
         .storico-scroll-container { height: auto !important; max-height: 350px !important; overflow-y: auto !important; }
         .chat-scroll-container { max-height: 280px !important; overflow-y: auto !important; }
-        #chat-container::-webkit-scrollbar { width: 5px; }
-        #chat-container::-webkit-scrollbar-track { background: #020617; }
-        #chat-container::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+        .archivio-scroll-container::-webkit-scrollbar, .storico-scroll-container::-webkit-scrollbar, .chat-scroll-container::-webkit-scrollbar,
+        #chat-container::-webkit-scrollbar, #sidebar::-webkit-scrollbar, #newsSidebar::-webkit-scrollbar,
+        #teamMembersContainer::-webkit-scrollbar, #subscribersContainer::-webkit-scrollbar,
+        #newsHistoryContainer::-webkit-scrollbar { width: 4px; }
+        .archivio-scroll-container::-webkit-scrollbar-track, .storico-scroll-container::-webkit-scrollbar-track, .chat-scroll-container::-webkit-scrollbar-track,
+        #chat-container::-webkit-scrollbar-track, #sidebar::-webkit-scrollbar-track, #newsSidebar::-webkit-scrollbar-track { background: transparent; }
+        .archivio-scroll-container::-webkit-scrollbar-thumb, .storico-scroll-container::-webkit-scrollbar-thumb, .chat-scroll-container::-webkit-scrollbar-thumb,
+        #chat-container::-webkit-scrollbar-thumb, #sidebar::-webkit-scrollbar-thumb, #newsSidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 9999px; transition: background 0.2s; }
+        .archivio-scroll-container::-webkit-scrollbar-thumb:hover, .storico-scroll-container::-webkit-scrollbar-thumb:hover, .chat-scroll-container::-webkit-scrollbar-thumb:hover,
+        #sidebar::-webkit-scrollbar-thumb:hover, #newsSidebar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .card-collapsible { transition: all 0.25s ease; }
+        .card-collapsible .card-toggle { cursor: pointer; user-select: none; }
+        .card-collapsible .card-body { transition: max-height 0.3s ease, opacity 0.2s ease; overflow: hidden; }
+        .card-collapsible.collapsed .card-body { max-height: 0 !important; opacity: 0; padding-top: 0 !important; padding-bottom: 0 !important; margin-top: 0 !important; }
     </style>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -27,11 +42,11 @@
             <div class="text-3xl mb-2">🔐</div>
             <h2 class="text-base font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Accesso Engineering Hub</h2>
             <div class="space-y-3">
-                <input type="text" id="loginUser" placeholder="Nome Utente" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium focus:outline-none focus:border-blue-500">
-                <input type="password" id="loginPass" placeholder="Password" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium focus:outline-none focus:border-blue-500">
-                <button onclick="window.verifyHubLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-xs tracking-wider uppercase transition-colors cursor-pointer mt-2">Verifica ed Entra</button>
-            </div>
-            <p id="loginError" class="text-red-500 text-[11px] font-medium mt-3 hidden">⚠️ Credenziali errate. Riprova.</p>
+                    <input type="text" id="loginUser" data-i18n="loginUser" placeholder="Nome Utente" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium focus:outline-none focus:border-blue-500">
+                    <input type="password" id="loginPass" data-i18n="loginPass" placeholder="Password" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium focus:outline-none focus:border-blue-500">
+                    <button onclick="window.verifyHubLogin()" data-i18n="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-xs tracking-wider uppercase transition-colors cursor-pointer mt-2">Verifica ed Entra</button>
+                </div>
+                <p id="loginError" data-i18n="loginError" class="text-red-500 text-[11px] font-medium mt-3 hidden">⚠️ Credenziali errate. Riprova.</p>
         </div>
     </div>
 
@@ -124,185 +139,214 @@
         <div id="sidebar" class="fixed top-0 left-0 h-full w-85 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl border-r border-gray-200 dark:border-slate-800 z-50 transform -translate-x-full transition-transform duration-300 overflow-y-auto p-4">
             <div class="flex justify-between items-center border-b pb-2 mb-4 dark:border-slate-800">
                 <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
-                    <span>📊</span> Pannello Hub & Team
+                    <span>📊</span> <span data-i18n="sidebarTitle">Pannello Hub & Team</span>
                 </h2>
                 <button onclick="toggleSidebar()" class="text-gray-400 hover:text-red-500 font-bold p-1 text-lg cursor-pointer">✕</button>
             </div>
             
             <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-xl shadow-xs">
-                <h3 class="text-xs font-bold uppercase text-blue-600 dark:text-blue-400 mb-1 tracking-wider">Iscrizione Notifiche Telegram</h3>
-                <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-2">Avvia il bot per ottenere il tuo Chat ID numerico e incollalo qui sotto.</p>
-                <a href="https://t.me/IL_TUO_BOT_TELEGRAM" target="_blank" class="block text-center text-xs bg-blue-600 text-white font-bold py-1.5 rounded-lg mb-2.5 hover:bg-blue-700">🤖 Apri Bot Telegram</a>
+                <h3 class="text-xs font-bold uppercase text-blue-600 dark:text-blue-400 mb-1 tracking-wider" data-i18n="sidebarTelegram">Attivazione Notifiche Telegram</h3>
+                <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-2" data-i18n="sidebarTelegramDesc">Avvia il bot per ottenere il tuo Chat ID numerico e incollalo qui sotto.</p>
+                <a href="https://t.me/IL_TUO_BOT_TELEGRAM" target="_blank" class="block text-center text-xs bg-blue-600 text-white font-bold py-1.5 rounded-lg mb-2.5 hover:bg-blue-700">🤖 <span data-i18n="sidebarTelegramBtn">Apri Bot Telegram</span></a>
                 <div class="space-y-2">
                     <input type="text" id="telChatIdInput" placeholder="Inserisci Chat ID (es. 1234567)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100">
                     <input type="text" id="telNameInput" placeholder="Tuo Nome / Ruolo" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100">
                     <div class="flex gap-2">
-                        <button id="btnSubscribeTelegram" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 rounded-lg text-xs cursor-pointer">Attiva</button>
-                        <button id="btnUnsubscribeTelegram" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 rounded-lg text-xs cursor-pointer">Disattiva</button>
+                        <button id="btnSubscribeTelegram" data-i18n="sidebarSubscribe" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 rounded-lg text-xs cursor-pointer">Attiva</button>
+                        <button id="btnUnsubscribeTelegram" data-i18n="sidebarUnsubscribe" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 rounded-lg text-xs cursor-pointer">Disattiva</button>
                     </div>
                 </div>
                 <div id="subscribersContainer" class="mt-3 space-y-1.5 max-h-32 overflow-y-auto"></div>
             </div>
 
             <div class="mb-4 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xs">
-                <h3 class="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5 tracking-wider">Registrati all'Hub</h3>
+                <h3 class="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5 tracking-wider" data-i18n="sidebarRegister">Registrati all'Hub</h3>
                 <div class="space-y-2">
-                    <input type="text" id="regName" placeholder="Il tuo Nome (es. Ing. Rossi)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100">
-                    <input type="text" id="regContact" placeholder="Contatto / Email" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100">
-                    <button id="btnRegister" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded-lg text-xs cursor-pointer">Entra nel team</button>
+                    <input type="text" id="regName" data-i18n="sidebarRegName" placeholder="Il tuo Nome (es. Ing. Rossi)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100">
+                    <input type="text" id="regContact" data-i18n="sidebarRegContact" placeholder="Contatto / Email" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100">
+                    <button id="btnRegister" data-i18n="sidebarRegBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded-lg text-xs cursor-pointer">Entra nel team</button>
                 </div>
+                <div id="teamMembersContainer" class="mt-3 space-y-1.5 max-h-36 overflow-y-auto"></div>
             </div>
             
             <div class="mb-4">
-                <h3 class="text-xs font-bold uppercase text-gray-400 mb-1.5 tracking-wider">Dati Generali del Cloud</h3>
+                <h3 class="text-xs font-bold uppercase text-gray-400 mb-1.5 tracking-wider" data-i18n="sidebarCloudData">Dati Generali del Cloud</h3>
                 <div class="grid grid-cols-1 gap-1.5">
                     <div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 p-2.5 rounded-lg flex justify-between items-center">
-                        <span class="text-xs font-semibold text-emerald-800 dark:text-emerald-300">File Excel:</span>
+                        <span class="text-xs font-semibold text-emerald-800 dark:text-emerald-300" data-i18n="sidebarExcelStat">File Excel:</span>
                         <span id="statExcel" class="text-sm font-mono font-bold text-emerald-700 dark:text-emerald-400">0</span>
                     </div>
                     <div class="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 p-2.5 rounded-lg flex justify-between items-center">
-                        <span class="text-xs font-semibold text-blue-800 dark:text-blue-300">Documenti:</span>
+                        <span class="text-xs font-semibold text-blue-800 dark:text-blue-300" data-i18n="sidebarDocStat">Documenti:</span>
                         <span id="statDocs" class="text-sm font-mono font-bold text-blue-700 dark:text-blue-400">0</span>
                     </div>
                     <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 p-2.5 rounded-lg flex justify-between items-center">
-                        <span class="text-xs font-semibold text-amber-800 dark:text-amber-300">Note:</span>
+                        <span class="text-xs font-semibold text-amber-800 dark:text-amber-300" data-i18n="sidebarNotesStat">Note:</span>
                         <span id="statNotes" class="text-sm font-mono font-bold text-amber-700 dark:text-amber-400">0</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="newsSidebar" class="fixed top-0 right-0 h-full w-85 sm:w-96 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl border-l border-gray-200 dark:border-slate-800 z-50 transform translate-x-full transition-transform duration-300 overflow-y-auto p-4">
-            <div class="flex justify-between items-center border-b pb-2 mb-4 dark:border-slate-800">
-                <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
-                    <span>📢</span> News & Aggiornamenti
-                </h2>
-                <button onclick="toggleNewsSidebar()" class="text-gray-400 hover:text-red-500 font-bold p-1 text-lg cursor-pointer">✕</button>
+        <div id="newsModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full shadow-2xl border border-gray-200 dark:border-slate-800 max-h-[80vh] flex flex-col">
+                <div class="flex justify-between items-center p-4 border-b sticky top-0 bg-white dark:bg-slate-900 z-10 dark:border-slate-800 rounded-t-2xl">
+                    <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                        <span>📢</span> <span data-i18n="newsTitle">News & Bacheca</span>
+                    </h2>
+                    <button onclick="toggleNewsSidebar()" class="text-gray-400 hover:text-red-500 font-bold text-lg cursor-pointer">✕</button>
+                </div>
+                <div class="p-4 overflow-y-auto flex-1 space-y-4">
+                    <div class="p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 rounded-xl shadow-xs">
+                        <textarea id="newsContent" rows="3" data-i18n="newsPlaceholder" placeholder="Scrivi un update logistico o di bacheca..." class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:border-purple-500 text-gray-800 dark:text-gray-100 resize-none"></textarea>
+                        <button id="btnSendNews" data-i18n="newsBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg text-xs mt-2 transition-colors cursor-pointer">Invia News</button>
+                    </div>
+                    <div id="newsHistoryContainer" class="space-y-3"></div>
+                </div>
             </div>
-            <div class="mb-4 p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 rounded-xl shadow-xs">
-                <textarea id="newsContent" rows="3" placeholder="Scrivi un update logistico o di bacheca..." class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:border-purple-500 text-gray-800 dark:text-gray-100 resize-none"></textarea>
-                <button id="btnSendNews" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg text-xs mt-2 transition-colors cursor-pointer">Invia News</button>
-            </div>
-            <div id="newsHistoryContainer" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
         </div>
 
         <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
             <div class="space-y-6 lg:col-span-1">
-                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
-                    <h2 class="text-lg font-bold text-emerald-700 dark:text-emerald-400 mb-3 flex items-center gap-2">
-                        <span>⚙️</span> <span data-i18n="titleExcel">File Excel Calcoli</span>
-                    </h2>
-                    <div class="space-y-3">
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs card-collapsible collapsed">
+                    <div class="card-toggle flex items-center justify-between" onclick="toggleCard(this)">
+                        <h2 class="text-lg font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+                            <span>⚙️</span> <span data-i18n="titleExcel">File Excel Calcoli</span>
+                        </h2>
+                        <span class="card-icon text-emerald-500 text-sm font-bold">➕</span>
+                    </div>
+                    <div class="card-body space-y-3 mt-3">
                         <select id="excelBranch" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
                             <option value="Meccanica">⚙️ Meccanica</option>
                             <option value="Termodinamica">🔥 Termodinamica</option>
                             <option value="Idraulica">💧 Idraulica</option>
                         </select>
-                        <input type="text" id="excelNote" placeholder="es. Calcolo fatica albero AISI 304" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
+                        <input type="text" id="excelNote" data-i18n="excelPlaceholder" placeholder="es. Calcolo fatica albero AISI 304" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
                         <div id="dropzoneExcel" class="border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-emerald-500 bg-gray-50/50 dark:bg-slate-800/50 rounded-lg p-4 text-center cursor-pointer">
                             <input type="file" id="excelFile" accept=".xlsx, .xls" class="hidden">
                             <div class="text-2xl mb-1">📂</div>
                             <p id="textDropExcel" class="text-xs text-gray-600 dark:text-gray-400" data-i18n="dropExcel">Trascina qui il file Excel o clicca</p>
                         </div>
-                        <button id="btnUploadExcel" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-sm cursor-pointer">Carica nel Cloud</button>
+                        <button id="btnUploadExcel" data-i18n="excelBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-sm cursor-pointer">Carica nel Cloud</button>
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
-                    <h2 class="text-lg font-bold text-blue-700 dark:text-blue-400 mb-3 flex items-center gap-2">
-                        <span>📝</span> <span data-i18n="titleDocs">Documenti e Report</span>
-                    </h2>
-                    <div class="space-y-3">
-                        <input type="text" id="textTitle" placeholder="es. Specifica tecnica carter" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm focus:outline-none">
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs card-collapsible collapsed">
+                    <div class="card-toggle flex items-center justify-between" onclick="toggleCard(this)">
+                        <h2 class="text-lg font-bold text-blue-700 dark:text-blue-400 flex items-center gap-2">
+                            <span>📝</span> <span data-i18n="titleDocs">Documenti e Report</span>
+                        </h2>
+                        <span class="card-icon text-blue-500 text-sm font-bold">➕</span>
+                    </div>
+                    <div class="card-body space-y-3 mt-3">
+                        <input type="text" id="textTitle" data-i18n="docPlaceholder" placeholder="es. Specifica tecnica carter" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm focus:outline-none">
                         <div id="dropzoneDoc" class="border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-blue-500 bg-gray-50/50 dark:bg-slate-800/50 rounded-lg p-4 text-center cursor-pointer mb-2">
                             <input type="file" id="docFile" accept=".txt, .pdf, .docx" class="hidden">
                             <div class="text-2xl mb-1">📄</div>
                             <p id="textDropDoc" class="text-xs text-gray-600 dark:text-gray-400" data-i18n="dropDoc">Trascina qui il documento o clicca</p>
                         </div>
-                        <textarea id="textContentBody" rows="3" placeholder="Contenuto esteso del report (opzionale per interrogazione RAG)..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none resize-none"></textarea>
-                        <button id="btnUploadDoc" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-sm cursor-pointer">Salva Documento</button>
+                        <textarea id="textContentBody" rows="3" data-i18n="docBodyPlaceholder" placeholder="Contenuto esteso del report (opzionale per interrogazione RAG)..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none resize-none"></textarea>
+                        <button id="btnUploadDoc" data-i18n="docBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-sm cursor-pointer">Salva Documento</button>
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
-                    <h2 class="text-lg font-bold text-amber-700 dark:text-amber-400 mb-3 flex items-center gap-2">
-                        <span>📌</span> <span>Note Rapide Condivise</span>
-                    </h2>
-                    <div class="space-y-3">
-                        <textarea id="newNoteContent" rows="2" placeholder="Nota logistica o tecnica veloce..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none resize-none"></textarea>
-                        <button id="btnUploadNote" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-lg text-sm cursor-pointer">Aggiungi Nota</button>
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs card-collapsible collapsed">
+                    <div class="card-toggle flex items-center justify-between" onclick="toggleCard(this)">
+                        <h2 class="text-lg font-bold text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                            <span>📌</span> <span data-i18n="notesTitle">Note Rapide Condivise</span>
+                        </h2>
+                        <span class="card-icon text-amber-500 text-sm font-bold">➕</span>
+                    </div>
+                    <div class="card-body space-y-3 mt-3">
+                        <textarea id="newNoteContent" rows="2" data-i18n="notesPlaceholder" placeholder="Nota logistica o tecnica veloce..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none resize-none"></textarea>
+                        <button id="btnUploadNote" data-i18n="notesBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-lg text-sm cursor-pointer">Aggiungi Nota</button>
                         <div id="notesContainer" class="space-y-2 max-h-48 overflow-y-auto pt-2 border-t border-gray-200 dark:border-slate-800"></div>
                     </div>
                 </div>
             </div>
 
             <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs card-collapsible collapsed">
+                    <div class="card-toggle flex items-center justify-between" onclick="toggleCard(this)">
                         <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                            <span>📁</span> <span data-i18n="archiveTitle">Archivio Cloud Attivo (Letto da IA)</span>
+                            <span>📁</span> <span data-i18n="archiveTitle">Archivio Cloud Attivo</span>
                         </h2>
-                        <input type="text" id="searchCloud" placeholder="Cerca nell'archivio..." class="bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-xs rounded-lg px-3 py-2 focus:outline-none text-gray-800 dark:text-gray-100 w-full sm:w-64">
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="searchCloud" data-i18n="archiveSearch" placeholder="Cerca nei file..." class="bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-xs rounded-lg px-3 py-2 focus:outline-none text-gray-800 dark:text-gray-100 w-36 sm:w-48">
+                            <div id="bulkActions" class="flex gap-1 hidden">
+                                <button id="downloadSelectedArchive" class="bg-blue-600 hover:bg-blue-700 text-white w-7 h-7 rounded-lg text-xs cursor-pointer transition-colors flex items-center justify-center" title="Scarica selezionati">📥</button>
+                                <button id="deleteSelectedArchive" class="bg-red-600 hover:bg-red-700 text-white w-7 h-7 rounded-lg text-xs cursor-pointer transition-colors flex items-center justify-center" title="Elimina selezionati">🗑️</button>
+                            </div>
+                            <span class="card-icon text-gray-500 text-sm font-bold">➕</span>
+                        </div>
                     </div>
-                    <div class="overflow-x-auto archivio-scroll-container">
+                    <div class="card-body mt-3"><div class="overflow-x-auto archivio-scroll-container">
                         <table class="w-full text-left border-collapse text-sm">
                             <thead>
                                 <tr class="border-b border-gray-200 dark:border-slate-700 text-gray-500 text-xs font-bold uppercase bg-gray-50/70 dark:bg-slate-800/50">
-                                    <th class="p-3">Nome Elemento</th>
-                                    <th class="p-3">Formato / Tipo</th>
-                                    <th class="p-3">Note / Dettagli / Anteprima</th>
-                                    <th class="p-3 text-center">Azioni</th>
+                                    <th class="p-3 text-center w-8"><input type="checkbox" id="selectAllArchive" class="cursor-pointer"></th>
+                                    <th class="p-3" data-i18n="thName">Nome Elemento</th>
+                                    <th class="p-3" data-i18n="thType">Formato / Tipo</th>
+                                    <th class="p-3">Note / Anteprima</th>
+                                    <th class="p-3 text-center" data-i18n="thActions">Azioni</th>
                                 </tr>
                             </thead>
                             <tbody id="archiveTableBody" class="divide-y divide-gray-100 dark:divide-slate-800"></tbody>
                         </table>
                     </div>
                 </div>
+                </div>
 
-                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs">
-                    <h2 class="text-lg font-bold text-purple-800 dark:text-purple-400 flex items-center gap-2">
-                        <span>⏱️</span> <span data-i18n="historyTitle">Registro Storico Attività</span>
-                    </h2>
-                    <div class="overflow-x-auto storico-scroll-container border border-gray-100 dark:border-slate-800 rounded-lg mt-2">
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs card-collapsible collapsed">
+                    <div class="card-toggle flex items-center justify-between" onclick="toggleCard(this)">
+                        <h2 class="text-lg font-bold text-purple-800 dark:text-purple-400 flex items-center gap-2">
+                            <span>⏱️</span> <span data-i18n="historyTitle">Registro Storico Attività</span>
+                        </h2>
+                        <span class="card-icon text-purple-500 text-sm font-bold">➕</span>
+                    </div>
+                    <div class="card-body mt-3"><div class="overflow-x-auto storico-scroll-container border border-gray-100 dark:border-slate-800 rounded-lg">
                         <table class="w-full text-left border-collapse text-xs text-gray-700 dark:text-gray-300">
                             <thead>
-                                <tr class="border-b border-gray-200 dark:border-slate-700 text-gray-500 font-bold uppercase bg-gray-50 dark:bg-slate-800 sticky top-0">
-                                    <th class="p-2.5">Data / Ora</th>
-                                    <th class="p-2.5">Nome File / Oggetto</th>
-                                    <th class="p-2.5">Operazione Svolta</th>
-                                    <th class="p-2.5 text-center">Ripulitura</th>
-                                </tr>
+                                    <tr class="border-b border-gray-200 dark:border-slate-700 text-gray-500 font-bold uppercase bg-gray-50 dark:bg-slate-800 sticky top-0">
+                                        <th class="p-2.5 text-center w-8"><input type="checkbox" id="selectAllHistory" class="cursor-pointer"></th>
+                                        <th class="p-2.5" data-i18n="thDate">Data / Ora</th>
+                                        <th class="p-2.5" data-i18n="thFile">Nome File / Oggetto</th>
+                                        <th class="p-2.5" data-i18n="thOp">Operazione Svolta</th>
+                                        <th class="p-2.5 text-center" data-i18n="thClean">Ripulitura</th>
+                                    </tr>
                             </thead>
                             <tbody id="historyTableBody" class="divide-y divide-gray-100 dark:divide-slate-800 bg-white dark:bg-slate-900"></tbody>
                         </table>
                     </div>
                 </div>
+                </div>
             </div>
         </main>
 
-        <div id="ai-chat-widget" class="fixed bottom-4 right-4 w-96 bg-slate-900 text-slate-100 rounded-xl shadow-2xl border border-slate-800 z-50 overflow-hidden flex flex-col transition-all duration-300">
-            <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
-                <div class="flex items-center space-x-2">
-                    <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                    <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.2.3 Smart</span></span>
+        <div id="ai-chat-widget" class="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-0">
+            <div id="chat-expanded" class="w-96 bg-slate-900 text-slate-100 rounded-xl shadow-2xl border border-slate-800 overflow-hidden flex flex-col transition-all duration-300">
+                <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
+                        <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.2.3 Smart</span></span>
+                    </div>
+                    <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
                 </div>
-                <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
-            </div>
-            
-            <div id="chat-body" class="flex flex-col flex-grow">
-                <div id="chat-container" class="h-[260px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
-                    <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">
-                        🤖 Sono l'Ingegnere Co-Pilot V2.2.3. Conosco l'intero archivio dei documenti e file Excel caricati nel sistema grazie alla tecnologia RAG automatica. Interrogami liberamente, senza bisogno di chiavi API.
+                <div id="chat-body" class="flex flex-col flex-grow">
+                    <div id="chat-container" class="h-[260px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
+                        <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">
+                            🤖 Sono l'Ingegnere Co-Pilot V2.2.3. Conosco l'intero archivio dei documenti e file Excel caricati nel sistema grazie alla tecnologia RAG automatica. Interrogami liberamente. Per funzionare ho bisogno di una chiave API configurata nelle impostazioni del sito.
+                        </div>
+                    </div>
+                    <div class="border-t border-slate-800 p-3 bg-slate-900 space-y-2">
+                        <div class="flex gap-2">
+                            <input type="text" id="aiInput" placeholder="Interroga l'archivio dei file..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
+                            <button id="aiSendBtn" onclick="window.askAI()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 rounded-lg text-xs transition-colors cursor-pointer">Invia</button>
+                        </div>
                     </div>
                 </div>
-
-                <div class="border-t border-slate-800 p-3 bg-slate-900 space-y-2">
-                    <div class="flex gap-2">
-                        <input type="text" id="aiInput" placeholder="Interroga l'archivio dei file..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
-                        <button id="aiSendBtn" onclick="window.askAI()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 rounded-lg text-xs transition-colors cursor-pointer">Invia</button>
-                    </div>
-                </div>
             </div>
+            <button id="chat-fab" onclick="toggleChatCollapse()" class="w-14 h-14 bg-slate-900 hover:bg-slate-800 rounded-full shadow-2xl border border-slate-700 flex items-center justify-center text-2xl cursor-pointer transition-all duration-300">🤖</button>
         </div>
     </div>
 
@@ -334,11 +378,20 @@
                 document.getElementById('hubMainContent').classList.remove('hidden');
             } else { document.getElementById('loginError').classList.remove('hidden'); }
         }
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('loginUser')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.verifyHubLogin(); });
+            document.getElementById('loginPass')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.verifyHubLogin(); });
+        });
         let isChatCollapsed = false;
         function toggleChatCollapse() {
             isChatCollapsed = !isChatCollapsed;
-            document.getElementById('chat-body').classList.toggle('hidden', isChatCollapsed);
-            document.getElementById('collapse-chat-btn').textContent = isChatCollapsed ? "➕" : "➖";
+            document.getElementById('chat-expanded').classList.toggle('hidden', isChatCollapsed);
+            document.getElementById('chat-fab').classList.toggle('hidden', !isChatCollapsed);
+        }
+        function toggleCard(el) {
+            const card = el.closest('.card-collapsible');
+            card.classList.toggle('collapsed');
+            el.querySelector('.card-icon').textContent = card.classList.contains('collapsed') ? '➕' : '➖';
         }
     </script>
 
@@ -347,7 +400,7 @@
         import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // IMPOSTAZIONE TOKEN TELEGRAM
-        const TELEGRAM_BOT_TOKEN = "IL_TUO_BOT_TELEGRAM_TOKEN";
+        const TELEGRAM_BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM",
@@ -361,22 +414,26 @@
         const db = getFirestore(initializeApp(firebaseConfig));
 
         window.toggleSidebar = () => { document.getElementById('sidebar')?.classList.toggle('-translate-x-full'); };
-        window.toggleNewsSidebar = () => { document.getElementById('newsSidebar')?.classList.toggle('translate-x-full'); };
+        window.toggleNewsSidebar = () => { document.getElementById('newsModal')?.classList.toggle('hidden'); };
         window.toggleTheme = () => { document.documentElement.classList.toggle('dark'); };
 
         // Dizionario traduzioni
         const i18n = {
-            it: { navTeam: "Info & Team", navNews: "News & Bacheca", navCalc: "Calcolatore Peso", cloudSync: "Cloud Sincronizzato", titleExcel: "File Excel Calcoli", dropExcel: "Trascina qui il file Excel o clicca", titleDocs: "Documenti e Report", dropDoc: "Trascina qui il documento o clicca", archiveTitle: "Archivio Cloud Attivo (Letto da IA)", historyTitle: "Registro Storico Attività", calcTitle: "Calcolatore Peso Barre Metalliche" },
-            en: { navTeam: "Info & Team", navNews: "News & Bulletin", navCalc: "Weight Calc", cloudSync: "Cloud Synced", titleExcel: "Calculations Excel Files", dropExcel: "Drag Excel file here or click", titleDocs: "Documents & Reports", dropDoc: "Drag document here or click", archiveTitle: "Active Cloud Archive (Read by AI)", historyTitle: "Activity Log History", calcTitle: "Metal Bars Weight Calculator" }
+            it: { navTeam: "Info & Team", navNews: "News & Bacheca", navCalc: "Calcolatore Peso", cloudSync: "Cloud Sincronizzato", titleExcel: "File Excel Calcoli", dropExcel: "Trascina qui il file Excel o clicca", titleDocs: "Documenti e Report", dropDoc: "Trascina qui il documento o clicca", archiveTitle: "Archivio Cloud Attivo", historyTitle: "Registro Storico Attività", calcTitle: "Calcolatore Peso Barre Metalliche", calcMat: "Materiale", calcShape: "Geometria Sezione", calcLen: "Lunghezza Totale Barra (mm)", calcRes: "Massa Totale:", sidebarTitle: "Pannello Hub & Team", sidebarTelegram: "Attivazione Notifiche Telegram", sidebarTelegramDesc: "Avvia il bot per ottenere il tuo Chat ID numerico e incollalo qui sotto.", sidebarTelegramBtn: "Apri Bot Telegram", sidebarSubscribe: "Attiva", sidebarUnsubscribe: "Disattiva", sidebarRegister: "Registrati all'Hub", sidebarRegName: "Il tuo Nome (es. Ing. Rossi)", sidebarRegContact: "Contatto / Email", sidebarRegBtn: "Entra nel team", sidebarCloudData: "Dati Generali del Cloud", sidebarExcelStat: "File Excel:", sidebarDocStat: "Documenti:", sidebarNotesStat: "Note:", notesTitle: "Note Rapide Condivise", notesPlaceholder: "Nota logistica o tecnica veloce...", notesBtn: "Aggiungi Nota", excelPlaceholder: "es. Calcolo fatica albero AISI 304", excelBtn: "Carica nel Cloud", docPlaceholder: "es. Specifica tecnica carter", docBodyPlaceholder: "Contenuto esteso del report (opzionale per interrogazione RAG)...", docBtn: "Salva Documento", newsTitle: "News & Bacheca", newsPlaceholder: "Scrivi un update logistico o di bacheca...", newsBtn: "Invia News", archiveSearch: "Cerca nei file...", archiveDesc: "Documenti e file Excel caricati nel cloud. Seleziona elementi per azioni bulk.", loginUser: "Nome Utente", loginPass: "Password", loginBtn: "Verifica ed Entra", loginError: "Credenziali errate. Riprova.", thName: "Nome Elemento", thType: "Formato / Tipo", thActions: "Azioni", thDate: "Data / Ora", thFile: "Nome File / Oggetto", thOp: "Operazione Svolta", thClean: "Ripulitura" },
+            en: { navTeam: "Info & Team", navNews: "News & Bulletin", navCalc: "Weight Calc", cloudSync: "Cloud Synced", titleExcel: "Calculations Excel Files", dropExcel: "Drag Excel file here or click", titleDocs: "Documents & Reports", dropDoc: "Drag document here or click", archiveTitle: "Active Cloud Archive", historyTitle: "Activity Log History", calcTitle: "Metal Bars Weight Calculator", calcMat: "Material", calcShape: "Section Geometry", calcLen: "Total Bar Length (mm)", calcRes: "Total Mass:", sidebarTitle: "Hub & Team Panel", sidebarTelegram: "Telegram Notification Setup", sidebarTelegramDesc: "Start the bot to get your numeric Chat ID and paste it below.", sidebarTelegramBtn: "Open Telegram Bot", sidebarSubscribe: "Activate", sidebarUnsubscribe: "Deactivate", sidebarRegister: "Register to Hub", sidebarRegName: "Your Name (e.g. Eng. Smith)", sidebarRegContact: "Contact / Email", sidebarRegBtn: "Join the team", sidebarCloudData: "Cloud General Data", sidebarExcelStat: "Excel Files:", sidebarDocStat: "Documents:", sidebarNotesStat: "Notes:", notesTitle: "Shared Quick Notes", notesPlaceholder: "Quick logistic or technical note...", notesBtn: "Add Note", excelPlaceholder: "e.g. Fatigue calc AISI 304 shaft", excelBtn: "Upload to Cloud", docPlaceholder: "e.g. Technical spec housing", docBodyPlaceholder: "Extended report content (optional for RAG query)...", docBtn: "Save Document", newsTitle: "News & Bulletin", newsPlaceholder: "Write a logistics or bulletin update...", newsBtn: "Send News", archiveSearch: "Search files...", archiveDesc: "Documents and Excel files uploaded to the cloud. Select items for bulk actions.", loginUser: "Username", loginPass: "Password", loginBtn: "Verify & Enter", loginError: "Wrong credentials. Try again.", thName: "Element Name", thType: "Format / Type", thActions: "Actions", thDate: "Date / Time", thFile: "File Name / Object", thOp: "Operation", thClean: "Cleanup" }
         };
         window.changeLanguage = (lang) => {
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if(i18n[lang][key]) el.textContent = i18n[lang][key];
+                if(i18n[lang][key]) {
+                    if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = i18n[lang][key];
+                    else el.textContent = i18n[lang][key];
+                }
             });
             document.getElementById('lang-it').className = lang === 'it' ? "px-2 py-1 rounded-md bg-blue-600 text-white transition-all" : "px-2 py-1 rounded-md text-gray-400 hover:text-white transition-all";
             document.getElementById('lang-en').className = lang === 'en' ? "px-2 py-1 rounded-md bg-blue-600 text-white transition-all" : "px-2 py-1 rounded-md text-gray-400 hover:text-white transition-all";
         };
+        function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
 
         // DRAG & DROP GESTORI GRAFICI
         const setupDropzone = (zoneId, inputId, textId, defaultText) => {
@@ -424,8 +481,14 @@
             document.getElementById('telChatIdInput').value = "";
         };
         onSnapshot(collection(db, "subscribers"), (snap) => {
-            const container = document.getElementById('subscribersContainer'); if(!container) return; container.innerHTML = "";
-            snap.forEach(d => { container.innerHTML += `<p class="text-[10px] bg-slate-100 dark:bg-slate-900 p-1 rounded border dark:border-slate-800 text-gray-500">🔔 <b>${d.data().name}</b> (${d.data().chatId})</p>`; });
+            const container = document.getElementById('subscribersContainer'); if(!container) return;
+            if(snap.empty) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic">Nessun iscritto alle notifiche Telegram.</p>'; return; }
+            container.innerHTML = "";
+            snap.forEach(d => {
+                const name = escapeHtml(d.data().name || "");
+                const chatId = escapeHtml(d.data().chatId || "");
+                container.innerHTML += `<div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg border dark:border-slate-800 text-[11px]"><span class="w-5 h-5 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center text-[10px]">👤</span><div><span class="font-semibold text-gray-700 dark:text-gray-200">${name}</span><span class="text-gray-400 ml-1.5">· ID ${chatId}</span></div></div>`;
+            });
         });
 
         // BACHECA NEWS E STORICO
@@ -439,7 +502,7 @@
         };
         onSnapshot(query(collection(db, "newsHub"), orderBy("createdAt", "desc")), (snap) => {
             const container = document.getElementById('newsHistoryContainer'); if(!container) return; container.innerHTML = "";
-            snap.forEach(d => { container.innerHTML += `<div class="bg-purple-50/50 dark:bg-purple-950/10 p-2.5 rounded-lg border border-purple-100 dark:border-purple-900/40 text-xs text-gray-700 dark:text-gray-300 font-medium break-words">${d.data().content}</div>`; });
+            snap.forEach(d => { container.innerHTML += `<div class="bg-purple-50/50 dark:bg-purple-950/10 p-2.5 rounded-lg border border-purple-100 dark:border-purple-900/40 text-xs text-gray-700 dark:text-gray-300 font-medium break-words">${escapeHtml(d.data().content || "")}</div>`; });
         });
 
         // STRUTTURA REGISTRAZIONE MEMBRI TEAM
@@ -449,7 +512,23 @@
             if (name && contact) {
                 await addDoc(collection(db, "teamHub"), { name, contact, joinedAt: serverTimestamp() });
                 document.getElementById('regName').value = ""; document.getElementById('regContact').value = "";
-                alert("Registrazione completata!");
+            }
+        };
+        onSnapshot(query(collection(db, "teamHub"), orderBy("joinedAt", "desc")), (snap) => {
+            const container = document.getElementById('teamMembersContainer'); if(!container) return;
+            if(snap.empty) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic">Nessun membro registrato.</p>'; return; }
+            container.innerHTML = `<p class="text-[10px] text-gray-400 font-medium mb-1 tracking-wide uppercase">Membri iscritti (${snap.size})</p>`;
+            snap.forEach(d => {
+                const { name, contact } = d.data();
+                container.innerHTML += `<div class="flex items-center justify-between gap-1 bg-white dark:bg-slate-900 p-1.5 rounded-lg border dark:border-slate-700 text-[11px]"><div class="min-w-0 flex-1"><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(name || "")}</span><span class="text-gray-400 ml-1.5">· ${escapeHtml(contact || "")}</span></div><button data-tid="${escapeHtml(d.id)}" class="unregister-btn text-gray-400 hover:text-red-500 hover:font-bold cursor-pointer text-xs leading-none p-0.5">✕</button></div>`;
+            });
+            container.querySelectorAll('.unregister-btn').forEach(btn => {
+                btn.addEventListener('click', () => { window.unregisterMember(btn.dataset.tid); });
+            });
+        });
+        window.unregisterMember = async (id) => {
+            if(confirm("Rimuovere la tua registrazione dal team?")) {
+                await deleteDoc(doc(db, "teamHub", id));
             }
         };
 
@@ -489,8 +568,12 @@
             const container = document.getElementById('notesContainer'); if(!container) return; container.innerHTML = "";
             snap.forEach(d => {
                 const div = document.createElement('div'); div.className = "bg-gray-50/80 dark:bg-slate-800/80 p-2 rounded border border-gray-200 dark:border-slate-700 flex justify-between items-start text-xs text-gray-700 dark:text-gray-300 shadow-2xs";
-                div.innerHTML = `<p class="break-words pr-2">${d.data().content}</p><button onclick="window.deleteNote('${d.id}')" class="text-gray-400 hover:text-red-600">✕</button>`;
+                const content = escapeHtml(d.data().content || "");
+                div.innerHTML = `<p class="break-words pr-2">${content}</p><button data-note-id="${escapeHtml(d.id)}" class="delete-note-btn text-gray-400 hover:text-red-600 cursor-pointer">✕</button>`;
                 container.appendChild(div);
+            });
+            container.querySelectorAll('.delete-note-btn').forEach(btn => {
+                btn.addEventListener('click', () => { window.deleteNote(btn.dataset.noteId); });
             });
         });
         window.deleteNote = async (id) => { await deleteDoc(doc(db, "notesHub", id)); };
@@ -500,27 +583,98 @@
         onSnapshot(query(collection(db, "excelHub"), orderBy("uploadedAt", "desc")), (s) => { document.getElementById('statExcel').textContent = s.size; allExcelFiles = []; s.forEach(d => allExcelFiles.push({id: d.id, ...d.data(), isExcel: true})); combineAndRenderArchive(); });
         onSnapshot(query(collection(db, "textHub"), orderBy("uploadedAt", "desc")), (s) => { document.getElementById('statDocs').textContent = s.size; allTextFiles = []; s.forEach(d => allTextFiles.push({id: d.id, ...d.data(), isExcel: false})); combineAndRenderArchive(); });
 
+        window.searchQuery = "";
+        document.getElementById('searchCloud')?.addEventListener('input', (e) => {
+            window.searchQuery = e.target.value.toLowerCase();
+            combineAndRenderArchive();
+        });
+        document.getElementById('selectAllArchive')?.addEventListener('change', (e) => {
+            document.querySelectorAll('.archive-checkbox').forEach(cb => cb.checked = e.target.checked);
+            updateBulkActions();
+        });
+        document.getElementById('deleteSelectedArchive')?.addEventListener('click', async () => {
+            const checked = document.querySelectorAll('.archive-checkbox:checked');
+            if(!checked.length || !confirm(`Eliminare ${checked.length} elemento/i dal Cloud?`)) return;
+            for(const cb of checked) {
+                const id = cb.dataset.id;
+                const isExcel = cb.dataset.excel === 'true';
+                const file = [...allExcelFiles, ...allTextFiles].find(f => f.id === id);
+                const itemName = file ? (file.name || file.title || id) : id;
+                await deleteDoc(doc(db, isExcel ? "excelHub" : "textHub", id));
+                await addDoc(collection(db, "historyHub"), { name: itemName, operation: `Cancellazione ${isExcel ? "Excel" : "Documento"} dal Cloud`, timestamp: serverTimestamp() });
+            }
+        });
+        document.getElementById('downloadSelectedArchive')?.addEventListener('click', async () => {
+            const checked = document.querySelectorAll('.archive-checkbox:checked');
+            if(!checked.length) return;
+            for(const cb of checked) window.downloadDocument(cb.dataset.id);
+        });
+        document.addEventListener('change', (e) => {
+            if(e.target.classList.contains('archive-checkbox')) updateBulkActions();
+        });
         function combineAndRenderArchive() {
             const body = document.getElementById('archiveTableBody'); if(!body) return; body.innerHTML = "";
-            [...allExcelFiles, ...allTextFiles].forEach(f => {
+            const items = [...allExcelFiles, ...allTextFiles].filter(f => {
+                if (!window.searchQuery) return true;
+                const haystack = f.isExcel ? `${f.name || ""} ${f.branch || ""}` : `${f.title || ""} ${f.fileType || ""} ${f.extractedText ? f.extractedText.substring(0, 200) : ""}`;
+                return haystack.toLowerCase().includes(window.searchQuery);
+            });
+            items.forEach(f => {
                 const tr = document.createElement('tr'); tr.className = "text-xs text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-800 hover:bg-slate-50/50";
                 if(f.isExcel) {
-                    const safeName = f.name ? f.name.replace(/'/g, "\\'") : "File Excel";
-                    tr.innerHTML = `<td class="p-3 font-medium">${f.name}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td><td class="p-3 text-gray-500 italic">Ramo: ${f.branch}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', true, '${safeName}')" class="text-red-500 hover:underline">Elimina</button></td>`;
+                    const name = escapeHtml(f.name || "File Excel");
+                    tr.innerHTML = `<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="${escapeHtml(f.id)}" data-excel="true"></td><td class="p-3 font-medium">${name}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td><td class="p-3 text-gray-500 italic">${escapeHtml(f.branch || "")}</td><td class="p-3 text-center flex items-center justify-center gap-1"><button data-id="${escapeHtml(f.id)}" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">📥</button><button data-id="${escapeHtml(f.id)}" data-excel="true" data-name="${escapeHtml(f.name || "File Excel")}" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">🗑️</button></td>`;
                 } else {
-                    const safeName = f.title ? f.title.replace(/'/g, "\\'") : "Documento";
-                    const preview = f.extractedText ? f.extractedText.substring(0, 45) + "..." : f.fileName;
-                    tr.innerHTML = `<td class="p-3 font-medium">${f.title}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${f.fileType}</span></td><td class="p-3 text-gray-400 font-mono">${preview}</td><td class="p-3 text-center"><button onclick="window.deleteCloudItem('${f.id}', false, '${safeName}')" class="text-red-500 hover:underline">Elimina</button></td>`;
+                    const title = escapeHtml(f.title || "Documento");
+                    const fileType = escapeHtml(f.fileType || "");
+                    const preview = escapeHtml(f.extractedText ? f.extractedText.substring(0, 40) + "..." : (f.fileName || ""));
+                    tr.innerHTML = `<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="${escapeHtml(f.id)}" data-excel="false"></td><td class="p-3 font-medium">${title}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${fileType}</span></td><td class="p-3 text-gray-400 font-mono text-[11px]">${preview}</td><td class="p-3 text-center flex items-center justify-center gap-1"><button data-id="${escapeHtml(f.id)}" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">📥</button><button data-id="${escapeHtml(f.id)}" data-excel="false" data-name="${escapeHtml(f.title || "Documento")}" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">🗑️</button></td>`;
                 }
                 body.appendChild(tr);
             });
+            body.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    window.deleteCloudItem(btn.dataset.id, btn.dataset.excel === 'true', btn.dataset.name);
+                });
+            });
+            body.querySelectorAll('.download-doc-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    window.downloadDocument(btn.dataset.id);
+                });
+            });
+            updateBulkActions();
+        }
+
+        function updateBulkActions() {
+            const checked = document.querySelectorAll('.archive-checkbox:checked');
+            const el = document.getElementById('bulkActions');
+            if(el) el.classList.toggle('hidden', checked.length === 0);
         }
         
+        window.downloadDocument = (id) => {
+            const file = [...allTextFiles, ...allExcelFiles].find(f => f.id === id);
+            if(!file) return alert("File non trovato.");
+            if(file.isExcel) {
+                const content = `File Excel: ${file.name}\nRamo: ${file.branch}\nCaricato il: ${file.uploadedAt ? new Date(file.uploadedAt.seconds * 1000).toLocaleString('it-IT') : "N/D"}`;
+                const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a"); a.href = url; a.download = (file.name || "excel") + ".txt";
+                document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            } else {
+                if(!file.extractedText) return alert("Nessun contenuto testuale disponibile per il download.");
+                const blob = new Blob([file.extractedText], { type: "text/plain;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a"); a.href = url; a.download = (file.title || "documento") + ".txt";
+                document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            }
+        };
+
         // CANCELLAZIONE FILE CON SCRITTURA CORRETTA SULLO STORICO
         window.deleteCloudItem = async (id, isExcel, itemName) => {
             if(confirm(`Eliminare l'elemento "${itemName}" dal Cloud?`)) {
+                const tipo = isExcel ? "Excel" : "Documento";
                 await deleteDoc(doc(db, isExcel ? "excelHub" : "textHub", id));
-                await addDoc(collection(db, "historyHub"), { name: itemName, operation: "Cancellazione file dal Cloud", timestamp: serverTimestamp() });
+                await addDoc(collection(db, "historyHub"), { name: itemName, operation: `Cancellazione ${tipo} dal Cloud`, timestamp: serverTimestamp() });
             }
         };
 
@@ -528,27 +682,69 @@
         onSnapshot(query(collection(db, "historyHub"), orderBy("timestamp", "desc")), (snap) => {
             const b = document.getElementById('historyTableBody'); if(!b) return; b.innerHTML = "";
             snap.forEach(d => {
-                const data = d.data(); 
+                const data = d.data();
                 const dStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('it-IT') : "In sincro...";
-                const nameObj = data.name || "Elemento indefinito";
-                const opObj = data.operation || "Operazione non tracciata";
-                b.innerHTML += `<tr class="border-b dark:border-slate-800"><td class="p-2.5 font-mono text-[11px] text-purple-600 dark:text-purple-400">${dStr}</td><td class="p-2.5 font-medium">${nameObj}</td><td class="p-2.5 text-gray-500">${opObj}</td><td class="p-2.5 text-center"><button onclick="window.deleteHistoryItem('${d.id}')" class="text-gray-400 hover:text-red-500">✕</button></td></tr>`;
+                const nameObj = escapeHtml(data.name || "Elemento indefinito");
+                const opObj = data.operation ? escapeHtml(data.operation) : (data.name ? "Azione su: " + escapeHtml(data.name) : "Registrazione del " + dStr);
+                const id = escapeHtml(d.id);
+                b.innerHTML += `<tr class="border-b dark:border-slate-800"><td class="p-2.5 text-center"><input type="checkbox" class="history-checkbox cursor-pointer" data-hid="${id}"></td><td class="p-2.5 font-mono text-[11px] text-purple-600 dark:text-purple-400">${dStr}</td><td class="p-2.5 font-medium">${nameObj}</td><td class="p-2.5 text-gray-500">${opObj}</td><td class="p-2.5 text-center"><button data-hid="${id}" class="delete-history-btn text-gray-400 hover:text-red-500 cursor-pointer">✕</button></td></tr>`;
             });
+            b.querySelectorAll('.delete-history-btn').forEach(btn => {
+                btn.addEventListener('click', () => { window.deleteHistoryItem(btn.dataset.hid); });
+            });
+            updateSelectAllHistory();
+        });
+        document.getElementById('selectAllHistory')?.addEventListener('change', (e) => {
+            document.querySelectorAll('.history-checkbox').forEach(cb => cb.checked = e.target.checked);
         });
         window.deleteHistoryItem = async (id) => { if(confirm("Rimuovere log storico?")) await deleteDoc(doc(db, "historyHub", id)); };
+        function updateSelectAllHistory() {
+            const sa = document.getElementById('selectAllHistory');
+            if(sa) sa.checked = document.querySelectorAll('.history-checkbox:checked').length === document.querySelectorAll('.history-checkbox').length && document.querySelectorAll('.history-checkbox').length > 0;
+        }
+        document.addEventListener('change', (e) => {
+            if(e.target.classList.contains('history-checkbox')) updateSelectAllHistory();
+        });
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'Delete' && document.querySelectorAll('.history-checkbox:checked').length > 0) {
+                const checked = document.querySelectorAll('.history-checkbox:checked');
+                if(confirm(`Rimuovere ${checked.length} log storico/i?`)) {
+                    checked.forEach(cb => deleteDoc(doc(db, "historyHub", cb.dataset.hid)));
+                }
+            }
+        });
 
         // ==========================================
-        // STRUTTURA CO-PILOT CHIAMATA DIRETTA POLLINATIONS  
+        // STRUTTURA CO-PILOT API POLLINATIONS (gen.pollinations.ai)
         // ==========================================
+        const POLLINATIONS_KEY = "sk_UHO9awELiLVfpplF65MFeMa4ylD0bOYw"; // Inserisci qui la tua API key (pk_...) da https://enter.pollinations.ai
+
         window.askAI = async () => {
             const inputEl = document.getElementById('aiInput'); const container = document.getElementById('chat-container');
             const sendBtn = document.getElementById('aiSendBtn'); const queryText = inputEl.value.trim();
             if (!queryText) return;
 
             inputEl.disabled = true; sendBtn.disabled = true;
-            container.innerHTML += `<div class="bg-blue-600/10 border border-blue-500/20 p-2.5 rounded-lg text-slate-200 font-medium text-right max-w-[85%] ml-auto">👤 ${queryText}</div>`;
+            container.innerHTML += `<div class="bg-blue-600/10 border border-blue-500/20 p-2.5 rounded-lg text-slate-200 font-medium text-right max-w-[85%] ml-auto">👤 ${escapeHtml(queryText)}</div>`;
             inputEl.value = ""; container.scrollTop = container.scrollHeight;
-            
+
+            // Download diretto dalla chat
+            const dlMatch = queryText.match(/^(?:scarica|download|scaricare)\s+(.+)/i);
+            if (dlMatch) {
+                const query = dlMatch[1].toLowerCase().trim();
+                const file = [...allTextFiles, ...allExcelFiles].find(f => {
+                    const name = (f.title || f.name || "").toLowerCase();
+                    return name.includes(query);
+                });
+                if (file) {
+                    window.downloadDocument(file.id);
+                    container.innerHTML += `<div class="bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-emerald-400 max-w-[90%] text-xs">✅ Download avviato: <b>${escapeHtml(file.title || file.name)}</b></div>`;
+                    inputEl.disabled = false; sendBtn.disabled = false; inputEl.focus();
+                    container.scrollTop = container.scrollHeight;
+                    return;
+                }
+            }
+
             const loadingId = 'loading-' + Date.now();
             container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">⚙️ Ricerca RAG nell'archivio e sintesi IA...</div>`;
             container.scrollTop = container.scrollHeight;
@@ -556,37 +752,57 @@
             let replyText = "";
 
             // Iniezione del contesto recuperato da Firestore per la logica RAG
-            let contextText = "Documenti dell'ufficio tecnico disponibili:\n";
-            allTextFiles.forEach(d => { contextText += `- TITOLO: ${d.title}, CONTENUTO INTEGRALE: ${d.extractedText || "Vuoto"}\n`; });
-            allExcelFiles.forEach(e => { contextText += `- FILE EXCEL CALCOLO: ${e.name} nel settore ${e.branch}\n`; });
+            let contextText = "ARCHIVIO FILE DISPONIBILI (nome e ID per download):\n";
+            allTextFiles.forEach(d => { contextText += `- ID:${d.id} | TITOLO: ${d.title} | CONTENUTO: ${(d.extractedText || "Vuoto").substring(0, 300)}\n`; });
+            allExcelFiles.forEach(e => { contextText += `- ID:${e.id} | EXCEL: ${e.name} | RAMO: ${e.branch}\n`; });
 
-            const systemInstruction = `Sei l'Ingegnere Co-Pilot dell'Engineering Cloud Hub. Rispondi in italiano in modo chiaro e coinciso basandoti rigorosamente sull'archivio qui fornito. Se l'utente chiede informazioni su calcoli o report, menziona i file corrispondenti presenti nell'elenco. Usa la sintassi LaTeX standard ($ o $$) solo per equazioni complesse. Ecco l'archivio: ${contextText}`;
+            const siteFeatures = "FUNZIONALITA' DEL SITO:\n- Caricamento file Excel (Meccanica, Termodinamica, Idraulica)\n- Caricamento documenti tecnici (.txt .pdf .docx)\n- Note rapide condivise\n- Calcolatore peso barre metalliche\n- Notifiche Telegram\n- Team Registration\n- Ricerca e download file dall'archivio\n- Tema chiaro/scuro, lingua IT/EN\n\nSe l'utente chiede di scaricare un file, usa il marcatore [DOWNLOAD:ID] nella risposta con l'ID del file.";
+
+            const systemInstruction = `Sei l'Ingegnere Co-Pilot dell'Engineering Cloud Hub V2.2.3. Rispondi in italiano chiaro e coinciso. Oltre a rispondere help desk sulle funzionalita del sito puoi anche offrire download dei file archiviati. Per farlo includi [DOWNLOAD:ID_FILE] nella risposta. Per formule matematiche complesse usa $...$ LaTeX, altrimenti testo semplice. Ecco le funzionalita e l'archivio:\n\n${siteFeatures}\n\n${contextText}`;
 
             try {
-                const response = await fetch(`https://text.pollinations.ai/`, {
+                const headers = { "Content-Type": "application/json" };
+                if (POLLINATIONS_KEY) headers["Authorization"] = "Bearer " + POLLINATIONS_KEY;
+                const response = await fetch("https://gen.pollinations.ai/v1/chat/completions", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: headers,
                     body: JSON.stringify({
                         messages: [
                             { role: "system", content: systemInstruction },
                             { role: "user", content: queryText }
                         ],
-                        model: "mistral"
+                        model: "openai"
                     })
                 });
-                if (response.ok) { replyText = await response.text(); }
-                else { replyText = "⚠️ Impossibile contattare i server della chat. Riprova tra pochi istanti."; }
-            } catch (err) { replyText = "⚠️ Errore di rete durante la generazione."; }
+                if (response.ok) {
+                    const json = await response.json();
+                    replyText = json.choices?.[0]?.message?.content || "";
+                } else {
+                    const errText = await response.text().catch(() => "");
+                    replyText = "⚠️ Errore API (" + response.status + "): " + (errText || "Riprova tra pochi istanti.");
+                }
+            } catch (err) { replyText = "⚠️ Errore di rete: " + err.message; }
             
             document.getElementById(loadingId)?.remove();
+            if (!replyText) replyText = "⚠️ Nessuna risposta ricevuta.";
             const replyDiv = document.createElement('div');
             replyDiv.className = "bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-slate-300 max-w-[90%] text-xs font-normal";
             
-            replyDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(replyText) : replyText.replace(/\n/g, "<br>");
+            // Gestione download marker [DOWNLOAD:id]
+            const downloadMatch = replyText.match(/\[DOWNLOAD:([^\]]+)\]/);
+            if (downloadMatch) {
+                const fileId = downloadMatch[1];
+                const file = [...allTextFiles, ...allExcelFiles].find(f => f.id === fileId);
+                if (file) {
+                    replyText = replyText.replace(/\[DOWNLOAD:[^\]]+\]/, `<button onclick="window.downloadDocument('${fileId}')" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2 py-1 rounded cursor-pointer">📥 Scarica ${file.title || file.name}</button>`);
+                }
+            }
+            
+            let cleanText = replyText.replace(/\$\$(.+?)\$\$/gs, '<div class="bg-slate-800 p-2 rounded my-1 text-emerald-300 text-[11px] font-mono">$1</div>').replace(/\$(.+?)\$/g, '<span class="text-emerald-300 text-[11px] font-mono">$1</span>');
+            replyDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText.replace(/\n/g, "<br>");
             container.appendChild(replyDiv);
             
             inputEl.disabled = false; sendBtn.disabled = false; inputEl.focus();
-            if (window.MathJax && typeof window.MathJax.typesetPromise === "function") { window.MathJax.typesetPromise([container]).catch(err => console.log(err)); }
             container.scrollTop = container.scrollHeight;
         };
 
