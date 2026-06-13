@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#1e293b">
+    <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="manifest" href="manifest.json">
-    <title>Engineering Cloud Hub - V2.3.1</title>
+    <title>Engineering Cloud Hub - V2.3.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
@@ -44,8 +44,12 @@
             .max-w-7xl { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
             #chat-expanded { width: calc(100vw - 1rem) !important; right: 0.5rem !important; }
             #sidebar { width: 100vw !important; }
+            #statsBarTop { display: none !important; }
+            nav .w-2\/4 .text-sm { font-size: 0.75rem !important; }
+            #searchCloud { width: 8rem !important; }
+            #calcModal > div { max-width: calc(100vw - 2rem) !important; margin: 0 1rem; }
+            .card-toggle { flex-wrap: wrap; gap: 0.25rem; }
         }
-        button, .cursor-pointer { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
     </style>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -353,14 +357,14 @@
                 <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
                     <div class="flex items-center space-x-2">
                         <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                        <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.3.1 Smart</span></span>
+                        <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.3.2 Smart</span></span>
                     </div>
                     <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
                 </div>
                 <div id="chat-body" class="flex flex-col flex-grow">
                     <div id="chat-container" class="h-[260px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
                         <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">
-                            🤖 Sono l'Ingegnere Co-Pilot V2.3.1. Conosco l'intero archivio dei documenti e file Excel caricati nel sistema grazie alla tecnologia RAG automatica. Interrogami liberamente. Per funzionare ho bisogno di una chiave API configurata nelle impostazioni del sito.
+                            🤖 Sono l'Ingegnere Co-Pilot V2.3.2. Conosco l'intero archivio dei documenti e file Excel caricati nel sistema grazie alla tecnologia RAG automatica. Interrogami liberamente. Per funzionare ho bisogno di una chiave API configurata nelle impostazioni del sito.
                         </div>
                     </div>
                     <div class="border-t border-slate-800 p-3 bg-slate-900 space-y-2">
@@ -800,7 +804,7 @@
 
             const siteFeatures = "FUNZIONALITA' DEL SITO:\n- Caricamento file Excel (Meccanica, Termodinamica, Idraulica)\n- Caricamento documenti tecnici (.txt .pdf .docx)\n- Note rapide condivise\n- Calcolatore peso barre metalliche\n- Notifiche Telegram\n- Team Registration\n- Ricerca e download file dall'archivio\n- Tema chiaro/scuro, lingua IT/EN\n\nSe l'utente chiede di scaricare un file, usa il marcatore [DOWNLOAD:ID] nella risposta con l'ID del file.";
 
-            const systemInstruction = `Sei l'Ingegnere Co-Pilot dell'Engineering Cloud Hub V2.3.1. Rispondi in italiano chiaro e coinciso. Oltre a rispondere help desk sulle funzionalita del sito puoi anche offrire download dei file archiviati. Per farlo includi [DOWNLOAD:ID_FILE] nella risposta. Per formule matematiche complesse usa $...$ LaTeX, altrimenti testo semplice. Ecco le funzionalita e l'archivio:\n\n${siteFeatures}\n\n${contextText}`;
+            const systemInstruction = `Sei l'Ingegnere Co-Pilot dell'Engineering Cloud Hub V2.3.2. Rispondi in italiano chiaro e coinciso. Oltre a rispondere help desk sulle funzionalita del sito puoi anche offrire download dei file archiviati. Per farlo includi [DOWNLOAD:ID_FILE] nella risposta. Per formule matematiche complesse usa $...$ LaTeX, altrimenti testo semplice. Ecco le funzionalita e l'archivio:\n\n${siteFeatures}\n\n${contextText}`;
 
             try {
                 const headers = { "Content-Type": "application/json" };
