@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Cloud Hub - V2.3.0</title>
+    <meta name="theme-color" content="#1e293b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    <title>Engineering Cloud Hub - V2.3.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
@@ -31,6 +36,16 @@
         .card-collapsible .card-toggle { cursor: pointer; user-select: none; }
         .card-collapsible .card-body { transition: max-height 0.3s ease, opacity 0.2s ease; overflow: hidden; }
         .card-collapsible.collapsed .card-body { max-height: 0 !important; opacity: 0; padding-top: 0 !important; padding-bottom: 0 !important; margin-top: 0 !important; }
+        @media (max-width: 640px) {
+            .p-5 { padding: 0.75rem !important; }
+            .px-4 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .py-6 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+            .gap-6 { gap: 0.75rem !important; }
+            .max-w-7xl { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
+            #chat-expanded { width: calc(100vw - 1rem) !important; right: 0.5rem !important; }
+            #sidebar { width: 100vw !important; }
+        }
+        button, .cursor-pointer { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
     </style>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -38,49 +53,53 @@
 <body class="bg-slate-50 text-gray-800 dark:bg-slate-950 dark:text-gray-100 min-h-screen relative overflow-x-hidden">
 
     <div id="loginBlocker" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 max-w-sm w-full text-center">
-            <div class="text-3xl mb-2">🔐</div>
-            <h2 class="text-base font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Accesso Engineering Hub</h2>
-            <div class="space-y-3">
-                    <input type="text" id="loginUser" data-i18n="loginUser" placeholder="Nome Utente" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium focus:outline-none focus:border-blue-500">
-                    <input type="password" id="loginPass" data-i18n="loginPass" placeholder="Password" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium focus:outline-none focus:border-blue-500">
-                    <button onclick="window.verifyHubLogin()" data-i18n="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-xs tracking-wider uppercase transition-colors cursor-pointer mt-2">Verifica ed Entra</button>
-                </div>
-                <p id="loginError" data-i18n="loginError" class="text-red-500 text-[11px] font-medium mt-3 hidden">⚠️ Credenziali errate. Riprova.</p>
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 max-w-xs w-full text-center">
+            <div class="text-2xl mb-1">🔐</div>
+            <h2 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-3">Accesso Engineering Hub</h2>
+            <div class="space-y-2.5">
+                <input type="text" id="loginUser" data-i18n="loginUser" placeholder="Nome Utente" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium focus:outline-none focus:border-blue-500">
+                <input type="password" id="loginPass" data-i18n="loginPass" placeholder="Password" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium focus:outline-none focus:border-blue-500">
+                <label class="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-gray-400 cursor-pointer select-none">
+                    <input type="checkbox" id="rememberMe" class="rounded border-gray-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer">
+                    <span data-i18n="rememberMe">Ricordami</span>
+                </label>
+                <button onclick="window.verifyHubLogin()" data-i18n="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-xs tracking-wider uppercase transition-colors cursor-pointer">Verifica ed Entra</button>
+            </div>
+            <p id="loginError" data-i18n="loginError" class="text-red-500 text-[11px] font-medium mt-2 hidden">⚠️ Credenziali errate. Riprova.</p>
         </div>
     </div>
 
     <div id="hubMainContent" class="hidden">
-        <nav class="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-40 dark:bg-black">
-            <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
-                <div class="flex items-center space-x-3 flex-wrap gap-2 sm:gap-0">
-                    <button onclick="toggleSidebar()" class="bg-slate-800 hover:bg-slate-700 text-sm py-1.5 px-3 rounded-lg border border-slate-700 cursor-pointer transition-colors flex items-center gap-1.5 font-medium">
-                        <span>📊</span> <span data-i18n="navTeam">Info & Team</span>
+        <nav class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-3 py-2 shadow-md sticky top-0 z-40 dark:from-blue-800 dark:to-blue-950">
+            <div class="max-w-7xl mx-auto flex items-center">
+                <div class="flex items-center gap-1.5 w-1/4">
+                    <button onclick="toggleSidebar()" class="bg-white/15 hover:bg-white/25 text-xs p-1.5 rounded-lg border border-white/20 cursor-pointer transition-colors flex items-center justify-center leading-none" title="Info & Team" style="width:36px;height:36px">
+                        <span style="font-size:18px;line-height:1">📊</span>
                     </button>
-                    <button onclick="toggleNewsSidebar()" class="bg-slate-800 hover:bg-slate-700 text-sm py-1.5 px-3 rounded-lg border border-slate-700 cursor-pointer transition-colors flex items-center gap-1.5 font-medium">
-                        <span>📢</span> <span data-i18n="navNews">News & Bacheca</span>
+                    <button onclick="toggleNewsSidebar()" class="bg-white/15 hover:bg-white/25 text-xs p-1.5 rounded-lg border border-white/20 cursor-pointer transition-colors flex items-center justify-center leading-none relative" title="News & Bacheca" style="width:36px;height:36px">
+                        <span style="font-size:18px;line-height:1">📢</span>
+                        <span id="newsBadge" class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[8px] font-bold rounded-full min-w-[12px] h-3.5 flex items-center justify-center px-0.5 hidden">!</span>
                     </button>
-                    <button onclick="toggleCalcModal()" class="bg-amber-600 hover:bg-amber-700 text-slate-950 text-sm py-1.5 px-3 rounded-lg cursor-pointer transition-colors flex items-center gap-1.5 font-bold">
-                        <span>🧮</span> <span data-i18n="navCalc">Calcolatore Peso</span>
+                    <button onclick="toggleCalcModal()" class="bg-amber-400/80 hover:bg-amber-300 text-slate-900 text-xs p-1.5 rounded-lg cursor-pointer transition-colors flex items-center justify-center leading-none font-bold" title="Calcolatore Peso" style="width:36px;height:36px">
+                        <span style="font-size:18px;line-height:1">🧮</span>
                     </button>
-                    <div class="h-5 w-px bg-slate-700 hidden sm:block mx-2"></div>
-                    <h1 class="text-lg sm:text-xl font-bold tracking-wide text-white flex items-center gap-2">
-                        Engineering Cloud Hub <span class="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold">V2.3.0 Smart</span>
-                    </h1>
                 </div>
-                
-                <div class="flex items-center space-x-4">
-                    <div class="flex bg-slate-800 rounded-lg p-0.5 border border-slate-700 text-xs font-bold">
-                        <button onclick="changeLanguage('it')" id="lang-it" class="px-2 py-1 rounded-md bg-blue-600 text-white transition-all">IT</button>
-                        <button onclick="changeLanguage('en')" id="lang-en" class="px-2 py-1 rounded-md text-gray-400 hover:text-white transition-all">EN</button>
+                <div class="w-2/4 text-center">
+                    <div class="text-sm font-bold tracking-wide">Engineering Cloud Hub</div>
+                    <div class="text-[9px] text-blue-200 font-mono">v2.3.0</div>
+                </div>
+                <div class="flex items-center gap-2 w-1/4 justify-end">
+                    <span id="statsBarTop" class="text-[10px] text-blue-200 font-mono flex items-center gap-2">
+                        <span>👥 Team: <span id="topStatTeam">0</span></span>
+                        <span>📡 TG: <span id="topStatTelegram">0</span></span>
+                    </span>
+                    <div class="flex bg-white/15 rounded-md p-0.5 border border-white/20 text-[10px] font-bold">
+                        <button onclick="changeLanguage('it')" id="lang-it" class="px-1.5 py-0.5 rounded bg-blue-600 text-white transition-all leading-none">IT</button>
+                        <button onclick="changeLanguage('en')" id="lang-en" class="px-1.5 py-0.5 rounded text-blue-200 hover:text-white transition-all leading-none">EN</button>
                     </div>
-                    <button onclick="toggleTheme()" class="bg-slate-800 hover:bg-slate-700 text-sm p-2 rounded-lg border border-slate-700 cursor-pointer text-center min-w-[36px]">
-                        <span id="theme-icon">🌙</span>
+                    <button onclick="toggleTheme()" class="bg-white/15 hover:bg-white/25 text-xs p-1.5 rounded-lg border border-white/20 cursor-pointer flex items-center justify-center leading-none" title="Tema" style="width:34px;height:34px">
+                        <span id="theme-icon" style="font-size:16px;line-height:1">🌙</span>
                     </button>
-                    <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-full border border-slate-800 text-xs hidden sm:flex">
-                        <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                        <span class="text-emerald-400 font-medium font-mono" data-i18n="cloudSync">Cloud Sincronizzato</span>
-                    </div>
                 </div>
             </div>
         </nav>
@@ -136,53 +155,59 @@
             </div>
         </div>
 
-        <div id="sidebar" class="fixed top-0 left-0 h-full w-85 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl border-r border-gray-200 dark:border-slate-800 z-50 transform -translate-x-full transition-transform duration-300 overflow-y-auto p-4">
-            <div class="flex justify-between items-center border-b pb-2 mb-4 dark:border-slate-800">
-                <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
-                    <span>📊</span> <span data-i18n="sidebarTitle">Pannello Hub & Team</span>
-                </h2>
-                <button onclick="toggleSidebar()" class="text-gray-400 hover:text-red-500 font-bold p-1 text-lg cursor-pointer">✕</button>
+        <div id="sidebar" class="fixed top-0 left-0 h-full w-80 bg-white dark:bg-slate-900 shadow-2xl border-r border-gray-200 dark:border-slate-800 z-50 transform -translate-x-full transition-transform duration-300 overflow-y-auto">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-4 text-white">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-base font-bold flex items-center gap-2"><span>📊</span> <span data-i18n="sidebarTitle">Engineering Hub</span></h2>
+                    <button onclick="toggleSidebar()" class="text-white/80 hover:text-white font-bold p-1 text-lg cursor-pointer transition-colors">✕</button>
+                </div>
+                <p class="text-[11px] text-blue-200 mt-0.5" data-i18n="sidebarSubtitle">Team, notifiche e statistiche</p>
             </div>
             
-            <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-xl shadow-xs">
-                <h3 class="text-xs font-bold uppercase text-blue-600 dark:text-blue-400 mb-1 tracking-wider" data-i18n="sidebarTelegram">Attivazione Notifiche Telegram</h3>
-                <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-2" data-i18n="sidebarTelegramDesc">Avvia il bot per ottenere il tuo Chat ID numerico e incollalo qui sotto.</p>
-                <a href="https://t.me/IL_TUO_BOT_TELEGRAM" target="_blank" class="block text-center text-xs bg-blue-600 text-white font-bold py-1.5 rounded-lg mb-2.5 hover:bg-blue-700">🤖 <span data-i18n="sidebarTelegramBtn">Apri Bot Telegram</span></a>
-                <div class="space-y-2">
-                    <input type="text" id="telChatIdInput" placeholder="Inserisci Chat ID (es. 1234567)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100">
-                    <input type="text" id="telNameInput" placeholder="Tuo Nome / Ruolo" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100">
-                    <div class="flex gap-2">
-                        <button id="btnSubscribeTelegram" data-i18n="sidebarSubscribe" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 rounded-lg text-xs cursor-pointer">Attiva</button>
-                        <button id="btnUnsubscribeTelegram" data-i18n="sidebarUnsubscribe" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 rounded-lg text-xs cursor-pointer">Disattiva</button>
+            <div class="p-3 space-y-2.5">
+                <div class="bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/30 dark:to-slate-900 border border-blue-200 dark:border-blue-900/50 rounded-xl p-3 shadow-xs">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center text-[11px]">📡</span>
+                        <h3 class="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider" data-i18n="sidebarTelegram">Telegram</h3>
                     </div>
+                    <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-2 leading-relaxed" data-i18n="sidebarTelegramDesc">Avvia il bot, ottieni il tuo Chat ID e incollalo qui sotto per attivare le notifiche.</p>
+                    <a href="https://t.me/IL_TUO_BOT_TELEGRAM" target="_blank" class="block text-center text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 rounded-lg mb-2.5 transition-colors shadow-xs">🤖 <span data-i18n="sidebarTelegramBtn">Apri Bot</span></a>
+                    <div class="space-y-1.5">
+                        <input type="text" id="telChatIdInput" placeholder="Chat ID (es. 1234567)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 dark:text-gray-100 transition-shadow">
+                        <input type="text" id="telNameInput" placeholder="Tuo Nome / Ruolo" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 dark:text-gray-100 transition-shadow">
+                        <div class="flex gap-2">
+                            <button id="btnSubscribeTelegram" data-i18n="sidebarSubscribe" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-1.5 rounded-lg text-xs cursor-pointer transition-colors shadow-xs">Attiva</button>
+                            <button id="btnUnsubscribeTelegram" data-i18n="sidebarUnsubscribe" class="flex-1 bg-gray-200 hover:bg-red-500 hover:text-white text-gray-600 font-semibold py-1.5 rounded-lg text-xs cursor-pointer transition-colors">Disattiva</button>
+                        </div>
+                    </div>
+                    <div id="subscribersContainer" class="mt-2 space-y-1 max-h-28 overflow-y-auto"></div>
                 </div>
-                <div id="subscribersContainer" class="mt-3 space-y-1.5 max-h-32 overflow-y-auto"></div>
-            </div>
 
-            <div class="mb-4 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xs">
-                <h3 class="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5 tracking-wider" data-i18n="sidebarRegister">Registrati all'Hub</h3>
-                <div class="space-y-2">
-                    <input type="text" id="regName" data-i18n="sidebarRegName" placeholder="Il tuo Nome (es. Ing. Rossi)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100">
-                    <input type="text" id="regContact" data-i18n="sidebarRegContact" placeholder="Contatto / Email" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100">
-                    <button id="btnRegister" data-i18n="sidebarRegBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded-lg text-xs cursor-pointer">Entra nel team</button>
+                <div class="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-xl p-3 shadow-xs">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center text-[11px]">👥</span>
+                        <h3 class="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider" data-i18n="sidebarRegister">Team</h3>
+                    </div>
+                    <div class="space-y-1.5">
+                        <input type="text" id="regName" data-i18n="sidebarRegName" placeholder="Il tuo Nome" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 dark:text-gray-100 transition-shadow">
+                        <input type="text" id="regContact" data-i18n="sidebarRegContact" placeholder="Contatto / Email" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 dark:text-gray-100 transition-shadow">
+                        <button id="btnRegister" data-i18n="sidebarRegBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 rounded-lg text-xs cursor-pointer transition-colors shadow-xs">Entra nel team</button>
+                    </div>
+                    <div id="teamMembersContainer" class="mt-2 space-y-1 max-h-32 overflow-y-auto"></div>
                 </div>
-                <div id="teamMembersContainer" class="mt-3 space-y-1.5 max-h-36 overflow-y-auto"></div>
-            </div>
-            
-            <div class="mb-4">
-                <h3 class="text-xs font-bold uppercase text-gray-400 mb-1.5 tracking-wider" data-i18n="sidebarCloudData">Dati Generali del Cloud</h3>
-                <div class="grid grid-cols-1 gap-1.5">
-                    <div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 p-2.5 rounded-lg flex justify-between items-center">
-                        <span class="text-xs font-semibold text-emerald-800 dark:text-emerald-300" data-i18n="sidebarExcelStat">File Excel:</span>
-                        <span id="statExcel" class="text-sm font-mono font-bold text-emerald-700 dark:text-emerald-400">0</span>
+
+                <div class="grid grid-cols-3 gap-1.5">
+                    <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-xl p-2.5 text-center">
+                        <div class="text-lg font-bold text-emerald-700 dark:text-emerald-400 font-mono" id="statExcel">0</div>
+                        <div class="text-[9px] text-emerald-600 dark:text-emerald-500 font-semibold uppercase tracking-wider" data-i18n="sidebarExcelStat">Excel</div>
                     </div>
-                    <div class="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 p-2.5 rounded-lg flex justify-between items-center">
-                        <span class="text-xs font-semibold text-blue-800 dark:text-blue-300" data-i18n="sidebarDocStat">Documenti:</span>
-                        <span id="statDocs" class="text-sm font-mono font-bold text-blue-700 dark:text-blue-400">0</span>
+                    <div class="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 rounded-xl p-2.5 text-center">
+                        <div class="text-lg font-bold text-blue-700 dark:text-blue-400 font-mono" id="statDocs">0</div>
+                        <div class="text-[9px] text-blue-600 dark:text-blue-500 font-semibold uppercase tracking-wider" data-i18n="sidebarDocStat">Docs</div>
                     </div>
-                    <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 p-2.5 rounded-lg flex justify-between items-center">
-                        <span class="text-xs font-semibold text-amber-800 dark:text-amber-300" data-i18n="sidebarNotesStat">Note:</span>
-                        <span id="statNotes" class="text-sm font-mono font-bold text-amber-700 dark:text-amber-400">0</span>
+                    <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-xl p-2.5 text-center">
+                        <div class="text-lg font-bold text-amber-700 dark:text-amber-400 font-mono" id="statNotes">0</div>
+                        <div class="text-[9px] text-amber-600 dark:text-amber-500 font-semibold uppercase tracking-wider" data-i18n="sidebarNotesStat">Note</div>
                     </div>
                 </div>
             </div>
@@ -328,14 +353,14 @@
                 <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
                     <div class="flex items-center space-x-2">
                         <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                        <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.3.0 Smart</span></span>
+                        <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.3.1 Smart</span></span>
                     </div>
                     <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
                 </div>
                 <div id="chat-body" class="flex flex-col flex-grow">
                     <div id="chat-container" class="h-[260px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
                         <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">
-                            🤖 Sono l'Ingegnere Co-Pilot V2.3.0. Conosco l'intero archivio dei documenti e file Excel caricati nel sistema grazie alla tecnologia RAG automatica. Interrogami liberamente. Per funzionare ho bisogno di una chiave API configurata nelle impostazioni del sito.
+                            🤖 Sono l'Ingegnere Co-Pilot V2.3.1. Conosco l'intero archivio dei documenti e file Excel caricati nel sistema grazie alla tecnologia RAG automatica. Interrogami liberamente. Per funzionare ho bisogno di una chiave API configurata nelle impostazioni del sito.
                         </div>
                     </div>
                     <div class="border-t border-slate-800 p-3 bg-slate-900 space-y-2">
@@ -374,11 +399,26 @@
         }
         window.verifyHubLogin = () => {
             if (document.getElementById('loginUser').value.trim() === 'Ing' && document.getElementById('loginPass').value.trim() === 'Ing') {
+                if (document.getElementById('rememberMe')?.checked) {
+                    localStorage.setItem('hub-user', document.getElementById('loginUser').value.trim());
+                    localStorage.setItem('hub-pass', document.getElementById('loginPass').value.trim());
+                } else {
+                    localStorage.removeItem('hub-user');
+                    localStorage.removeItem('hub-pass');
+                }
                 document.getElementById('loginBlocker').remove();
                 document.getElementById('hubMainContent').classList.remove('hidden');
             } else { document.getElementById('loginError').classList.remove('hidden'); }
         }
         document.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('hub-user');
+            const savedPass = localStorage.getItem('hub-pass');
+            if (savedUser && savedPass) {
+                document.getElementById('loginUser').value = savedUser;
+                document.getElementById('loginPass').value = savedPass;
+                document.getElementById('rememberMe').checked = true;
+                window.verifyHubLogin();
+            }
             document.getElementById('loginUser')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.verifyHubLogin(); });
             document.getElementById('loginPass')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.verifyHubLogin(); });
         });
@@ -419,8 +459,8 @@
 
         // Dizionario traduzioni
         const i18n = {
-            it: { navTeam: "Info & Team", navNews: "News & Bacheca", navCalc: "Calcolatore Peso", cloudSync: "Cloud Sincronizzato", titleExcel: "File Excel Calcoli", dropExcel: "Trascina qui il file Excel o clicca", titleDocs: "Documenti e Report", dropDoc: "Trascina qui il documento o clicca", archiveTitle: "Archivio Cloud Attivo", historyTitle: "Registro Storico Attività", calcTitle: "Calcolatore Peso Barre Metalliche", calcMat: "Materiale", calcShape: "Geometria Sezione", calcLen: "Lunghezza Totale Barra (mm)", calcRes: "Massa Totale:", sidebarTitle: "Pannello Hub & Team", sidebarTelegram: "Attivazione Notifiche Telegram", sidebarTelegramDesc: "Avvia il bot per ottenere il tuo Chat ID numerico e incollalo qui sotto.", sidebarTelegramBtn: "Apri Bot Telegram", sidebarSubscribe: "Attiva", sidebarUnsubscribe: "Disattiva", sidebarRegister: "Registrati all'Hub", sidebarRegName: "Il tuo Nome (es. Ing. Rossi)", sidebarRegContact: "Contatto / Email", sidebarRegBtn: "Entra nel team", sidebarCloudData: "Dati Generali del Cloud", sidebarExcelStat: "File Excel:", sidebarDocStat: "Documenti:", sidebarNotesStat: "Note:", notesTitle: "Note Rapide Condivise", notesPlaceholder: "Nota logistica o tecnica veloce...", notesBtn: "Aggiungi Nota", excelPlaceholder: "es. Calcolo fatica albero AISI 304", excelBtn: "Carica nel Cloud", docPlaceholder: "es. Specifica tecnica carter", docBodyPlaceholder: "Contenuto esteso del report (opzionale per interrogazione RAG)...", docBtn: "Salva Documento", newsTitle: "News & Bacheca", newsPlaceholder: "Scrivi un update logistico o di bacheca...", newsBtn: "Invia News", archiveSearch: "Cerca nei file...", archiveDesc: "Documenti e file Excel caricati nel cloud. Seleziona elementi per azioni bulk.", loginUser: "Nome Utente", loginPass: "Password", loginBtn: "Verifica ed Entra", loginError: "Credenziali errate. Riprova.", thName: "Nome Elemento", thType: "Formato / Tipo", thActions: "Azioni", thDate: "Data / Ora", thFile: "Nome File / Oggetto", thOp: "Operazione Svolta", thClean: "Ripulitura" },
-            en: { navTeam: "Info & Team", navNews: "News & Bulletin", navCalc: "Weight Calc", cloudSync: "Cloud Synced", titleExcel: "Calculations Excel Files", dropExcel: "Drag Excel file here or click", titleDocs: "Documents & Reports", dropDoc: "Drag document here or click", archiveTitle: "Active Cloud Archive", historyTitle: "Activity Log History", calcTitle: "Metal Bars Weight Calculator", calcMat: "Material", calcShape: "Section Geometry", calcLen: "Total Bar Length (mm)", calcRes: "Total Mass:", sidebarTitle: "Hub & Team Panel", sidebarTelegram: "Telegram Notification Setup", sidebarTelegramDesc: "Start the bot to get your numeric Chat ID and paste it below.", sidebarTelegramBtn: "Open Telegram Bot", sidebarSubscribe: "Activate", sidebarUnsubscribe: "Deactivate", sidebarRegister: "Register to Hub", sidebarRegName: "Your Name (e.g. Eng. Smith)", sidebarRegContact: "Contact / Email", sidebarRegBtn: "Join the team", sidebarCloudData: "Cloud General Data", sidebarExcelStat: "Excel Files:", sidebarDocStat: "Documents:", sidebarNotesStat: "Notes:", notesTitle: "Shared Quick Notes", notesPlaceholder: "Quick logistic or technical note...", notesBtn: "Add Note", excelPlaceholder: "e.g. Fatigue calc AISI 304 shaft", excelBtn: "Upload to Cloud", docPlaceholder: "e.g. Technical spec housing", docBodyPlaceholder: "Extended report content (optional for RAG query)...", docBtn: "Save Document", newsTitle: "News & Bulletin", newsPlaceholder: "Write a logistics or bulletin update...", newsBtn: "Send News", archiveSearch: "Search files...", archiveDesc: "Documents and Excel files uploaded to the cloud. Select items for bulk actions.", loginUser: "Username", loginPass: "Password", loginBtn: "Verify & Enter", loginError: "Wrong credentials. Try again.", thName: "Element Name", thType: "Format / Type", thActions: "Actions", thDate: "Date / Time", thFile: "File Name / Object", thOp: "Operation", thClean: "Cleanup" }
+            it: { navTeam: "Info & Team", navNews: "News & Bacheca", navCalc: "Calcolatore Peso", cloudSync: "Cloud Sincronizzato", titleExcel: "File Excel Calcoli", dropExcel: "Trascina qui il file Excel o clicca", titleDocs: "Documenti e Report", dropDoc: "Trascina qui il documento o clicca", archiveTitle: "Archivio Cloud Attivo", historyTitle: "Registro Storico Attività", calcTitle: "Calcolatore Peso Barre Metalliche", calcMat: "Materiale", calcShape: "Geometria Sezione", calcLen: "Lunghezza Totale Barra (mm)", calcRes: "Massa Totale:", sidebarTitle: "Engineering Hub", sidebarSubtitle: "Team, notifiche e statistiche", sidebarTelegram: "Telegram", sidebarTelegramDesc: "Avvia il bot, ottieni il tuo Chat ID e incollalo qui sotto per attivare le notifiche.", sidebarTelegramBtn: "Apri Bot", sidebarSubscribe: "Attiva", sidebarUnsubscribe: "Disattiva", sidebarRegister: "Team", sidebarRegName: "Il tuo Nome", sidebarRegContact: "Contatto / Email", sidebarRegBtn: "Entra nel team", sidebarExcelStat: "Excel", sidebarDocStat: "Docs", sidebarNotesStat: "Note", notesTitle: "Note Rapide Condivise", notesPlaceholder: "Nota logistica o tecnica veloce...", notesBtn: "Aggiungi Nota", excelPlaceholder: "es. Calcolo fatica albero AISI 304", excelBtn: "Carica nel Cloud", docPlaceholder: "es. Specifica tecnica carter", docBodyPlaceholder: "Contenuto esteso del report (opzionale per interrogazione RAG)...", docBtn: "Salva Documento", newsTitle: "News & Bacheca", newsPlaceholder: "Scrivi un update logistico o di bacheca...", newsBtn: "Invia News", archiveSearch: "Cerca nei file...", archiveDesc: "Documenti e file Excel caricati nel cloud. Seleziona elementi per azioni bulk.", loginUser: "Nome Utente", loginPass: "Password", loginBtn: "Verifica ed Entra", loginError: "Credenziali errate. Riprova.", rememberMe: "Ricordami", thName: "Nome Elemento", thType: "Formato / Tipo", thActions: "Azioni", thDate: "Data / Ora", thFile: "Nome File / Oggetto", thOp: "Operazione Svolta", thClean: "Ripulitura" },
+            en: { navTeam: "Info & Team", navNews: "News & Bulletin", navCalc: "Weight Calc", cloudSync: "Cloud Synced", titleExcel: "Calculations Excel Files", dropExcel: "Drag Excel file here or click", titleDocs: "Documents & Reports", dropDoc: "Drag document here or click", archiveTitle: "Active Cloud Archive", historyTitle: "Activity Log History", calcTitle: "Metal Bars Weight Calculator", calcMat: "Material", calcShape: "Section Geometry", calcLen: "Total Bar Length (mm)", calcRes: "Total Mass:", sidebarTitle: "Engineering Hub", sidebarSubtitle: "Team, notifications & stats", sidebarTelegram: "Telegram", sidebarTelegramDesc: "Start the bot, get your Chat ID and paste it below to enable notifications.", sidebarTelegramBtn: "Open Bot", sidebarSubscribe: "Activate", sidebarUnsubscribe: "Deactivate", sidebarRegister: "Team", sidebarRegName: "Your Name", sidebarRegContact: "Contact / Email", sidebarRegBtn: "Join the team", sidebarExcelStat: "Excel", sidebarDocStat: "Docs", sidebarNotesStat: "Notes", notesTitle: "Shared Quick Notes", notesPlaceholder: "Quick logistic or technical note...", notesBtn: "Add Note", excelPlaceholder: "e.g. Fatigue calc AISI 304 shaft", excelBtn: "Upload to Cloud", docPlaceholder: "e.g. Technical spec housing", docBodyPlaceholder: "Extended report content (optional for RAG query)...", docBtn: "Save Document", newsTitle: "News & Bulletin", newsPlaceholder: "Write a logistics or bulletin update...", newsBtn: "Send News", archiveSearch: "Search files...", archiveDesc: "Documents and Excel files uploaded to the cloud. Select items for bulk actions.", loginUser: "Username", loginPass: "Password", loginBtn: "Verify & Enter", loginError: "Wrong credentials. Try again.", rememberMe: "Remember me", thName: "Element Name", thType: "Format / Type", thActions: "Actions", thDate: "Date / Time", thFile: "File Name / Object", thOp: "Operation", thClean: "Cleanup" }
         };
         window.changeLanguage = (lang) => {
             document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -481,6 +521,7 @@
             document.getElementById('telChatIdInput').value = "";
         };
         onSnapshot(collection(db, "subscribers"), (snap) => {
+            const topTel = document.getElementById('topStatTelegram'); if(topTel) topTel.textContent = snap.size;
             const container = document.getElementById('subscribersContainer'); if(!container) return;
             if(snap.empty) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic">Nessun iscritto alle notifiche Telegram.</p>'; return; }
             container.innerHTML = "";
@@ -515,6 +556,7 @@
             }
         };
         onSnapshot(query(collection(db, "teamHub"), orderBy("joinedAt", "desc")), (snap) => {
+            const topTeam = document.getElementById('topStatTeam'); if(topTeam) topTeam.textContent = snap.size;
             const container = document.getElementById('teamMembersContainer'); if(!container) return;
             if(snap.empty) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic">Nessun membro registrato.</p>'; return; }
             container.innerHTML = `<p class="text-[10px] text-gray-400 font-medium mb-1 tracking-wide uppercase">Membri iscritti (${snap.size})</p>`;
@@ -758,7 +800,7 @@
 
             const siteFeatures = "FUNZIONALITA' DEL SITO:\n- Caricamento file Excel (Meccanica, Termodinamica, Idraulica)\n- Caricamento documenti tecnici (.txt .pdf .docx)\n- Note rapide condivise\n- Calcolatore peso barre metalliche\n- Notifiche Telegram\n- Team Registration\n- Ricerca e download file dall'archivio\n- Tema chiaro/scuro, lingua IT/EN\n\nSe l'utente chiede di scaricare un file, usa il marcatore [DOWNLOAD:ID] nella risposta con l'ID del file.";
 
-            const systemInstruction = `Sei l'Ingegnere Co-Pilot dell'Engineering Cloud Hub V2.3.0. Rispondi in italiano chiaro e coinciso. Oltre a rispondere help desk sulle funzionalita del sito puoi anche offrire download dei file archiviati. Per farlo includi [DOWNLOAD:ID_FILE] nella risposta. Per formule matematiche complesse usa $...$ LaTeX, altrimenti testo semplice. Ecco le funzionalita e l'archivio:\n\n${siteFeatures}\n\n${contextText}`;
+            const systemInstruction = `Sei l'Ingegnere Co-Pilot dell'Engineering Cloud Hub V2.3.1. Rispondi in italiano chiaro e coinciso. Oltre a rispondere help desk sulle funzionalita del sito puoi anche offrire download dei file archiviati. Per farlo includi [DOWNLOAD:ID_FILE] nella risposta. Per formule matematiche complesse usa $...$ LaTeX, altrimenti testo semplice. Ecco le funzionalita e l'archivio:\n\n${siteFeatures}\n\n${contextText}`;
 
             try {
                 const headers = { "Content-Type": "application/json" };
@@ -807,6 +849,11 @@
         };
 
         document.getElementById('aiInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.askAI(); });
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
     </script>
 </body>
 </html>
