@@ -209,6 +209,7 @@
                         <div class="flex gap-2">
                             <button id="btnSubscribeTelegram" data-i18n="sidebarSubscribe" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-1.5 rounded-lg text-xs cursor-pointer transition-colors shadow-xs">Attiva</button>
                             <button id="btnUnsubscribeTelegram" data-i18n="sidebarUnsubscribe" class="flex-1 bg-gray-200 hover:bg-red-500 hover:text-white text-gray-600 font-semibold py-1.5 rounded-lg text-xs cursor-pointer transition-colors">Disattiva</button>
+                            <button onclick="testTelegramNotification()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 rounded-lg text-[10px] cursor-pointer transition-colors mt-1">🔔 Test Notifica</button>
                         </div>
                     </div>
                     <div id="subscribersContainer" class="mt-2 space-y-1 max-h-28 overflow-y-auto"></div>
@@ -567,7 +568,7 @@
 
         // BROADCAST NOTIFICHE FAN-OUT TELEGRAM SU SUB CHANNELS
         function escapeMarkdown(text) {
-            return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
+            return text.replace(/[_*`\[]/g, '\\$&');
         }
         async function sendTelegramBroadcast(text) {
             if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN.startsWith("IL_TUO")) return;
@@ -589,16 +590,17 @@
             } catch (e) { console.error("Errore notifica Telegram:", e); }
         }
 
-        // RISPONDITORE AUTOMATICO BOT TELEGRAM (CHAT ID SU /start)
-        let botUpdateOffset = parseInt(localStorage.getItem('tgOffset') || '0');
+        // RISPONDITORE AUTOMATICO BOT TELEGRAM (CHAT ID SU /start, senza offset per non perdere messaggi)
+        let tgReplied = JSON.parse(localStorage.getItem('tgReplied') || '{}');
         async function processTelegramUpdates() {
             if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN.startsWith("IL_TUO")) return;
             try {
-                const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=${botUpdateOffset}&timeout=5`);
+                const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?timeout=5`);
                 const data = await res.json();
                 if (!data.ok || !data.result.length) return;
+                let changed = false;
                 for (const update of data.result) {
-                    botUpdateOffset = update.update_id + 1;
+                    if (tgReplied[update.update_id]) continue;
                     const msg = update.message;
                     if (!msg || !msg.text) continue;
                     const chatId = msg.chat.id;
@@ -608,18 +610,34 @@
                             method: "POST", headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
                                 chat_id: chatId,
-                                text: `✅ Benvenuto! Il tuo Chat ID è: \`${chatId}\`\n\nIncollalo nel campo "Chat ID" sul sito Engineering Cloud Hub e clicca *Attiva* per ricevere notifiche.`,
+                                text: `✅ *Benvenuto!* Il tuo Chat ID è: \`${chatId}\`\n\n1️⃣ Copia questo numero\n2️⃣ Aprilo sul sito nella sezione Telegram\n3️⃣ Scegli un nome e clicca *Attiva*\n\nRiceverai notifiche per nuovi file, documenti, note e news.`,
                                 parse_mode: "Markdown"
                             })
                         });
                     }
+                    tgReplied[update.update_id] = true;
+                    changed = true;
                 }
-                localStorage.setItem('tgOffset', botUpdateOffset);
+                if (changed) localStorage.setItem('tgReplied', JSON.stringify(tgReplied));
             } catch (e) { /* polling silenzioso */ }
         }
-        // Polling iniziale e periodico
-        setTimeout(processTelegramUpdates, 2000);
-        setInterval(processTelegramUpdates, 30000);
+        // Polling iniziale e periodico (ogni 15s per maggiore reattività)
+        setTimeout(processTelegramUpdates, 1000);
+        setInterval(processTelegramUpdates, 15000);
+
+        window.testTelegramNotification = async () => {
+            const chatId = document.getElementById('telChatIdInput').value.trim();
+            if (!chatId) return alert("Inserisci prima un Chat ID.");
+            try {
+                const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ chat_id: chatId, text: "🔔 *Test notifica Engineering Hub*\n\nSe vedi questo messaggio, il bot funziona correttamente! ✅", parse_mode: "Markdown" })
+                });
+                const data = await res.json();
+                if (data.ok) alert("✅ Notifica inviata! Controlla Telegram.");
+                else alert("❌ Errore: " + (data.description || "Risposta sconosciuta"));
+            } catch (e) { alert("❌ Errore di rete: " + e.message); }
+        };
 
         // AZIONI ISCRIZIONI TELEGRAM (SEPARATE DAI CONTATORI CLOUD)
         document.getElementById('btnSubscribeTelegram').onclick = async () => {
