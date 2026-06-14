@@ -413,7 +413,7 @@
         </main>
 
         <div id="ai-chat-widget" class="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-0">
-            <div id="chat-expanded" class="w-96 bg-slate-900 text-slate-100 rounded-xl shadow-2xl border border-slate-800 overflow-hidden flex flex-col transition-all duration-300">
+            <div id="chat-expanded" class="w-96 bg-slate-900 text-slate-100 rounded-xl shadow-2xl border border-slate-800 overflow-hidden flex flex-col transition-all duration-300 hidden">
                 <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
                     <div class="flex items-center space-x-2">
                         <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
@@ -500,7 +500,7 @@
             document.getElementById('loginUser')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.verifyHubLogin(); });
             document.getElementById('loginPass')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.verifyHubLogin(); });
         });
-        let isChatCollapsed = false;
+        let isChatCollapsed = true;
         function toggleChatCollapse() {
             isChatCollapsed = !isChatCollapsed;
             document.getElementById('chat-expanded').classList.toggle('hidden', isChatCollapsed);
