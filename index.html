@@ -688,6 +688,7 @@
                 await addDoc(collection(db, "notesHub"), { content: content, createdAt: serverTimestamp() });
                 await addDoc(collection(db, "historyHub"), { name: "Nota Rapida", operation: "Aggiunta nota condivisa", timestamp: serverTimestamp() });
                 document.getElementById('newNoteContent').value = "";
+                await sendTelegramBroadcast(`📌 *Nuova Nota:* ${escapeMarkdown(content)}`);
             }
         };
         onSnapshot(query(collection(db, "notesHub"), orderBy("createdAt", "desc")), (snap) => {
