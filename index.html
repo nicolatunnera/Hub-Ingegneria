@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="manifest" href="manifest.json">
-    <title>Engineering Cloud Hub - V2.2.3</title>
+    <title>Engineering Cloud Hub - V2.4.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
@@ -90,7 +90,7 @@
                 </div>
                 <div class="w-2/4 text-center">
                     <div class="text-sm font-bold tracking-wide">Engineering Cloud Hub</div>
-                    <div class="text-[9px] text-blue-200 font-mono">v2.3.0</div>
+                    <div class="text-[9px] text-blue-200 font-mono">v2.4.0</div>
                 </div>
                 <div class="flex items-center gap-2 w-1/4 justify-end">
                     <span id="statsBarTop" class="text-[10px] text-blue-200 font-mono flex items-center gap-2">
@@ -174,8 +174,8 @@
                         <span class="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center text-[11px]">📡</span>
                         <h3 class="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider" data-i18n="sidebarTelegram">Telegram</h3>
                     </div>
-                    <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-2 leading-relaxed" data-i18n="sidebarTelegramDesc">Avvia il bot, ottieni il tuo Chat ID e incollalo qui sotto per attivare le notifiche.</p>
-                    <a href="https://t.me/HubEngineerBot" target="_blank" class="block text-center text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 rounded-lg mb-2.5 transition-colors shadow-xs">🤖 <span data-i18n="sidebarTelegramBtn">Apri Bot</span></a>
+                    <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-2 leading-relaxed" data-i18n="sidebarTelegramDesc">apri il bot, invia un messaggio (es. /start), ottieni il tuo Chat ID da @userinfobot e incollalo qui sotto</p>
+                    <a href="https://t.me/HubEngineerBot" target="_blank" class="block text-center text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 rounded-lg mb-2.5 transition-colors shadow-xs">🤖 @HubEngineerBot</a>
                     <div class="space-y-1.5">
                         <input type="text" id="telChatIdInput" placeholder="Chat ID (es. 1234567)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 dark:text-gray-100 transition-shadow">
                         <input type="text" id="telNameInput" placeholder="Tuo Nome / Ruolo" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 dark:text-gray-100 transition-shadow">
@@ -357,14 +357,14 @@
                 <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
                     <div class="flex items-center space-x-2">
                         <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                        <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.2.3 Smart</span></span>
+                        <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.4.0 Smart</span></span>
                     </div>
                     <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
                 </div>
                 <div id="chat-body" class="flex flex-col flex-grow">
                     <div id="chat-container" class="h-[260px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
                         <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">
-                            🤖 Sono l'Ingegnere Co-Pilot V2.2.3. Conosco l'intero archivio dei documenti e file Excel caricati nel sistema grazie alla tecnologia RAG automatica. Interrogami liberamente. Per funzionare ho bisogno di una chiave API configurata nelle impostazioni del sito.
+                            🤖 Sono l'Ingegnere Co-Pilot V2.4.0. Conosco l'intero archivio dei documenti e file Excel caricati nel sistema grazie alla tecnologia RAG automatica. Interrogami liberamente. Per funzionare ho bisogno di una chiave API configurata nelle impostazioni del sito.
                         </div>
                     </div>
                     <div class="border-t border-slate-800 p-3 bg-slate-900 space-y-2">
@@ -463,8 +463,8 @@
 
         // Dizionario traduzioni
         const i18n = {
-            it: { navTeam: "Info & Team", navNews: "News & Bacheca", navCalc: "Calcolatore Peso", cloudSync: "Cloud Sincronizzato", titleExcel: "File Excel Calcoli", dropExcel: "Trascina qui il file Excel o clicca", titleDocs: "Documenti e Report", dropDoc: "Trascina qui il documento o clicca", archiveTitle: "Archivio Cloud Attivo", historyTitle: "Registro Storico Attività", calcTitle: "Calcolatore Peso Barre Metalliche", calcMat: "Materiale", calcShape: "Geometria Sezione", calcLen: "Lunghezza Totale Barra (mm)", calcRes: "Massa Totale:", sidebarTitle: "Engineering Hub", sidebarSubtitle: "Team, notifiche e statistiche", sidebarTelegram: "Telegram", sidebarTelegramDesc: "Avvia il bot, ottieni il tuo Chat ID e incollalo qui sotto per attivare le notifiche.", sidebarTelegramBtn: "Apri Bot", sidebarSubscribe: "Attiva", sidebarUnsubscribe: "Disattiva", sidebarRegister: "Team", sidebarRegName: "Il tuo Nome", sidebarRegContact: "Contatto / Email", sidebarRegBtn: "Entra nel team", sidebarExcelStat: "Excel", sidebarDocStat: "Docs", sidebarNotesStat: "Note", notesTitle: "Note Rapide Condivise", notesPlaceholder: "Nota logistica o tecnica veloce...", notesBtn: "Aggiungi Nota", excelPlaceholder: "es. Calcolo fatica albero AISI 304", excelBtn: "Carica nel Cloud", docPlaceholder: "es. Specifica tecnica carter", docBodyPlaceholder: "Contenuto esteso del report (opzionale per interrogazione RAG)...", docBtn: "Salva Documento", newsTitle: "News & Bacheca", newsPlaceholder: "Scrivi un update logistico o di bacheca...", newsBtn: "Invia News", archiveSearch: "Cerca nei file...", archiveDesc: "Documenti e file Excel caricati nel cloud. Seleziona elementi per azioni bulk.", loginUser: "Nome Utente", loginPass: "Password", loginBtn: "Verifica ed Entra", loginError: "Credenziali errate. Riprova.", rememberMe: "Ricordami", thName: "Nome Elemento", thType: "Formato / Tipo", thActions: "Azioni", thDate: "Data / Ora", thFile: "Nome File / Oggetto", thOp: "Operazione Svolta", thClean: "Ripulitura" },
-            en: { navTeam: "Info & Team", navNews: "News & Bulletin", navCalc: "Weight Calc", cloudSync: "Cloud Synced", titleExcel: "Calculations Excel Files", dropExcel: "Drag Excel file here or click", titleDocs: "Documents & Reports", dropDoc: "Drag document here or click", archiveTitle: "Active Cloud Archive", historyTitle: "Activity Log History", calcTitle: "Metal Bars Weight Calculator", calcMat: "Material", calcShape: "Section Geometry", calcLen: "Total Bar Length (mm)", calcRes: "Total Mass:", sidebarTitle: "Engineering Hub", sidebarSubtitle: "Team, notifications & stats", sidebarTelegram: "Telegram", sidebarTelegramDesc: "Start the bot, get your Chat ID and paste it below to enable notifications.", sidebarTelegramBtn: "Open Bot", sidebarSubscribe: "Activate", sidebarUnsubscribe: "Deactivate", sidebarRegister: "Team", sidebarRegName: "Your Name", sidebarRegContact: "Contact / Email", sidebarRegBtn: "Join the team", sidebarExcelStat: "Excel", sidebarDocStat: "Docs", sidebarNotesStat: "Notes", notesTitle: "Shared Quick Notes", notesPlaceholder: "Quick logistic or technical note...", notesBtn: "Add Note", excelPlaceholder: "e.g. Fatigue calc AISI 304 shaft", excelBtn: "Upload to Cloud", docPlaceholder: "e.g. Technical spec housing", docBodyPlaceholder: "Extended report content (optional for RAG query)...", docBtn: "Save Document", newsTitle: "News & Bulletin", newsPlaceholder: "Write a logistics or bulletin update...", newsBtn: "Send News", archiveSearch: "Search files...", archiveDesc: "Documents and Excel files uploaded to the cloud. Select items for bulk actions.", loginUser: "Username", loginPass: "Password", loginBtn: "Verify & Enter", loginError: "Wrong credentials. Try again.", rememberMe: "Remember me", thName: "Element Name", thType: "Format / Type", thActions: "Actions", thDate: "Date / Time", thFile: "File Name / Object", thOp: "Operation", thClean: "Cleanup" }
+            it: { navTeam: "Info & Team", navNews: "News & Bacheca", navCalc: "Calcolatore Peso", cloudSync: "Cloud Sincronizzato", titleExcel: "File Excel Calcoli", dropExcel: "Trascina qui il file Excel o clicca", titleDocs: "Documenti e Report", dropDoc: "Trascina qui il documento o clicca", archiveTitle: "Archivio Cloud Attivo", historyTitle: "Registro Storico Attività", calcTitle: "Calcolatore Peso Barre Metalliche", calcMat: "Materiale", calcShape: "Geometria Sezione", calcLen: "Lunghezza Totale Barra (mm)", calcRes: "Massa Totale:", sidebarTitle: "Engineering Hub", sidebarSubtitle: "Team, notifiche e statistiche", sidebarTelegram: "Telegram", sidebarTelegramDesc: "apri il bot, invia /start, poi ottieni il Chat ID da @userinfobot e incollalo qui sotto", sidebarTelegramBtn: "@HubEngineerBot", sidebarSubscribe: "Attiva", sidebarUnsubscribe: "Disattiva", sidebarRegister: "Team", sidebarRegName: "Il tuo Nome", sidebarRegContact: "Contatto / Email", sidebarRegBtn: "Entra nel team", sidebarExcelStat: "Excel", sidebarDocStat: "Docs", sidebarNotesStat: "Note", notesTitle: "Note Rapide Condivise", notesPlaceholder: "Nota logistica o tecnica veloce...", notesBtn: "Aggiungi Nota", excelPlaceholder: "es. Calcolo fatica albero AISI 304", excelBtn: "Carica nel Cloud", docPlaceholder: "es. Specifica tecnica carter", docBodyPlaceholder: "Contenuto esteso del report (opzionale per interrogazione RAG)...", docBtn: "Salva Documento", newsTitle: "News & Bacheca", newsPlaceholder: "Scrivi un update logistico o di bacheca...", newsBtn: "Invia News", archiveSearch: "Cerca nei file...", archiveDesc: "Documenti e file Excel caricati nel cloud. Seleziona elementi per azioni bulk.", loginUser: "Nome Utente", loginPass: "Password", loginBtn: "Verifica ed Entra", loginError: "Credenziali errate. Riprova.", rememberMe: "Ricordami", thName: "Nome Elemento", thType: "Formato / Tipo", thActions: "Azioni", thDate: "Data / Ora", thFile: "Nome File / Oggetto", thOp: "Operazione Svolta", thClean: "Ripulitura" },
+            en: { navTeam: "Info & Team", navNews: "News & Bulletin", navCalc: "Weight Calc", cloudSync: "Cloud Synced", titleExcel: "Calculations Excel Files", dropExcel: "Drag Excel file here or click", titleDocs: "Documents & Reports", dropDoc: "Drag document here or click", archiveTitle: "Active Cloud Archive", historyTitle: "Activity Log History", calcTitle: "Metal Bars Weight Calculator", calcMat: "Material", calcShape: "Section Geometry", calcLen: "Total Bar Length (mm)", calcRes: "Total Mass:", sidebarTitle: "Engineering Hub", sidebarSubtitle: "Team, notifications & stats", sidebarTelegram: "Telegram", sidebarTelegramDesc: "open the bot, send /start, then get your Chat ID from @userinfobot and paste it below", sidebarTelegramBtn: "@HubEngineerBot", sidebarSubscribe: "Activate", sidebarUnsubscribe: "Deactivate", sidebarRegister: "Team", sidebarRegName: "Your Name", sidebarRegContact: "Contact / Email", sidebarRegBtn: "Join the team", sidebarExcelStat: "Excel", sidebarDocStat: "Docs", sidebarNotesStat: "Notes", notesTitle: "Shared Quick Notes", notesPlaceholder: "Quick logistic or technical note...", notesBtn: "Add Note", excelPlaceholder: "e.g. Fatigue calc AISI 304 shaft", excelBtn: "Upload to Cloud", docPlaceholder: "e.g. Technical spec housing", docBodyPlaceholder: "Extended report content (optional for RAG query)...", docBtn: "Save Document", newsTitle: "News & Bulletin", newsPlaceholder: "Write a logistics or bulletin update...", newsBtn: "Send News", archiveSearch: "Search files...", archiveDesc: "Documents and Excel files uploaded to the cloud. Select items for bulk actions.", loginUser: "Username", loginPass: "Password", loginBtn: "Verify & Enter", loginError: "Wrong credentials. Try again.", rememberMe: "Remember me", thName: "Element Name", thType: "Format / Type", thActions: "Actions", thDate: "Date / Time", thFile: "File Name / Object", thOp: "Operation", thClean: "Cleanup" }
         };
         window.changeLanguage = (lang) => {
             document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -493,6 +493,9 @@
         setupDropzone('dropzoneDoc', 'docFile', 'textDropDoc', 'Trascina qui il documento o clicca');
 
         // BROADCAST NOTIFICHE FAN-OUT TELEGRAM SU SUB CHANNELS
+        function escapeMarkdown(text) {
+            return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
+        }
         async function sendTelegramBroadcast(text) {
             if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN.startsWith("IL_TUO")) return;
             try {
@@ -548,7 +551,7 @@
             if(content) {
                 await addDoc(collection(db, "newsHub"), { content, createdAt: serverTimestamp() });
                 document.getElementById('newsContent').value = "";
-                await sendTelegramBroadcast(`📢 *Nuova comunicazione in Bacheca Hub:*\n\n${content}`);
+                await sendTelegramBroadcast(`📢 *Nuova comunicazione in Bacheca Hub:*\n\n${escapeMarkdown(content)}`);
             }
         };
         onSnapshot(query(collection(db, "newsHub"), orderBy("createdAt", "desc")), (snap) => {
@@ -592,7 +595,7 @@
                 await addDoc(collection(db, "excelHub"), { name: note, branch: branch, uploadedAt: serverTimestamp() });
                 await addDoc(collection(db, "historyHub"), { name: note, operation: `Caricato Excel (${branch})`, timestamp: serverTimestamp() });
                 document.getElementById('excelNote').value = ""; document.getElementById('textDropExcel').textContent = "Trascina qui il file Excel o clicca";
-                await sendTelegramBroadcast(`⚙️ *Nuovo File Excel:* ${note}\nRamo: ${branch}`);
+                await sendTelegramBroadcast(`⚙️ *Nuovo File Excel:* ${escapeMarkdown(note)}\nRamo: ${escapeMarkdown(branch)}`);
             }
         };
         document.getElementById('btnUploadDoc').onclick = async () => {
@@ -602,7 +605,7 @@
                 await addDoc(collection(db, "textHub"), { title: title, fileName: title + ".txt", fileType: "TXT", extractedText: bodyContent, uploadedAt: serverTimestamp() });
                 await addDoc(collection(db, "historyHub"), { name: title, operation: "Caricato Documento / Report", timestamp: serverTimestamp() });
                 document.getElementById('textTitle').value = ""; document.getElementById('textContentBody').value = ""; document.getElementById('textDropDoc').textContent = "Trascina qui il documento o clicca";
-                await sendTelegramBroadcast(`📝 *Nuovo Documento:* ${title}\nAnalizzabile dal Co-Pilot.`);
+                await sendTelegramBroadcast(`📝 *Nuovo Documento:* ${escapeMarkdown(title)}\nAnalizzabile dal Co-Pilot.`);
             }
         };
 
@@ -810,7 +813,7 @@
 
             const siteFeatures = "FUNZIONALITA' DEL SITO:\n- Caricamento file Excel (Meccanica, Termodinamica, Idraulica)\n- Caricamento documenti tecnici (.txt .pdf .docx)\n- Note rapide condivise\n- Calcolatore peso barre metalliche\n- Notifiche Telegram\n- Team Registration\n- Ricerca e download file dall'archivio\n- Tema chiaro/scuro, lingua IT/EN\n\nSe l'utente chiede di scaricare un file, usa il marcatore [DOWNLOAD:ID] nella risposta con l'ID del file.";
 
-            const systemInstruction = `Sei l'Ingegnere Co-Pilot dell'Engineering Cloud Hub V2.2.3. Rispondi in italiano chiaro e coinciso. Oltre a rispondere help desk sulle funzionalita del sito puoi anche offrire download dei file archiviati. Per farlo includi [DOWNLOAD:ID_FILE] nella risposta. Per formule matematiche complesse usa $...$ LaTeX, altrimenti testo semplice. Ecco le funzionalita e l'archivio:\n\n${siteFeatures}\n\n${contextText}`;
+            const systemInstruction = `Sei l'Ingegnere Co-Pilot dell'Engineering Cloud Hub V2.4.0. Rispondi in italiano chiaro e coinciso. Oltre a rispondere help desk sulle funzionalita del sito puoi anche offrire download dei file archiviati. Per farlo includi [DOWNLOAD:ID_FILE] nella risposta. Per formule matematiche complesse usa $...$ LaTeX, altrimenti testo semplice. Ecco le funzionalita e l'archivio:\n\n${siteFeatures}\n\n${contextText}`;
 
             try {
                 const headers = { "Content-Type": "application/json" };
@@ -862,7 +865,9 @@
     </script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(() => {});
+            navigator.serviceWorker.register('sw.js?_=' + Date.now()).then(reg => {
+                if (reg.active) reg.update();
+            }).catch(() => {});
         }
     </script>
 </body>
