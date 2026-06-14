@@ -1,6 +1,5 @@
-const CACHE = 'eng-hub-v1';
+const CACHE = 'eng-hub-v3';
 const ASSETS = [
-  'index.html',
   'manifest.json',
   'icon-192.png',
   'icon-512.png'
@@ -22,11 +21,23 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const { request } = e;
   if (request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(request).then(cached => cached || fetch(request).then(res => {
-      const clone = res.clone();
-      caches.open(CACHE).then(c => c.put(request, clone));
-      return res;
-    }))
-  );
+  const url = new URL(request.url);
+  if (url.origin !== location.origin) return;
+  if (url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname.endsWith('/')) {
+    e.respondWith(
+      fetch(request).then(res => {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(request, clone));
+        return res;
+      }).catch(() => caches.match(request))
+    );
+  } else {
+    e.respondWith(
+      caches.match(request).then(cached => cached || fetch(request).then(res => {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(request, clone));
+        return res;
+      }))
+    );
+  }
 });
