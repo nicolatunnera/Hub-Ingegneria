@@ -39,6 +39,7 @@
         .card-collapsible.collapsed .card-body { max-height: 0 !important; opacity: 0; padding-top: 0 !important; padding-bottom: 0 !important; margin-top: 0 !important; }
         @keyframes clockPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.3); } 50% { box-shadow: 0 0 0 6px rgba(37,99,235,0); } }
         #hubInfoTimeDisplay { animation: clockPulse 2s infinite; }
+        .folder-drop-active { outline: 2px dashed currentColor; outline-offset: -2px; opacity: 0.8; }
         @media (max-width: 640px) {
             .p-5 { padding: 0.75rem !important; }
             .px-4 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
@@ -288,7 +289,12 @@
                         <span class="card-icon text-emerald-500 text-sm font-bold">➕</span>
                     </div>
                     <div class="card-body space-y-3 mt-3">
-                        <select id="excelFolder" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none"></select>
+                        <select id="excelFolder" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none" onchange="toggleNewFolderForm(this,'excelNewFolderForm')"></select>
+                        <div id="excelNewFolderForm" class="hidden flex gap-2 items-center">
+                            <input type="text" id="excelNewFolderName" placeholder="Nome cartella..." class="flex-1 bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100">
+                            <input type="color" id="excelNewFolderColor" value="#3b82f6" class="w-8 h-8 rounded cursor-pointer border border-gray-300 dark:border-slate-700 p-0.5">
+                            <button onclick="quickCreateFolder('excelFolder','excelNewFolderName','excelNewFolderColor')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs cursor-pointer">+</button>
+                        </div>
                         <select id="excelBranch" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
                             <option value="Meccanica">⚙️ Meccanica</option>
                             <option value="Termodinamica">🔥 Termodinamica</option>
@@ -312,7 +318,12 @@
                         <span class="card-icon text-blue-500 text-sm font-bold">➕</span>
                     </div>
                     <div class="card-body space-y-3 mt-3">
-                        <select id="docFolder" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none"></select>
+                        <select id="docFolder" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none" onchange="toggleNewFolderForm(this,'docNewFolderForm')"></select>
+                        <div id="docNewFolderForm" class="hidden flex gap-2 items-center">
+                            <input type="text" id="docNewFolderName" placeholder="Nome cartella..." class="flex-1 bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100">
+                            <input type="color" id="docNewFolderColor" value="#3b82f6" class="w-8 h-8 rounded cursor-pointer border border-gray-300 dark:border-slate-700 p-0.5">
+                            <button onclick="quickCreateFolder('docFolder','docNewFolderName','docNewFolderColor')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs cursor-pointer">+</button>
+                        </div>
                         <input type="text" id="textTitle" data-i18n="docPlaceholder" placeholder="es. Specifica tecnica carter" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm focus:outline-none">
                         <div id="dropzoneDoc" class="border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-blue-500 bg-gray-50/50 dark:bg-slate-800/50 rounded-lg p-4 text-center cursor-pointer mb-2">
                             <input type="file" id="docFile" accept=".txt, .pdf, .docx" class="hidden">
@@ -503,7 +514,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // IMPOSTAZIONE TOKEN TELEGRAM
         const TELEGRAM_BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
@@ -682,26 +693,27 @@
         };
 
         // AZIONI CARICAMENTO FILE (CON LOGICA STORICO CORRETTA)
-        async function resolveFolder(selectId) {
-            const el = document.getElementById(selectId);
-            const val = el?.value;
-            if (val && val !== '__new__') return val;
-            if (val === '__new__') {
-                const name = prompt("Nome nuova cartella:");
-                if (!name) return '';
-                const color = prompt("Colore (esadecimale, es. #3b82f6):", "#3b82f6");
-                if (!color) return '';
-                const ref = await addDoc(collection(db, "archiveFolders"), { name, color, createdAt: serverTimestamp() });
-                return ref.id;
-            }
-            return '';
-        }
+        window.toggleNewFolderForm = (select, formId) => {
+            const form = document.getElementById(formId);
+            if (form) form.classList.toggle('hidden', select.value !== '__new__');
+        };
+        window.quickCreateFolder = async (selectId, nameId, colorId) => {
+            const name = document.getElementById(nameId).value.trim();
+            const color = document.getElementById(colorId).value;
+            if (!name) return;
+            const ref = await addDoc(collection(db, "archiveFolders"), { name, color, createdAt: serverTimestamp() });
+            document.getElementById(nameId).value = '';
+            const sel = document.getElementById(selectId);
+            sel.value = ref.id;
+            document.getElementById(colorId === 'excelNewFolderColor' ? 'excelNewFolderForm' : 'docNewFolderForm')?.classList.add('hidden');
+        };
         document.getElementById('btnUploadExcel').onclick = async () => {
             const branch = document.getElementById('excelBranch').value;
             const note = document.getElementById('excelNote').value.trim();
             if(note) {
-                const folderId = await resolveFolder('excelFolder');
-                await addDoc(collection(db, "excelHub"), { name: note, branch: branch, folderId, uploadedAt: serverTimestamp() });
+                const sel = document.getElementById('excelFolder');
+                const folderId = sel.value === '__new__' ? '' : sel.value;
+                await addDoc(collection(db, "excelHub"), { name: note, branch: branch, folderId: folderId || '', uploadedAt: serverTimestamp() });
                 await addDoc(collection(db, "historyHub"), { name: note, operation: `Caricato Excel (${branch})`, timestamp: serverTimestamp() });
                 document.getElementById('excelNote').value = ""; document.getElementById('textDropExcel').textContent = "Trascina qui il file Excel o clicca";
                 await sendTelegramBroadcast(`⚙️ *Nuovo File Excel:* ${escapeMarkdown(note)}\nRamo: ${escapeMarkdown(branch)}`);
@@ -711,8 +723,9 @@
             const title = document.getElementById('textTitle').value.trim();
             const bodyContent = document.getElementById('textContentBody').value.trim() || "Nessun testo estratto inserito.";
             if(title) {
-                const folderId = await resolveFolder('docFolder');
-                await addDoc(collection(db, "textHub"), { title: title, fileName: title + ".txt", fileType: "TXT", extractedText: bodyContent, folderId, uploadedAt: serverTimestamp() });
+                const sel = document.getElementById('docFolder');
+                const folderId = sel.value === '__new__' ? '' : sel.value;
+                await addDoc(collection(db, "textHub"), { title: title, fileName: title + ".txt", fileType: "TXT", extractedText: bodyContent, folderId: folderId || '', uploadedAt: serverTimestamp() });
                 await addDoc(collection(db, "historyHub"), { name: title, operation: "Caricato Documento / Report", timestamp: serverTimestamp() });
                 document.getElementById('textTitle').value = ""; document.getElementById('textContentBody').value = ""; document.getElementById('textDropDoc').textContent = "Trascina qui il documento o clicca";
                 await sendTelegramBroadcast(`📝 *Nuovo Documento:* ${escapeMarkdown(title)}\nAnalizzabile dal Co-Pilot.`);
@@ -816,6 +829,16 @@
             if(e.target.classList.contains('archive-checkbox')) updateBulkActions();
         });
         function getFolder(id) { return allFolders.find(f => f.id === id); }
+        let folderCollapsed = JSON.parse(localStorage.getItem('folderCollapsed') || '{}');
+        function toggleFolderCollapse(fid) {
+            folderCollapsed[fid] = !folderCollapsed[fid];
+            localStorage.setItem('folderCollapsed', JSON.stringify(folderCollapsed));
+            combineAndRenderArchive();
+        }
+        function moveFileToFolder(fileId, isExcel, newFolderId) {
+            const col = isExcel ? "excelHub" : "textHub";
+            updateDoc(doc(db, col, fileId), { folderId: newFolderId || '' });
+        }
         function combineAndRenderArchive() {
             const body = document.getElementById('archiveTableBody'); if(!body) return; body.innerHTML = "";
             const filterFolder = document.getElementById('folderFilter')?.value || '';
@@ -836,14 +859,27 @@
                 const folder = fid === '__none__' ? null : getFolder(fid);
                 const color = folder?.color || '#6b7280';
                 const fName = folder?.name || 'Senza cartella';
+                const collapsed = folderCollapsed[fid];
+                const icon = collapsed ? '▶' : '▼';
                 const header = document.createElement('tr');
-                header.className = "text-xs font-bold uppercase tracking-wider";
+                header.className = "text-xs font-bold uppercase tracking-wider cursor-pointer select-none";
                 header.style.background = color + '18';
                 header.style.borderLeft = '3px solid ' + color;
-                header.innerHTML = `<td colspan="5" class="p-2 pl-3" style="color:${color}">📁 ${escapeHtml(fName)} (${grouped[fid].length})</td>`;
+                header.ondragover = (e) => { e.preventDefault(); header.classList.add('folder-drop-active'); };
+                header.ondragleave = () => header.classList.remove('folder-drop-active');
+                header.ondrop = (e) => {
+                    e.preventDefault(); header.classList.remove('folder-drop-active');
+                    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                    if (data && data.fileId) moveFileToFolder(data.fileId, data.isExcel, fid === '__none__' ? '' : fid);
+                };
+                header.onclick = () => toggleFolderCollapse(fid);
+                header.innerHTML = `<td colspan="5" class="p-2 pl-3" style="color:${color}"><span class="mr-1 text-[10px]">${icon}</span>📁 ${escapeHtml(fName)} <span class="text-[10px] opacity-60">(${grouped[fid].length})</span></td>`;
                 body.appendChild(header);
-                grouped[fid].forEach(f => {
-                    const tr = document.createElement('tr'); tr.className = "text-xs text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-800 hover:bg-slate-50/50";
+                if (!collapsed) grouped[fid].forEach(f => {
+                    const tr = document.createElement('tr');
+                    tr.className = "text-xs text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-800 hover:bg-slate-50/50";
+                    tr.draggable = true;
+                    tr.ondragstart = (e) => { e.dataTransfer.setData('text/plain', JSON.stringify({fileId: f.id, isExcel: f.isExcel})); e.dataTransfer.effectAllowed = 'move'; };
                     if(f.isExcel) {
                         const name = escapeHtml(f.name || "File Excel");
                         tr.innerHTML = `<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="${escapeHtml(f.id)}" data-excel="true"></td><td class="p-3 font-medium">${name}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td><td class="p-3 text-gray-500 italic">${escapeHtml(f.branch || "")}</td><td class="p-3 text-center flex items-center justify-center gap-1"><button data-id="${escapeHtml(f.id)}" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">📥</button><button data-id="${escapeHtml(f.id)}" data-excel="true" data-name="${escapeHtml(f.name || "File Excel")}" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">🗑️</button></td>`;
