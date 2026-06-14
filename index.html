@@ -556,6 +556,38 @@
             } catch (e) { console.error("Errore notifica Telegram:", e); }
         }
 
+        // RISPONDITORE AUTOMATICO BOT TELEGRAM (CHAT ID SU /start)
+        let botUpdateOffset = parseInt(localStorage.getItem('tgOffset') || '0');
+        async function processTelegramUpdates() {
+            if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN.startsWith("IL_TUO")) return;
+            try {
+                const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=${botUpdateOffset}&timeout=5`);
+                const data = await res.json();
+                if (!data.ok || !data.result.length) return;
+                for (const update of data.result) {
+                    botUpdateOffset = update.update_id + 1;
+                    const msg = update.message;
+                    if (!msg || !msg.text) continue;
+                    const chatId = msg.chat.id;
+                    const txt = msg.text.trim();
+                    if (txt === '/start') {
+                        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                            method: "POST", headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                chat_id: chatId,
+                                text: `✅ Benvenuto! Il tuo Chat ID è: \`${chatId}\`\n\nIncollalo nel campo "Chat ID" sul sito Engineering Cloud Hub e clicca *Attiva* per ricevere notifiche.`,
+                                parse_mode: "Markdown"
+                            })
+                        });
+                    }
+                }
+                localStorage.setItem('tgOffset', botUpdateOffset);
+            } catch (e) { /* polling silenzioso */ }
+        }
+        // Polling iniziale e periodico
+        setTimeout(processTelegramUpdates, 2000);
+        setInterval(processTelegramUpdates, 30000);
+
         // AZIONI ISCRIZIONI TELEGRAM (SEPARATE DAI CONTATORI CLOUD)
         document.getElementById('btnSubscribeTelegram').onclick = async () => {
             const chatId = document.getElementById('telChatIdInput').value.trim();
