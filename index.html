@@ -359,9 +359,11 @@
                         </h2>
                         <div class="flex items-center gap-1.5 flex-wrap justify-end">
                             <button onclick="toggleFolderManager()" class="bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/40 dark:hover:bg-indigo-800/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold px-2 py-1.5 rounded-lg cursor-pointer transition-colors" title="Gestisci cartelle">📂</button>
-                            <select id="folderFilter" class="bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-[10px] rounded-lg px-2 py-1.5 focus:outline-none text-gray-700 dark:text-gray-200 max-w-[120px]" onchange="combineAndRenderArchive()"><option value="">📁 Tutte</option></select>
-                            <input type="text" id="searchCloud" data-i18n="archiveSearch" placeholder="Cerca..." class="bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-xs rounded-lg px-2 py-1.5 focus:outline-none text-gray-800 dark:text-gray-100 w-24 sm:w-28">
-                            <div id="bulkActions" class="flex gap-1 hidden">
+                             <div class="flex items-center gap-1.5">
+                                 <select id="folderFilter" class="bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-[10px] rounded-lg px-2 py-1.5 focus:outline-none text-gray-700 dark:text-gray-200 max-w-[120px]" onchange="combineAndRenderArchive()" onclick="event.stopPropagation()"><option value="">📁 Tutte</option></select>
+                                 <input type="text" id="searchCloud" data-i18n="archiveSearch" placeholder="Cerca..." class="bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-xs rounded-lg px-2 py-1.5 focus:outline-none text-gray-800 dark:text-gray-100 w-24 sm:w-28" onclick="event.stopPropagation()">
+                             </div>
+                             <div id="bulkActions" class="flex gap-1 hidden" onclick="event.stopPropagation()">
                                 <button id="downloadSelectedArchive" class="bg-blue-600 hover:bg-blue-700 text-white w-7 h-7 rounded-lg text-xs cursor-pointer transition-colors flex items-center justify-center" title="Scarica selezionati">📥</button>
                                 <button id="deleteSelectedArchive" class="bg-red-600 hover:bg-red-700 text-white w-7 h-7 rounded-lg text-xs cursor-pointer transition-colors flex items-center justify-center" title="Elimina selezionati">🗑️</button>
                             </div>
