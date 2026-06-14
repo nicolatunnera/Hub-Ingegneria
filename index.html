@@ -870,7 +870,7 @@
                 const haystack = f.isExcel ? `${f.name || ""} ${f.branch || ""}` : `${f.title || ""} ${f.fileType || ""} ${f.extractedText ? f.extractedText.substring(0, 200) : ""}`;
                 return haystack.toLowerCase().includes(window.searchQuery);
             });
-            if (filterFolder) items = items.filter(f => f.folderId === filterFolder);
+
             const grouped = {};
             items.forEach(f => { const k = f.folderId || '__none__'; if (!grouped[k]) grouped[k] = []; grouped[k].push(f); });
             const folderOrder = Object.keys(grouped).sort((a, b) => {
@@ -882,7 +882,7 @@
                 const folder = fid === '__none__' ? null : getFolder(fid);
                 const color = folder?.color || '#6b7280';
                 const fName = folder?.name || 'Senza cartella';
-                const collapsed = folderCollapsed[fid];
+                const collapsed = filterFolder ? fid !== filterFolder : !!folderCollapsed[fid];
                 const icon = collapsed ? '▶' : '▼';
                 const header = document.createElement('tr');
                 header.className = "text-xs font-bold uppercase tracking-wider cursor-pointer select-none";
