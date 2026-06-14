@@ -38,9 +38,9 @@
         .card-collapsible .card-body { transition: max-height 0.3s ease, opacity 0.2s ease; overflow: hidden; }
         .card-collapsible.collapsed .card-body { max-height: 0 !important; opacity: 0; padding-top: 0 !important; padding-bottom: 0 !important; margin-top: 0 !important; }
         @keyframes clockPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.3); } 50% { box-shadow: 0 0 0 6px rgba(37,99,235,0); } }
-        .folder-icon { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 82px; height: 82px; border-radius: 14px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; gap: 1px; background: rgba(255,255,255,0.03); }
-        .folder-icon:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.18); background: rgba(255,255,255,0.07); }
-        .folder-icon.active { border-color: currentColor; background: rgba(255,255,255,0.08); box-shadow: 0 0 0 2px rgba(255,255,255,0.4), 0 4px 14px rgba(0,0,0,0.25); }
+        .folder-icon { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 76px; height: 78px; border-radius: 12px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; background: rgba(255,255,255,0.03); }
+        .folder-icon:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.2); background: rgba(255,255,255,0.08); }
+        .folder-icon.active { border-color: currentColor; background: rgba(255,255,255,0.09); box-shadow: 0 0 0 2px rgba(255,255,255,0.4), 0 6px 18px rgba(0,0,0,0.25); }
         .folder-icon .fi-emoji { font-size: 28px; line-height: 1; }
         .folder-icon .fi-name { font-size: 9px; font-weight: 700; text-align: center; line-height: 1.15; word-break: break-word; max-width: 72px; }
         .folder-icon .fi-count { font-size: 8px; opacity: 0.6; font-weight: 600; }
@@ -378,7 +378,7 @@
                         </div>
                     </div>
                     <div class="card-body mt-3">
-                    <div id="folderIconsBar" class="flex flex-wrap gap-2 mb-3"></div>
+                    <div id="folderIconsBar" class="flex flex-wrap gap-3 mb-3"></div>
                     <div class="overflow-x-auto archivio-scroll-container">
                         <table class="w-full text-left border-collapse text-sm">
                             <thead>
@@ -878,7 +878,7 @@
             allFolders.forEach(f => {
                 const cnt = allFiles.filter(x => x.folderId === f.id).length;
                 const active = filterFolder === f.id;
-                if (!cnt && !active) return;
+
                 html += '<div class="folder-icon' + (active ? ' active' : '') + '" style="color:' + f.color + '" data-folder-id="' + f.id + '" onclick="selectFolder(this,\'' + f.id + '\')"><span class="fi-emoji">📁</span><span class="fi-name">' + escapeHtml(f.name) + '</span><span class="fi-count">' + cnt + '</span></div>';
             });
             bar.innerHTML = html;
