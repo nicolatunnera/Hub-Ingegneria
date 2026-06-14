@@ -1,0 +1,3 @@
+sarebbe carino avere le finestre chiuse e che facciano vedere il contenuto solo al passaggio del mouse o al clic. bisogna probabilmente allegerire la pagina principale e creare collegamenti ad altre pagine separando cosi il contenuto in varie finestre che rendano tutto più facile da comprendere e non stanchi chi apre il sito.
+
+la sezione del calcolatore peso va posizionata da un'altra parte e resa piu bella esteticamente.
