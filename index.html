@@ -519,8 +519,10 @@
         }
         function toggleCard(el) {
             const card = el.closest('.card-collapsible');
+            const wasCollapsed = card.classList.contains('collapsed');
             card.classList.toggle('collapsed');
-            el.querySelector('.card-icon').textContent = card.classList.contains('collapsed') ? '➕' : '➖';
+            el.querySelector('.card-icon').textContent = wasCollapsed ? '➖' : '➕';
+            if (wasCollapsed && card.querySelector('#folderIconsBar')) combineAndRenderArchive();
         }
     </script>
 
