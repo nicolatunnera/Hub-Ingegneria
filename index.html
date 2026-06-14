@@ -38,6 +38,11 @@
         .card-collapsible .card-body { transition: max-height 0.3s ease, opacity 0.2s ease; overflow: hidden; }
         .card-collapsible.collapsed .card-body { max-height: 0 !important; opacity: 0; padding-top: 0 !important; padding-bottom: 0 !important; margin-top: 0 !important; }
         @keyframes clockPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.3); } 50% { box-shadow: 0 0 0 6px rgba(37,99,235,0); } }
+        .folder-icon { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 70px; height: 70px; border-radius: 12px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; gap: 2px; }
+        .folder-icon:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .folder-icon.active { border-color: currentColor; box-shadow: 0 0 0 2px rgba(255,255,255,0.5), 0 4px 12px rgba(0,0,0,0.2); }
+        .folder-icon .fi-emoji { font-size: 24px; line-height: 1; }
+        .folder-icon .fi-name { font-size: 9px; font-weight: 700; text-align: center; line-height: 1.1; word-break: break-all; max-width: 64px; }
         #hubInfoTimeDisplay { animation: clockPulse 2s infinite; }
         .folder-drop-active { outline: 2px dashed currentColor; outline-offset: -2px; opacity: 0.8; }
         @media (max-width: 640px) {
@@ -371,6 +376,7 @@
                         </div>
                     </div>
                     <div class="card-body mt-3">
+                    <div id="folderIconsBar" class="flex flex-wrap gap-2 mb-3"></div>
                     <div class="overflow-x-auto archivio-scroll-container">
                         <table class="w-full text-left border-collapse text-sm">
                             <thead>
@@ -791,6 +797,7 @@
                 filter.innerHTML = '<option value="">📁 Tutte</option>' + allFolders.map(f => `<option value="${f.id}" style="color:${f.color}">📁 ${f.name}</option>`).join('');
                 filter.value = v;
             }
+            renderFolderIcons();
         }
         function renderFolderList() {
             const el = document.getElementById('folderList'); if(!el) return;
@@ -864,14 +871,27 @@
             const col = isExcel ? "excelHub" : "textHub";
             updateDoc(doc(db, col, fileId), { folderId: newFolderId || '' });
         }
+        function renderFolderIcons() {
+            const bar = document.getElementById('folderIconsBar'); if(!bar) return;
+            const filterFolder = document.getElementById('folderFilter')?.value || '';
+            let html = '<div class="folder-icon' + (!filterFolder ? ' active' : '') + '" style="color:#2563eb" onclick="document.getElementById(\'folderFilter\').value=\'\';combineAndRenderArchive()"><span class="fi-emoji">📁</span><span class="fi-name">Tutte</span></div>';
+            allFolders.forEach(f => {
+                const active = filterFolder === f.id;
+                html += '<div class="folder-icon' + (active ? ' active' : '') + '" style="color:' + f.color + '" onclick="document.getElementById(\'folderFilter\').value=\'' + f.id + '\';combineAndRenderArchive()"><span class="fi-emoji">📁</span><span class="fi-name">' + escapeHtml(f.name) + '</span></div>';
+            });
+            bar.innerHTML = html;
+        }
         function combineAndRenderArchive() {
             const body = document.getElementById('archiveTableBody'); if(!body) return; body.innerHTML = "";
+            document.getElementById('selectAllArchive') && (document.getElementById('selectAllArchive').checked = false);
+            renderFolderIcons();
             const filterFolder = document.getElementById('folderFilter')?.value || '';
             let items = [...allExcelFiles, ...allTextFiles].filter(f => {
                 if (!window.searchQuery) return true;
                 const haystack = f.isExcel ? `${f.name || ""} ${f.branch || ""}` : `${f.title || ""} ${f.fileType || ""} ${f.extractedText ? f.extractedText.substring(0, 200) : ""}`;
                 return haystack.toLowerCase().includes(window.searchQuery);
             });
+            if (filterFolder) items = items.filter(f => f.folderId === filterFolder);
 
             const grouped = {};
             items.forEach(f => { const k = f.folderId || '__none__'; if (!grouped[k]) grouped[k] = []; grouped[k].push(f); });
@@ -884,7 +904,7 @@
                 const folder = fid === '__none__' ? null : getFolder(fid);
                 const color = folder?.color || '#6b7280';
                 const fName = folder?.name || 'Senza cartella';
-                const collapsed = filterFolder ? fid !== filterFolder : !!folderCollapsed[fid];
+                const collapsed = !!folderCollapsed[fid];
                 const icon = collapsed ? '▶' : '▼';
                 const header = document.createElement('tr');
                 header.className = "text-xs font-bold uppercase tracking-wider cursor-pointer select-none";
