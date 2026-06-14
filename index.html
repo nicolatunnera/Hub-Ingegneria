@@ -38,11 +38,13 @@
         .card-collapsible .card-body { transition: max-height 0.3s ease, opacity 0.2s ease; overflow: hidden; }
         .card-collapsible.collapsed .card-body { max-height: 0 !important; opacity: 0; padding-top: 0 !important; padding-bottom: 0 !important; margin-top: 0 !important; }
         @keyframes clockPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.3); } 50% { box-shadow: 0 0 0 6px rgba(37,99,235,0); } }
-        .folder-icon { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 70px; height: 70px; border-radius: 12px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; gap: 2px; }
-        .folder-icon:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .folder-icon.active { border-color: currentColor; box-shadow: 0 0 0 2px rgba(255,255,255,0.5), 0 4px 12px rgba(0,0,0,0.2); }
-        .folder-icon .fi-emoji { font-size: 24px; line-height: 1; }
-        .folder-icon .fi-name { font-size: 9px; font-weight: 700; text-align: center; line-height: 1.1; word-break: break-all; max-width: 64px; }
+        .folder-icon { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 82px; height: 82px; border-radius: 14px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; gap: 1px; background: rgba(255,255,255,0.03); }
+        .folder-icon:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.18); background: rgba(255,255,255,0.07); }
+        .folder-icon.active { border-color: currentColor; background: rgba(255,255,255,0.08); box-shadow: 0 0 0 2px rgba(255,255,255,0.4), 0 4px 14px rgba(0,0,0,0.25); }
+        .folder-icon .fi-emoji { font-size: 28px; line-height: 1; }
+        .folder-icon .fi-name { font-size: 9px; font-weight: 700; text-align: center; line-height: 1.15; word-break: break-word; max-width: 72px; }
+        .folder-icon .fi-count { font-size: 8px; opacity: 0.6; font-weight: 600; }
+        .folder-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; flex-shrink: 0; }
         #hubInfoTimeDisplay { animation: clockPulse 2s infinite; }
         .folder-drop-active { outline: 2px dashed currentColor; outline-offset: -2px; opacity: 0.8; }
         @media (max-width: 640px) {
@@ -384,6 +386,7 @@
                                     <th class="p-3 text-center w-8"><input type="checkbox" id="selectAllArchive" class="cursor-pointer"></th>
                                     <th class="p-3" data-i18n="thName">Nome Elemento</th>
                                     <th class="p-3" data-i18n="thType">Formato / Tipo</th>
+                                    <th class="p-3">Cartella</th>
                                     <th class="p-3">Note / Anteprima</th>
                                     <th class="p-3 text-center" data-i18n="thActions">Azioni</th>
                                 </tr>
@@ -861,12 +864,7 @@
             if(e.target.classList.contains('archive-checkbox')) updateBulkActions();
         });
         function getFolder(id) { return allFolders.find(f => f.id === id); }
-        let folderCollapsed = JSON.parse(localStorage.getItem('folderCollapsed') || '{}');
-        function toggleFolderCollapse(fid) {
-            folderCollapsed[fid] = !folderCollapsed[fid];
-            localStorage.setItem('folderCollapsed', JSON.stringify(folderCollapsed));
-            combineAndRenderArchive();
-        }
+
         function moveFileToFolder(fileId, isExcel, newFolderId) {
             const col = isExcel ? "excelHub" : "textHub";
             updateDoc(doc(db, col, fileId), { folderId: newFolderId || '' });
@@ -874,12 +872,20 @@
         function renderFolderIcons() {
             const bar = document.getElementById('folderIconsBar'); if(!bar) return;
             const filterFolder = document.getElementById('folderFilter')?.value || '';
-            let html = '<div class="folder-icon' + (!filterFolder ? ' active' : '') + '" style="color:#2563eb" onclick="document.getElementById(\'folderFilter\').value=\'\';combineAndRenderArchive()"><span class="fi-emoji">📁</span><span class="fi-name">Tutte</span></div>';
+            const allFiles = [...allExcelFiles, ...allTextFiles];
+            const totalCount = allFiles.length;
+            let html = '<div class="folder-icon' + (!filterFolder ? ' active' : '') + '" style="color:#2563eb" data-folder-id="" onclick="selectFolder(this,\'\')"><span class="fi-emoji">📁</span><span class="fi-name">Tutte</span><span class="fi-count">' + totalCount + '</span></div>';
             allFolders.forEach(f => {
+                const cnt = allFiles.filter(x => x.folderId === f.id).length;
                 const active = filterFolder === f.id;
-                html += '<div class="folder-icon' + (active ? ' active' : '') + '" style="color:' + f.color + '" onclick="document.getElementById(\'folderFilter\').value=\'' + f.id + '\';combineAndRenderArchive()"><span class="fi-emoji">📁</span><span class="fi-name">' + escapeHtml(f.name) + '</span></div>';
+                if (!cnt && !active) return;
+                html += '<div class="folder-icon' + (active ? ' active' : '') + '" style="color:' + f.color + '" data-folder-id="' + f.id + '" onclick="selectFolder(this,\'' + f.id + '\')"><span class="fi-emoji">📁</span><span class="fi-name">' + escapeHtml(f.name) + '</span><span class="fi-count">' + cnt + '</span></div>';
             });
             bar.innerHTML = html;
+        }
+        function selectFolder(el, fid) {
+            document.getElementById('folderFilter').value = fid;
+            combineAndRenderArchive();
         }
         function combineAndRenderArchive() {
             const body = document.getElementById('archiveTableBody'); if(!body) return; body.innerHTML = "";
@@ -892,50 +898,30 @@
                 return haystack.toLowerCase().includes(window.searchQuery);
             });
             if (filterFolder) items = items.filter(f => f.folderId === filterFolder);
-
-            const grouped = {};
-            items.forEach(f => { const k = f.folderId || '__none__'; if (!grouped[k]) grouped[k] = []; grouped[k].push(f); });
-            const folderOrder = Object.keys(grouped).sort((a, b) => {
-                if (a === '__none__') return 1; if (b === '__none__') return -1;
-                const fa = getFolder(a), fb = getFolder(b);
-                return (fa?.name || '').localeCompare(fb?.name || '');
-            });
-            folderOrder.forEach(fid => {
-                const folder = fid === '__none__' ? null : getFolder(fid);
+            if (!items.length) {
+                body.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-xs text-gray-400 italic">Nessun file trovato</td></tr>';
+                updateBulkActions(); return;
+            }
+            items.forEach(f => {
+                const folder = f.folderId ? getFolder(f.folderId) : null;
                 const color = folder?.color || '#6b7280';
                 const fName = folder?.name || 'Senza cartella';
-                const collapsed = !!folderCollapsed[fid];
-                const icon = collapsed ? '▶' : '▼';
-                const header = document.createElement('tr');
-                header.className = "text-xs font-bold uppercase tracking-wider cursor-pointer select-none";
-                header.style.background = color + '18';
-                header.style.borderLeft = '3px solid ' + color;
-                header.ondragover = (e) => { e.preventDefault(); header.classList.add('folder-drop-active'); };
-                header.ondragleave = () => header.classList.remove('folder-drop-active');
-                header.ondrop = (e) => {
-                    e.preventDefault(); header.classList.remove('folder-drop-active');
-                    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                    if (data && data.fileId) moveFileToFolder(data.fileId, data.isExcel, fid === '__none__' ? '' : fid);
-                };
-                header.onclick = () => toggleFolderCollapse(fid);
-                header.innerHTML = `<td colspan="5" class="p-2 pl-3" style="color:${color}"><span class="mr-1 text-[10px]">${icon}</span>📁 ${escapeHtml(fName)} <span class="text-[10px] opacity-60">(${grouped[fid].length})</span></td>`;
-                body.appendChild(header);
-                if (!collapsed) grouped[fid].forEach(f => {
-                    const tr = document.createElement('tr');
-                    tr.className = "text-xs text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-800 hover:bg-slate-50/50";
-                    tr.draggable = true;
-                    tr.ondragstart = (e) => { e.dataTransfer.setData('text/plain', JSON.stringify({fileId: f.id, isExcel: f.isExcel})); e.dataTransfer.effectAllowed = 'move'; };
-                    if(f.isExcel) {
-                        const name = escapeHtml(f.name || "File Excel");
-                        tr.innerHTML = `<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="${escapeHtml(f.id)}" data-excel="true"></td><td class="p-3 font-medium">${name}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td><td class="p-3 text-gray-500 italic">${escapeHtml(f.branch || "")}</td><td class="p-3 text-center flex items-center justify-center gap-1"><button data-id="${escapeHtml(f.id)}" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">📥</button><button data-id="${escapeHtml(f.id)}" data-excel="true" data-name="${escapeHtml(f.name || "File Excel")}" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">🗑️</button></td>`;
-                    } else {
-                        const title = escapeHtml(f.title || "Documento");
-                        const fileType = escapeHtml(f.fileType || "");
-                        const preview = escapeHtml(f.extractedText ? f.extractedText.substring(0, 40) + "..." : (f.fileName || ""));
-                        tr.innerHTML = `<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="${escapeHtml(f.id)}" data-excel="false"></td><td class="p-3 font-medium">${title}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${fileType}</span></td><td class="p-3 text-gray-400 font-mono text-[11px]">${preview}</td><td class="p-3 text-center flex items-center justify-center gap-1"><button data-id="${escapeHtml(f.id)}" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">📥</button><button data-id="${escapeHtml(f.id)}" data-excel="false" data-name="${escapeHtml(f.title || "Documento")}" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">🗑️</button></td>`;
-                    }
-                    body.appendChild(tr);
-                });
+                const tr = document.createElement('tr');
+                tr.className = "text-xs text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-800 hover:bg-slate-50/50";
+                tr.draggable = true;
+                tr.ondragstart = (e) => { e.dataTransfer.setData('text/plain', JSON.stringify({fileId: f.id, isExcel: f.isExcel})); e.dataTransfer.effectAllowed = 'move'; };
+                const folderCell = '<td class="p-3"><span class="folder-dot" style="background:' + color + '"></span>' + escapeHtml(fName) + '</td>';
+                const actionsCell = '<td class="p-3 text-center flex items-center justify-center gap-1"><button data-id="' + escapeHtml(f.id) + '" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">📥</button><button data-id="' + escapeHtml(f.id) + '" data-excel="' + (f.isExcel ? 'true' : 'false') + '" data-name="' + escapeHtml(f.name || f.title || "File") + '" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">🗑️</button></td>';
+                if(f.isExcel) {
+                    const name = escapeHtml(f.name || "File Excel");
+                    tr.innerHTML = '<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="' + escapeHtml(f.id) + '" data-excel="true"></td><td class="p-3 font-medium">' + name + '</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td>' + folderCell + '<td class="p-3 text-gray-500 italic">' + escapeHtml(f.branch || "") + '</td>' + actionsCell;
+                } else {
+                    const title = escapeHtml(f.title || "Documento");
+                    const fileType = escapeHtml(f.fileType || "");
+                    const preview = escapeHtml(f.extractedText ? f.extractedText.substring(0, 40) + "..." : (f.fileName || ""));
+                    tr.innerHTML = '<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="' + escapeHtml(f.id) + '" data-excel="false"></td><td class="p-3 font-medium">' + title + '</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">' + fileType + '</span></td>' + folderCell + '<td class="p-3 text-gray-400 font-mono text-[11px]">' + preview + '</td>' + actionsCell;
+                }
+                body.appendChild(tr);
             });
             body.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -955,6 +941,14 @@
             const el = document.getElementById('bulkActions');
             if(el) el.classList.toggle('hidden', checked.length === 0);
         }
+        document.getElementById('folderIconsBar')?.addEventListener('dragover', (e) => { if (e.target.closest('.folder-icon')) e.preventDefault(); });
+        document.getElementById('folderIconsBar')?.addEventListener('drop', (e) => {
+            const icon = e.target.closest('.folder-icon'); if (!icon) return;
+            e.preventDefault();
+            const raw = e.dataTransfer.getData('text/plain'); if (!raw) return;
+            const data = JSON.parse(raw);
+            if (data && data.fileId) moveFileToFolder(data.fileId, data.isExcel, icon.dataset.folderId || '');
+        });
         
         window.downloadDocument = (id) => {
             const file = [...allTextFiles, ...allExcelFiles].find(f => f.id === id);
