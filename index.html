@@ -175,7 +175,7 @@
                         <h3 class="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider" data-i18n="sidebarTelegram">Telegram</h3>
                     </div>
                     <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-2 leading-relaxed" data-i18n="sidebarTelegramDesc">Avvia il bot, ottieni il tuo Chat ID e incollalo qui sotto per attivare le notifiche.</p>
-                    <a href="https://t.me/IL_TUO_BOT_TELEGRAM" target="_blank" class="block text-center text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 rounded-lg mb-2.5 transition-colors shadow-xs">🤖 <span data-i18n="sidebarTelegramBtn">Apri Bot</span></a>
+                    <a href="https://t.me/HubEngineerBot" target="_blank" class="block text-center text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 rounded-lg mb-2.5 transition-colors shadow-xs">🤖 <span data-i18n="sidebarTelegramBtn">Apri Bot</span></a>
                     <div class="space-y-1.5">
                         <input type="text" id="telChatIdInput" placeholder="Chat ID (es. 1234567)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 dark:text-gray-100 transition-shadow">
                         <input type="text" id="telNameInput" placeholder="Tuo Nome / Ruolo" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 dark:text-gray-100 transition-shadow">
@@ -497,15 +497,19 @@
             if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN.startsWith("IL_TUO")) return;
             try {
                 const snap = await getDocs(collection(db, "subscribers"));
-                snap.forEach(async (uDoc) => {
+                const results = [];
+                snap.forEach(uDoc => {
                     if(uDoc.data().chatId) {
-                        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ chat_id: uDoc.data().chatId, text: text, parse_mode: "Markdown" })
-                        });
+                        results.push(
+                            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ chat_id: uDoc.data().chatId, text, parse_mode: "Markdown" })
+                            }).catch(e => console.error("Errore invio a", uDoc.data().chatId, e))
+                        );
                     }
                 });
+                await Promise.all(results);
             } catch (e) { console.error("Errore notifica Telegram:", e); }
         }
 
@@ -521,7 +525,9 @@
             const chatId = document.getElementById('telChatIdInput').value.trim();
             if(!chatId) return alert("Inserisci il Chat ID per disattivare.");
             const snap = await getDocs(collection(db, "subscribers"));
-            snap.forEach(async (uDoc) => { if(uDoc.data().chatId === chatId) await deleteDoc(doc(db, "subscribers", uDoc.id)); });
+            const dels = [];
+            snap.forEach(uDoc => { if(uDoc.data().chatId === chatId) dels.push(deleteDoc(doc(db, "subscribers", uDoc.id))); });
+            await Promise.all(dels);
             document.getElementById('telChatIdInput').value = "";
         };
         onSnapshot(collection(db, "subscribers"), (snap) => {
