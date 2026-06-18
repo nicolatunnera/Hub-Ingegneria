@@ -608,40 +608,8 @@
             } catch (e) { console.error("Errore notifica Telegram:", e); }
         }
 
-        // RISPONDITORE AUTOMATICO BOT TELEGRAM (CHAT ID SU /start, senza offset per non perdere messaggi)
-        let tgReplied = JSON.parse(localStorage.getItem('tgReplied') || '{}');
-        async function processTelegramUpdates() {
-            if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN.startsWith("IL_TUO")) return;
-            try {
-                const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?timeout=5`);
-                const data = await res.json();
-                if (!data.ok || !data.result.length) return;
-                let changed = false;
-                for (const update of data.result) {
-                    if (tgReplied[update.update_id]) continue;
-                    const msg = update.message;
-                    if (!msg || !msg.text) continue;
-                    const chatId = msg.chat.id;
-                    const txt = msg.text.trim();
-                    if (txt === '/start') {
-                        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                            method: "POST", headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                chat_id: chatId,
-                                text: `✅ *Benvenuto!* Il tuo Chat ID è: \`${chatId}\`\n\n1️⃣ Copia questo numero\n2️⃣ Aprilo sul sito nella sezione Telegram\n3️⃣ Scegli un nome e clicca *Attiva*\n\nRiceverai notifiche per nuovi file, documenti, note e news.`,
-                                parse_mode: "Markdown"
-                            })
-                        });
-                    }
-                    tgReplied[update.update_id] = true;
-                    changed = true;
-                }
-                if (changed) localStorage.setItem('tgReplied', JSON.stringify(tgReplied));
-            } catch (e) { /* polling silenzioso */ }
-        }
-        // Polling iniziale e periodico (ogni 15s per maggiore reattività)
-        setTimeout(processTelegramUpdates, 1000);
-        setInterval(processTelegramUpdates, 15000);
+        // Il bot Telegram è gestito da un servizio dedicato su Render (Bot-hub-engineering)
+        // Il sito invia solo notifiche in uscita via sendTelegramBroadcast
 
         window.testTelegramNotification = async () => {
             const chatId = document.getElementById('telChatIdInput').value.trim();
