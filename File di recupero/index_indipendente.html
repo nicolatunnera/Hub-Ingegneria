@@ -428,8 +428,8 @@
                 <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
                     <div class="flex items-center space-x-2">
                         <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                            <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.4.0 Smart</span></span>
-                            <input type="password" id="apiKeyInput" placeholder="API key" value="" class="w-20 bg-slate-800 border border-slate-700 rounded text-[10px] px-1.5 py-0.5 text-slate-300 focus:outline-none placeholder-slate-600" onclick="event.stopPropagation()" oninput="localStorage.setItem('POLLINATIONS_KEY',this.value)">
+                        <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.4.0 Smart</span></span>
+                <span class="text-[8px] bg-slate-800 text-emerald-400 px-1.5 py-0.5 rounded-full">proxy</span>
                     </div>
                     <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
                 </div>
@@ -528,22 +528,16 @@
     </script>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDocs } from "./firebase-shim.js";
 
-        // IMPOSTAZIONE TOKEN TELEGRAM
-        const TELEGRAM_BOT_TOKEN = localStorage.getItem('TELEGRAM_BOT_TOKEN') || "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
+        const db = getFirestore();
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM",
-            authDomain: "hub-ingegneria.firebaseapp.com",
-            projectId: "hub-ingegneria",
-            storageBucket: "hub-ingegneria.firebasestorage.app",
-            messagingSenderId: "58933321877",
-            appId: "1:58933321877:web:1e3f4630edc9f192865077"
-        };
-
-        const db = getFirestore(initializeApp(firebaseConfig));
+        // Carica configurazione dal server (segretti non hardcoded)
+        let TELEGRAM_BOT_TOKEN = "";
+        fetch("/api/config").then(r => r.json()).then(cfg => {
+            TELEGRAM_BOT_TOKEN = cfg.telegramBotToken || "";
+            if (cfg.pollinationsKey) localStorage.setItem('POLLINATIONS_KEY', cfg.pollinationsKey);
+        }).catch(() => {});
 
         window.toggleSidebar = () => { document.getElementById('sidebar')?.classList.toggle('-translate-x-full'); };
         window.toggleNewsSidebar = () => { document.getElementById('newsModal')?.classList.toggle('hidden'); };
@@ -1051,15 +1045,6 @@
             }
         });
 
-        // ==========================================
-        // CO-PILOT AI - usa il proxy server (/api/chat) se disponibile,
-        // altrimenti chiama direttamente Pollinations con la key qui sotto.
-        // Non pubblicare la tua API key su GitHub!
-        // Vai su https://enter.pollinations.ai per generarne una.
-        // ==========================================
-            const POLLINATIONS_KEY = localStorage.getItem('POLLINATIONS_KEY') || "";
-            document.getElementById('apiKeyInput').value = POLLINATIONS_KEY;
-
         window.askAI = async () => {
             const inputEl = document.getElementById('aiInput'); const container = document.getElementById('chat-container');
             const sendBtn = document.getElementById('aiSendBtn'); const queryText = inputEl.value.trim();
@@ -1092,7 +1077,7 @@
 
             let replyText = "";
 
-            // Iniezione del contesto recuperato da Firestore per la logica RAG
+            // Iniezione del contesto recuperato per la logica RAG
             let contextText = "ARCHIVIO FILE DISPONIBILI (nome e ID per download):\n";
             allTextFiles.forEach(d => { contextText += `- ID:${d.id} | TITOLO: ${d.title} | CONTENUTO: ${(d.extractedText || "Vuoto").substring(0, 300)}\n`; });
             allExcelFiles.forEach(e => { contextText += `- ID:${e.id} | EXCEL: ${e.name} | RAMO: ${e.branch}\n`; });
@@ -1101,17 +1086,10 @@
 
             const systemInstruction = `Sei l'Ingegnere Co-Pilot dell'Engineering Cloud Hub V2.4.0. Rispondi in italiano chiaro e coinciso. Oltre a rispondere help desk sulle funzionalita del sito puoi anche offrire download dei file archiviati. Per farlo includi [DOWNLOAD:ID_FILE] nella risposta. Per formule matematiche complesse usa $...$ LaTeX, altrimenti testo semplice. Ecco le funzionalita e l'archivio:\n\n${siteFeatures}\n\n${contextText}`;
 
-            if (!POLLINATIONS_KEY) {
-                document.getElementById(loadingId)?.remove();
-                container.innerHTML += `<div class="bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-amber-400 max-w-[90%] text-xs">⚠️ API key mancante. Imposta la tua key da <a href="https://enter.pollinations.ai" target="_blank" class="underline">enter.pollinations.ai</a> oppure usa la versione standalone su Render.</div>`;
-                inputEl.disabled = false; sendBtn.disabled = false; inputEl.focus(); container.scrollTop = container.scrollHeight; return;
-            }
             try {
-                const headers = { "Content-Type": "application/json" };
-                headers["Authorization"] = "Bearer " + POLLINATIONS_KEY;
-                const response = await fetch("https://gen.pollinations.ai/v1/chat/completions", {
+                const response = await fetch("/api/chat", {
                     method: "POST",
-                    headers: headers,
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         messages: [
                             { role: "system", content: systemInstruction },
@@ -1124,8 +1102,8 @@
                     const json = await response.json();
                     replyText = json.choices?.[0]?.message?.content || "";
                 } else {
-                    const errText = await response.text().catch(() => "");
-                    replyText = "⚠️ Errore API (" + response.status + "): " + (errText || "Riprova tra pochi istanti.");
+                    const json = await response.json().catch(() => ({}));
+                    replyText = "⚠️ Errore AI: " + (json.error || json.message || "Riprova tra pochi istanti.");
                 }
             } catch (err) { replyText = "⚠️ Errore di rete: " + err.message; }
             
