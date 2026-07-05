@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="manifest" href="manifest.json">
-    <title>Engineering Cloud Hub - V2.4.0</title>
+    <title>Engineering Cloud Hub - V2.5.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
@@ -101,7 +101,7 @@
                 </div>
                 <div class="w-2/4 text-center cursor-pointer select-none" onclick="toggleHubInfo()">
                     <div class="text-sm font-bold tracking-wide">Engineering Cloud Hub</div>
-                    <div class="text-[9px] text-blue-200 font-mono">v2.4.0</div>
+                    <div class="text-[9px] text-blue-200 font-mono">v2.5.0</div>
                 </div>
                 <div class="flex items-center gap-2 w-1/4 justify-end">
                     <span id="statsBarTop" class="text-[10px] text-blue-200 font-mono flex items-center gap-2">
@@ -183,7 +183,7 @@
                     <img src="icon-192.png" class="w-20 h-20 mx-auto rounded-2xl shadow-lg ring-2 ring-blue-500/20" alt="">
                     <div>
                         <div class="text-lg font-bold text-gray-900 dark:text-white">Engineering Cloud Hub</div>
-                        <div class="text-xs text-blue-500 font-mono mt-1 tracking-wider">v2.4.0</div>
+                        <div class="text-xs text-blue-500 font-mono mt-1 tracking-wider">v2.5.0</div>
                     </div>
                     <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-3.5 shadow-md">
                         <div class="text-[10px] uppercase tracking-widest opacity-70 font-semibold mb-1">Data e Ora</div>
@@ -429,7 +429,7 @@
                 <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping shrink-0"></span>
-                        <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.4.0 Smart</span></span>
+                        <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.5.0</span></span>
                         <input type="password" id="aiApiKey" placeholder="API key" value="" class="w-20 bg-slate-800 border border-slate-700 rounded text-[10px] px-1.5 py-0.5 text-slate-300 focus:outline-none placeholder-slate-600" onclick="event.stopPropagation()" oninput="localStorage.setItem('POLLINATIONS_KEY',this.value)">
                     </div>
                     <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
@@ -437,7 +437,7 @@
                 <div id="chat-body" class="flex flex-col flex-grow">
                     <div id="chat-container" class="h-[260px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
                         <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">
-                            🤖 Sono l'Ingegnere Co-Pilot V2.4.0. Conosco l'intero archivio dei documenti e file Excel caricati nel sistema grazie alla tecnologia RAG automatica. Interrogami liberamente. Per funzionare ho bisogno di una chiave API configurata nelle impostazioni del sito.
+                            🤖 Co-Pilot v2.5.0 — chiedimi qualsiasi cosa sui file caricati.
                         </div>
                     </div>
                     <div class="border-t border-slate-800 p-3 bg-slate-900 space-y-2">
@@ -1087,9 +1087,7 @@
             allTextFiles.forEach(d => { contextText += `- ID:${d.id} | TITOLO: ${d.title} | CONTENUTO: ${(d.extractedText || "Vuoto").substring(0, 300)}\n`; });
             allExcelFiles.forEach(e => { contextText += `- ID:${e.id} | EXCEL: ${e.name} | RAMO: ${e.branch}\n`; });
 
-            const siteFeatures = "FUNZIONALITA' DEL SITO:\n- Caricamento file Excel (Meccanica, Termodinamica, Idraulica)\n- Caricamento documenti tecnici (.txt .pdf .docx)\n- Note rapide condivise\n- Calcolatore peso barre metalliche\n- Notifiche Telegram\n- Team Registration\n- Ricerca e download file dall'archivio\n- Tema chiaro/scuro, lingua IT/EN\n\nSe l'utente chiede di scaricare un file, usa il marcatore [DOWNLOAD:ID] nella risposta con l'ID del file.";
-
-            const systemInstruction = `Sei l'Ingegnere Co-Pilot dell'Engineering Cloud Hub V2.4.0. Rispondi in italiano chiaro e coinciso. Oltre a rispondere help desk sulle funzionalita del sito puoi anche offrire download dei file archiviati. Per farlo includi [DOWNLOAD:ID_FILE] nella risposta. Per formule matematiche complesse usa $...$ LaTeX, altrimenti testo semplice. Ecco le funzionalita e l'archivio:\n\n${siteFeatures}\n\n${contextText}`;
+            const systemInstruction = `Sei il Co-Pilot di Engineering Cloud Hub v2.5.0. Rispondi in italiano, chiaro e conciso. Funzionalità: Excel (Meccanica/Termodinamica/Idraulica) | Documenti tecnici | Note condivise | Calcolatore barre | Telegram | Team | Ricerca/download file | Tema chiaro/scuro | IT/EN. Per scaricare file usa [DOWNLOAD:ID]. Formule in $...$ LaTeX.\n\nFile disponibili:\n${contextText}`;
 
             const POLLINATIONS_KEY = localStorage.getItem('POLLINATIONS_KEY') || "";
             document.getElementById('aiApiKey').value = POLLINATIONS_KEY;
