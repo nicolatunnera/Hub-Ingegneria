@@ -30,6 +30,37 @@ function now() { return new Date().toISOString(); }
 app.get('/health', (req, res) => res.json({ status: 'ok', time: now() }));
 app.get('/api/now', (req, res) => res.json({ now: now() }));
 
+// Route specifiche (devono stare PRIMA delle route generiche /api/:collection)
+app.get('/api/config', (req, res) => {
+  res.json({
+    telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
+    pollinationsKey: process.env.POLLINATIONS_KEY || ''
+  });
+});
+app.post('/api/chat', async (req, res) => {
+  try {
+    const model = req.body.model || 'openai-large';
+    const body = { ...req.body, model };
+    const apiRes = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(process.env.POLLINATIONS_KEY ? { 'Authorization': 'Bearer ' + process.env.POLLINATIONS_KEY } : {})
+      },
+      body: JSON.stringify(body)
+    });
+    const text = await apiRes.text();
+    try {
+      const data = JSON.parse(text);
+      res.status(apiRes.status).json(data);
+    } catch {
+      res.status(apiRes.status).json({ error: text.substring(0, 500) });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/:collection', async (req, res) => {
   const db = dbs[req.params.collection];
   if (!db) return res.status(404).json({ error: 'Collection not found' });
@@ -73,33 +104,6 @@ app.delete('/api/:collection/:id', async (req, res) => {
   if (!db) return res.status(404).json({ error: 'Collection not found' });
   await db.remove({ _id: req.params.id });
   res.json({ ok: true });
-});
-
-// CONFIG ENDPOINT (inietta i segreti nel frontend)
-app.get('/api/config', (req, res) => {
-  res.json({
-    telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
-    pollinationsKey: process.env.POLLINATIONS_KEY || ''
-  });
-});
-
-// PROXY AI CHAT (mantiene la API key segreta sul server)
-const POLLINATIONS_KEY = process.env.POLLINATIONS_KEY || '';
-app.post('/api/chat', async (req, res) => {
-  try {
-    const apiRes = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(POLLINATIONS_KEY ? { 'Authorization': 'Bearer ' + POLLINATIONS_KEY } : {})
-      },
-      body: JSON.stringify(req.body)
-    });
-    const data = await apiRes.json();
-    res.status(apiRes.status).json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
 });
 
 app.use(express.static(path.join(__dirname, '..', 'client')));

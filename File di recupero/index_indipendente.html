@@ -249,6 +249,7 @@
                         <div class="text-[9px] text-amber-600 dark:text-amber-500 font-semibold uppercase tracking-wider" data-i18n="sidebarNotesStat">Note</div>
                     </div>
                 </div>
+                <button onclick="importFromFirebase()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 rounded-lg text-xs transition-colors shadow-xs mt-3">⬇️ Importa dati da Firebase</button>
             </div>
         </div>
 
@@ -426,10 +427,10 @@
         <div id="ai-chat-widget" class="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-0">
             <div id="chat-expanded" class="w-96 bg-slate-900 text-slate-100 rounded-xl shadow-2xl border border-slate-800 overflow-hidden flex flex-col transition-all duration-300 hidden">
                 <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
-                    <div class="flex items-center space-x-2">
-                        <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping shrink-0"></span>
                         <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.4.0 Smart</span></span>
-                <span class="text-[8px] bg-slate-800 text-emerald-400 px-1.5 py-0.5 rounded-full">proxy</span>
+                        <input type="password" id="aiApiKey" placeholder="API key" value="" class="w-20 bg-slate-800 border border-slate-700 rounded text-[10px] px-1.5 py-0.5 text-slate-300 focus:outline-none placeholder-slate-600" onclick="event.stopPropagation()" oninput="localStorage.setItem('POLLINATIONS_KEY',this.value)">
                     </div>
                     <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
                 </div>
@@ -532,12 +533,7 @@
 
         const db = getFirestore();
 
-        // Carica configurazione dal server (segretti non hardcoded)
-        let TELEGRAM_BOT_TOKEN = "";
-        fetch("/api/config").then(r => r.json()).then(cfg => {
-            TELEGRAM_BOT_TOKEN = cfg.telegramBotToken || "";
-            if (cfg.pollinationsKey) localStorage.setItem('POLLINATIONS_KEY', cfg.pollinationsKey);
-        }).catch(() => {});
+        let TELEGRAM_BOT_TOKEN = localStorage.getItem('TELEGRAM_BOT_TOKEN') || "";
 
         window.toggleSidebar = () => { document.getElementById('sidebar')?.classList.toggle('-translate-x-full'); };
         window.toggleNewsSidebar = () => { document.getElementById('newsModal')?.classList.toggle('hidden'); };
@@ -607,6 +603,39 @@
                 await Promise.all(results);
             } catch (e) { console.error("Errore notifica Telegram:", e); }
         }
+
+        // Import dati da Firebase (migrazione one-shot)
+        window.importFromFirebase = async () => {
+            if(!confirm("Importa tutti i dati dal vecchio database Firebase? I dati attuali verranno conservati.")) return;
+            const btn = document.querySelector('button[onclick*="importFromFirebase"]');
+            if(btn) btn.textContent = "⏳ Importazione in corso...";
+            const COLS = ['excelHub','textHub','historyHub','subscribers','teamHub','notesHub','newsHub','archiveFolders'];
+            const API_KEY = 'AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM';
+            let total = 0, errors = 0;
+            for(const col of COLS) {
+                try {
+                    const url = `https://firestore.googleapis.com/v1/projects/hub-ingegneria/databases/(default)/documents/${col}?key=${API_KEY}`;
+                    const r = await fetch(url);
+                    const data = await r.json();
+                    for(const doc of (data.documents || [])) {
+                        const obj = {id: doc.name.split('/').pop()};
+                        for(const [k,v] of Object.entries(doc.fields || {})) {
+                            if(v.stringValue !== undefined) obj[k] = v.stringValue;
+                            else if(v.integerValue !== undefined) obj[k] = Number(v.integerValue);
+                            else if(v.doubleValue !== undefined) obj[k] = v.doubleValue;
+                            else if(v.booleanValue !== undefined) obj[k] = v.booleanValue;
+                            else if(v.timestampValue) obj[k] = v.timestampValue;
+                        }
+                        const {id, ...body} = obj;
+                        const res = await fetch(`/api/${col}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+                        if(res.ok) total++; else errors++;
+                    }
+                } catch(e) { errors++; console.error(col, e); }
+            }
+            if(btn) btn.textContent = `✅ ${total} importati${errors ? `, ${errors} errori` : ''}`;
+            setTimeout(() => { if(btn) btn.textContent = "⬇️ Importa dati da Firebase"; }, 5000);
+            alert(`Importazione completata!\n${total} documenti importati${errors ? `\n${errors} errori` : ''}\n\nRicarica la pagina per vedere i dati.`);
+        };
 
         // Il bot Telegram è gestito da un servizio dedicato su Render (Bot-hub-engineering)
         // Il sito invia solo notifiche in uscita via sendTelegramBroadcast
@@ -945,26 +974,34 @@
             });
         })();
         
-        window.downloadDocument = (id) => {
+        window.downloadDocument = async (id) => {
             const file = [...allTextFiles, ...allExcelFiles].find(f => f.id === id);
             if(!file) return alert("File non trovato.");
-            if(file.fileData) {
-                const link = document.createElement("a");
-                link.href = file.fileData;
-                link.download = file.fileName || (file.title || file.name || "documento");
-                document.body.appendChild(link); link.click(); document.body.removeChild(link);
-            } else if(file.isExcel) {
-                const content = `File Excel: ${file.name}\nRamo: ${file.branch}\nCaricato il: ${file.uploadedAt ? new Date(file.uploadedAt.seconds * 1000).toLocaleString('it-IT') : "N/D"}`;
-                const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a"); a.href = url; a.download = (file.name || "excel") + ".txt";
-                document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-            } else {
-                if(!file.extractedText) return alert("Nessun contenuto testuale disponibile per il download.");
-                const blob = new Blob([file.extractedText], { type: "text/plain;charset=utf-8" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a"); a.href = url; a.download = (file.title || "documento") + ".txt";
-                document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            try {
+                if(file.fileData && file.fileData.startsWith('data:')) {
+                    const resp = await fetch(file.fileData);
+                    const blob = await resp.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a"); a.href = url; a.download = file.fileName || (file.title || file.name || "documento");
+                    document.body.appendChild(a); a.click();
+                    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+                } else if(file.isExcel) {
+                    const content = `File Excel: ${file.name}\nRamo: ${file.branch}\nCaricato il: ${file.uploadedAt ? new Date(file.uploadedAt.seconds * 1000).toLocaleString('it-IT') : "N/D"}`;
+                    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a"); a.href = url; a.download = (file.name || "excel") + ".txt";
+                    document.body.appendChild(a); a.click();
+                    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+                } else {
+                    if(!file.extractedText) return alert("Nessun contenuto testuale disponibile per il download.");
+                    const blob = new Blob([file.extractedText], { type: "text/plain;charset=utf-8" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a"); a.href = url; a.download = (file.title || "documento") + ".txt";
+                    document.body.appendChild(a); a.click();
+                    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+                }
+            } catch(e) {
+                alert("Errore download: " + e.message);
             }
         };
 
@@ -1054,10 +1091,15 @@
 
             const systemInstruction = `Sei l'Ingegnere Co-Pilot dell'Engineering Cloud Hub V2.4.0. Rispondi in italiano chiaro e coinciso. Oltre a rispondere help desk sulle funzionalita del sito puoi anche offrire download dei file archiviati. Per farlo includi [DOWNLOAD:ID_FILE] nella risposta. Per formule matematiche complesse usa $...$ LaTeX, altrimenti testo semplice. Ecco le funzionalita e l'archivio:\n\n${siteFeatures}\n\n${contextText}`;
 
+            const POLLINATIONS_KEY = localStorage.getItem('POLLINATIONS_KEY') || "";
+            document.getElementById('aiApiKey').value = POLLINATIONS_KEY;
+
             try {
-                const response = await fetch("/api/chat", {
+                const headers = { "Content-Type": "application/json" };
+                if (POLLINATIONS_KEY) headers["Authorization"] = "Bearer " + POLLINATIONS_KEY;
+                const response = await fetch("https://gen.pollinations.ai/v1/chat/completions", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: headers,
                     body: JSON.stringify({
                         messages: [
                             { role: "system", content: systemInstruction },
@@ -1070,8 +1112,8 @@
                     const json = await response.json();
                     replyText = json.choices?.[0]?.message?.content || "";
                 } else {
-                    const json = await response.json().catch(() => ({}));
-                    replyText = "⚠️ Errore AI: " + (json.error || json.message || "Riprova tra pochi istanti.");
+                    const errText = await response.text().catch(() => "");
+                    replyText = "⚠️ Errore AI (" + response.status + "): " + (errText.substring(0,300) || "Riprova tra pochi istanti.");
                 }
             } catch (err) { replyText = "⚠️ Errore di rete: " + err.message; }
             

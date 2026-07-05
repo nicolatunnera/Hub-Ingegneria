@@ -1069,14 +1069,9 @@
 
             const systemInstruction = `Sei l'Ingegnere Co-Pilot dell'Engineering Cloud Hub V2.4.0. Rispondi in italiano chiaro e coinciso. Oltre a rispondere help desk sulle funzionalita del sito puoi anche offrire download dei file archiviati. Per farlo includi [DOWNLOAD:ID_FILE] nella risposta. Per formule matematiche complesse usa $...$ LaTeX, altrimenti testo semplice. Ecco le funzionalita e l'archivio:\n\n${siteFeatures}\n\n${contextText}`;
 
-            if (!POLLINATIONS_KEY) {
-                document.getElementById(loadingId)?.remove();
-                container.innerHTML += `<div class="bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-amber-400 max-w-[90%] text-xs">⚠️ API key mancante. Imposta la tua key da <a href="https://enter.pollinations.ai" target="_blank" class="underline">enter.pollinations.ai</a> oppure usa la versione standalone su Render.</div>`;
-                inputEl.disabled = false; sendBtn.disabled = false; inputEl.focus(); container.scrollTop = container.scrollHeight; return;
-            }
             try {
                 const headers = { "Content-Type": "application/json" };
-                headers["Authorization"] = "Bearer " + POLLINATIONS_KEY;
+                if (POLLINATIONS_KEY) headers["Authorization"] = "Bearer " + POLLINATIONS_KEY;
                 const response = await fetch("https://gen.pollinations.ai/v1/chat/completions", {
                     method: "POST",
                     headers: headers,
