@@ -62,7 +62,7 @@
             .card-toggle { flex-wrap: wrap; gap: 0.25rem; }
         }
     </style>
-    <script id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body class="bg-slate-50 text-gray-800 dark:bg-slate-950 dark:text-gray-100 min-h-screen relative overflow-x-hidden">
@@ -1059,14 +1059,7 @@
             allTextFiles.forEach(d => { contextText += `- ID:${d.id} | TITOLO: ${d.title} | CONTENUTO: ${(d.extractedText || "Vuoto").substring(0, 300)}\n`; });
             allExcelFiles.forEach(e => { contextText += `- ID:${e.id} | EXCEL: ${e.name} | RAMO: ${e.branch}\n`; });
 
-            const systemInstruction = `Sei l'assistente di Engineering Cloud Hub v2.5.0. Rispondi in italiano, chiaro e conciso. Hai accesso ai file elencati in fondo — usali e non dire che non puoi accedervi.
-
-REGOLE MATEMATICHE: Scrivi le formule in chiaro usando caratteri Unicode (τ, ω, π, α, β, Δ, √, ≤, ≥, ≠, ², ³, ·, ×, ÷). Per frazioni usa "/". Per pedici usa _ (es. τ_max). Non usare MAI comandi LaTeX (\tau, \frac, \omega, \left, \right, \boxed, \displaystyle, \text, \quad). Scrivi tutto in testo semplice.
-
-Esempi:
-- "coppia τ = P / ω con ω = 2πn / 60" ✓
-- "τ_max = 60·P / (2π·n)" ✓
-- SCORRETTO: "\tau = \frac{P}{\omega}" ✗
+            const systemInstruction = `Sei l'assistente di Engineering Cloud Hub v2.5.0. Rispondi in italiano, chiaro e conciso. Hai accesso ai file elencati in fondo.
 
 Per scaricare file usa [DOWNLOAD:ID].
 
@@ -1094,6 +1087,22 @@ File dell'archivio:\n${contextText}`;
             
             document.getElementById(loadingId)?.remove();
             if (!replyText) replyText = "⚠️ Nessuna risposta ricevuta.";
+            function cleanLatex(s){
+              const g={'tau':'τ','omega':'ω','pi':'π','alpha':'α','beta':'β','delta':'δ','theta':'θ','gamma':'γ','lambda':'λ','mu':'μ','sigma':'σ','phi':'φ','psi':'ψ','cdot':'·','times':'×','div':'÷','leq':'≤','geq':'≥','neq':'≠','infty':'∞','partial':'∂','nabla':'∇','rightarrow':'→','leftarrow':'←','cdots':'…','forall':'∀','exists':'∃','emptyset':'∅','subset':'⊂','supset':'⊃','subseteq':'⊆','supseteq':'⊇','cup':'∪','cap':'∩','in':'∈','notin':'∉','approx':'≈','equiv':'≡','propto':'∝','pm':'±','mp':'∓','cdotp':'·','text':''};
+              for(let k in g) s=s.replace(new RegExp('\\\\'+k+'\\b','g'),g[k]);
+              s=s.replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g,'$1/$2');
+              s=s.replace(/\\sqrt(?:\[([^\]]*)\])?\{([^}]*)\}/g,'√($2)');
+              s=s.replace(/\\boxed\{([^}]*)\}/g,'$1');
+              s=s.replace(/\\([ ,:;!])/g,'$1');
+              s=s.replace(/\\[a-zA-Z]+/g,'');
+              s=s.replace(/[{}]/g,'');
+              s=s.replace(/\$\$([^$]*)\$\$/g,'$1');
+              s=s.replace(/\$([^$]*)\$/g,'$1');
+              s=s.replace(/\\\[([^\\]*)\\\]/g,'$1');
+              s=s.replace(/\\\(([^\\]*)\\\)/g,'$1');
+              return s;
+            }
+            replyText = cleanLatex(replyText);
             const replyDiv = document.createElement('div');
             replyDiv.className = "bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-slate-300 max-w-[90%] text-xs font-normal";
             
@@ -1109,7 +1118,6 @@ File dell'archivio:\n${contextText}`;
             
             replyDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(replyText) : replyText.replace(/\n/g, "<br>");
             container.appendChild(replyDiv);
-            (function tryMathJax(el){if(window.MathJax?.typesetPromise){MathJax.typesetPromise([el]).catch(()=>{});}else{setTimeout(tryMathJax,300,el)}})(replyDiv);
             
             inputEl.disabled = false; sendBtn.disabled = false; inputEl.focus();
             container.scrollTop = container.scrollHeight;
