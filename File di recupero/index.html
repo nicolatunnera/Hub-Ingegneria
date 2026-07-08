@@ -429,7 +429,7 @@
                     <div class="flex items-center space-x-2">
                         <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
                             <span class="font-bold text-xs tracking-wide text-white">Assistente IA <span class="text-[10px] text-emerald-400 font-mono">v2.5.0</span></span>
-                            <input type="password" id="apiKeyInput" placeholder="Tua chiave (opzionale)" value="" class="w-24 bg-slate-800 border border-slate-700 rounded text-[10px] px-1.5 py-0.5 text-slate-300 focus:outline-none placeholder-slate-600" onclick="event.stopPropagation()" oninput="localStorage.setItem('POLLINATIONS_KEY',this.value)">
+
                     </div>
                     <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
                 </div>
@@ -1021,10 +1021,6 @@
 
         // ==========================================
         // CO-PILOT AI
-            const FALLBACK_KEY = "sk_UHO9awELiLVfpplF65MFeMa4ylD0bOYw";
-            const POLLINATIONS_KEY = localStorage.getItem('POLLINATIONS_KEY') || FALLBACK_KEY;
-            const keyInput = document.getElementById('apiKeyInput');
-            if (keyInput) { keyInput.value = POLLINATIONS_KEY === FALLBACK_KEY ? "" : POLLINATIONS_KEY; }
 
         window.askAI = async () => {
             const inputEl = document.getElementById('aiInput'); const container = document.getElementById('chat-container');
@@ -1066,11 +1062,9 @@
             const systemInstruction = `Sei l'assistente di Engineering Cloud Hub v2.5.0. Rispondi in italiano, chiaro e conciso. IMPORTANTE: hai accesso ai file elencati qui sotto, sono i file reali del sistema. Usali per rispondere. Non dire che non puoi accedere ai file — i file QUI SOTTO sono ciò che hai a disposizione. Funzionalità: Excel (Meccanica/Termodinamica/Idraulica) | Documenti tecnici | Note condivise | Calcolatore barre | Telegram | Team | Ricerca/download file | Tema chiaro/scuro | IT/EN. Per scaricare file usa [DOWNLOAD:ID]. Per le formule matematiche usa sempre $...$ (es. $τ_max$ o $E=mc^2$) — verranno visualizzate correttamente.\n\nFile dell'archivio:\n${contextText}`;
 
             try {
-                const headers = { "Content-Type": "application/json" };
-                if (POLLINATIONS_KEY) headers["Authorization"] = "Bearer " + POLLINATIONS_KEY;
-                const response = await fetch("https://gen.pollinations.ai/v1/chat/completions", {
+                const response = await fetch("https://text.pollinations.ai/", {
                     method: "POST",
-                    headers: headers,
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         messages: [
                             { role: "system", content: systemInstruction },
@@ -1080,11 +1074,10 @@
                     })
                 });
                 if (response.ok) {
-                    const json = await response.json();
-                    replyText = json.choices?.[0]?.message?.content || "";
+                    replyText = await response.text();
                 } else {
                     const errText = await response.text().catch(() => "");
-                    replyText = "⚠️ Errore API (" + response.status + "): " + (errText || "Riprova tra pochi istanti.");
+                    replyText = "⚠️ Errore AI (" + response.status + "): " + (errText.substring(0,300) || "Riprova tra pochi istanti.");
                 }
             } catch (err) { replyText = "⚠️ Errore di rete: " + err.message; }
             

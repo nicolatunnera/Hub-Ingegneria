@@ -33,29 +33,19 @@ app.get('/api/now', (req, res) => res.json({ now: now() }));
 // Route specifiche (devono stare PRIMA delle route generiche /api/:collection)
 app.get('/api/config', (req, res) => {
   res.json({
-    telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
-    pollinationsKey: process.env.POLLINATIONS_KEY || ''
+    telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || ''
   });
 });
 app.post('/api/chat', async (req, res) => {
   try {
-    const model = req.body.model || 'openai-large';
-    const body = { ...req.body, model };
-    const apiRes = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
+    const body = { messages: req.body.messages || [], model: req.body.model || 'openai' };
+    const apiRes = await fetch('https://text.pollinations.ai/', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(process.env.POLLINATIONS_KEY ? { 'Authorization': 'Bearer ' + process.env.POLLINATIONS_KEY } : {})
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
     const text = await apiRes.text();
-    try {
-      const data = JSON.parse(text);
-      res.status(apiRes.status).json(data);
-    } catch {
-      res.status(apiRes.status).json({ error: text.substring(0, 500) });
-    }
+    res.json({ choices: [{ message: { content: text } }] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
