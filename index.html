@@ -1055,15 +1055,20 @@
             let replyText = "";
 
             // Iniezione del contesto recuperato da Firestore per la logica RAG
-            let contextText = "ARCHIVIO FILE DISPONIBILI (nome e ID per download):\n";
-            allTextFiles.forEach(d => { contextText += `- ID:${d.id} | TITOLO: ${d.title} | CONTENUTO: ${(d.extractedText || "Vuoto").substring(0, 300)}\n`; });
-            allExcelFiles.forEach(e => { contextText += `- ID:${e.id} | EXCEL: ${e.name} | RAMO: ${e.branch}\n`; });
+            let contextText = "ARCHIVIO FILE DISPONIBILI:\n";
+            allTextFiles.forEach(d => { contextText += `- ID:${d.id} | FILE: ${d.fileName || "N/A"} | TITOLO: ${d.title} | CONTENUTO: ${(d.extractedText || "Vuoto").substring(0, 300)}\n`; });
+            allExcelFiles.forEach(e => { contextText += `- ID:${e.id} | FILE: ${e.name} | RAMO: ${e.branch}\n`; });
 
-            const systemInstruction = `Sei l'assistente di Engineering Cloud Hub v2.5.0. Rispondi in italiano, chiaro e conciso. Hai accesso ai file elencati in fondo.
+            const systemInstruction = `Sei l'assistente di Engineering Cloud Hub v2.5.0. Risposte in italiano, molto concise, sempre con fonte.
 
-Per scaricare file usa [DOWNLOAD:ID].
+REGOLE:
+- Cita SEMPRE la fonte con [Fonte: TitoloFile] per ogni informazione.
+- Se usi piu file: [Fonte: File1] [Fonte: File2].
+- Se dai info non presenti nei file elencati, dichiara la fonte esterna.
+- Se non sai o non trovi l'informazione, dillo. Non inventare.
+- Per offrire download: [DOWNLOAD:ID].
 
-File dell'archivio:\n${contextText}`;
+File:\n${contextText}`;
 
             try {
                 const response = await fetch("https://text.pollinations.ai/", {
