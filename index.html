@@ -1070,7 +1070,9 @@ REGOLE:
 
 File:\n${contextText}`;
 
-            const reqBody = JSON.stringify({ messages: [{ role: "system", content: systemInstruction }, { role: "user", content: queryText }] });
+            const reqBase = { messages: [{ role: "system", content: systemInstruction }, { role: "user", content: queryText }] };
+            const reqBody = JSON.stringify(reqBase);
+            const reqBodyFallback = JSON.stringify({ ...reqBase, model: "openai" });
             const AI_KEY = "sk-UHO9awELiLVfpplF65MFeMa4ylD0bOYw";
             async function aiFetch(url, opts) {
                 const r = await fetch(url, opts);
@@ -1082,7 +1084,7 @@ File:\n${contextText}`;
                 replyText = await aiFetch("https://text.pollinations.ai/", { method: "POST", headers: { "Content-Type": "application/json" }, body: reqBody });
             } catch {
                 try {
-                    replyText = await aiFetch("https://gen.pollinations.ai/v1/chat/completions", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + AI_KEY }, body: reqBody });
+                    replyText = await aiFetch("https://gen.pollinations.ai/v1/chat/completions", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + AI_KEY }, body: reqBodyFallback });
                 } catch (err2) {
                     replyText = "⚠️ AI non disponibile: " + err2.message;
                 }
