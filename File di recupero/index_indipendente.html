@@ -429,15 +429,15 @@
                 <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping shrink-0"></span>
-                        <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.5.0</span></span>
-                        <input type="password" id="aiApiKey" placeholder="API key" value="" class="w-20 bg-slate-800 border border-slate-700 rounded text-[10px] px-1.5 py-0.5 text-slate-300 focus:outline-none placeholder-slate-600" onclick="event.stopPropagation()" oninput="localStorage.setItem('POLLINATIONS_KEY',this.value)">
+                        <span class="font-bold text-xs tracking-wide text-white">Assistente IA <span class="text-[10px] text-emerald-400 font-mono">v2.5.0</span></span>
+
                     </div>
                     <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
                 </div>
                 <div id="chat-body" class="flex flex-col flex-grow">
                     <div id="chat-container" class="h-[260px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
                         <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">
-                            🤖 Co-Pilot v2.5.0 — chiedimi qualsiasi cosa sui file caricati.
+                            🤖 Ciao! Sono il tuo assistente. Chiedimi documenti, file Excel, note o altro.
                         </div>
                     </div>
                     <div class="border-t border-slate-800 p-3 bg-slate-900 space-y-2">
@@ -1077,7 +1077,7 @@
             }
 
             const loadingId = 'loading-' + Date.now();
-            container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">⚙️ Ricerca RAG nell'archivio e sintesi IA...</div>`;
+            container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">✍️ Sto pensando...</div>`;
             container.scrollTop = container.scrollHeight;
 
             let replyText = "";
@@ -1089,15 +1089,10 @@
 
             const systemInstruction = `Sei il Co-Pilot di Engineering Cloud Hub v2.5.0. Rispondi in italiano, chiaro e conciso. Funzionalità: Excel (Meccanica/Termodinamica/Idraulica) | Documenti tecnici | Note condivise | Calcolatore barre | Telegram | Team | Ricerca/download file | Tema chiaro/scuro | IT/EN. Per scaricare file usa [DOWNLOAD:ID]. Formule in $...$ LaTeX.\n\nFile disponibili:\n${contextText}`;
 
-            const POLLINATIONS_KEY = localStorage.getItem('POLLINATIONS_KEY') || "";
-            document.getElementById('aiApiKey').value = POLLINATIONS_KEY;
-
             try {
-                const headers = { "Content-Type": "application/json" };
-                if (POLLINATIONS_KEY) headers["Authorization"] = "Bearer " + POLLINATIONS_KEY;
-                const response = await fetch("https://gen.pollinations.ai/v1/chat/completions", {
+                const response = await fetch("/api/chat", {
                     method: "POST",
-                    headers: headers,
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         messages: [
                             { role: "system", content: systemInstruction },

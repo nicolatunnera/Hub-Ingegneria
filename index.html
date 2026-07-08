@@ -428,15 +428,15 @@
                 <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
                     <div class="flex items-center space-x-2">
                         <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                            <span class="font-bold text-xs tracking-wide text-white">Ingegnere Co-Pilot IA <span class="text-[10px] text-emerald-400 font-mono">v2.5.0</span></span>
-                            <input type="password" id="apiKeyInput" placeholder="API key" value="" class="w-20 bg-slate-800 border border-slate-700 rounded text-[10px] px-1.5 py-0.5 text-slate-300 focus:outline-none placeholder-slate-600" onclick="event.stopPropagation()" oninput="localStorage.setItem('POLLINATIONS_KEY',this.value)">
+                            <span class="font-bold text-xs tracking-wide text-white">Assistente IA <span class="text-[10px] text-emerald-400 font-mono">v2.5.0</span></span>
+                            <input type="password" id="apiKeyInput" placeholder="Tua chiave (opzionale)" value="" class="w-24 bg-slate-800 border border-slate-700 rounded text-[10px] px-1.5 py-0.5 text-slate-300 focus:outline-none placeholder-slate-600" onclick="event.stopPropagation()" oninput="localStorage.setItem('POLLINATIONS_KEY',this.value)">
                     </div>
                     <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
                 </div>
                 <div id="chat-body" class="flex flex-col flex-grow">
                     <div id="chat-container" class="h-[260px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
                         <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">
-                            🤖 Co-Pilot v2.5.0 — chiedimi qualsiasi cosa sui file caricati.
+                            🤖 Ciao! Sono il tuo assistente. Chiedimi documenti, file Excel, note o altro.
                         </div>
                     </div>
                     <div class="border-t border-slate-800 p-3 bg-slate-900 space-y-2">
@@ -1020,13 +1020,11 @@
         });
 
         // ==========================================
-        // CO-PILOT AI - usa il proxy server (/api/chat) se disponibile,
-        // altrimenti chiama direttamente Pollinations con la key qui sotto.
-        // Non pubblicare la tua API key su GitHub!
-        // Vai su https://enter.pollinations.ai per generarne una.
-        // ==========================================
-            const POLLINATIONS_KEY = localStorage.getItem('POLLINATIONS_KEY') || "";
-            document.getElementById('apiKeyInput').value = POLLINATIONS_KEY;
+        // CO-PILOT AI
+            const FALLBACK_KEY = "sk_UHO9awELiLVfpplF65MFeMa4ylD0bOYw";
+            const POLLINATIONS_KEY = localStorage.getItem('POLLINATIONS_KEY') || FALLBACK_KEY;
+            const keyInput = document.getElementById('apiKeyInput');
+            if (keyInput) { keyInput.value = POLLINATIONS_KEY === FALLBACK_KEY ? "" : POLLINATIONS_KEY; }
 
         window.askAI = async () => {
             const inputEl = document.getElementById('aiInput'); const container = document.getElementById('chat-container');
@@ -1055,7 +1053,7 @@
             }
 
             const loadingId = 'loading-' + Date.now();
-            container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">⚙️ Ricerca RAG nell'archivio e sintesi IA...</div>`;
+            container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">✍️ Sto pensando...</div>`;
             container.scrollTop = container.scrollHeight;
 
             let replyText = "";
