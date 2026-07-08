@@ -1073,12 +1073,12 @@ File dell'archivio:\n${contextText}`;
                         messages: [
                             { role: "system", content: systemInstruction },
                             { role: "user", content: queryText }
-                        ],
-                        model: "openai"
+                        ]
                     })
                 });
                 if (response.ok) {
-                    replyText = await response.text();
+                    const raw = await response.text();
+                    try { const j = JSON.parse(raw); replyText = j.choices?.[0]?.message?.content || raw; } catch { replyText = raw; }
                 } else {
                     const errText = await response.text().catch(() => "");
                     replyText = "⚠️ Errore AI (" + response.status + "): " + (errText.substring(0,300) || "Riprova tra pochi istanti.");
