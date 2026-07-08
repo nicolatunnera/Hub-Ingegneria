@@ -1087,7 +1087,7 @@
             allTextFiles.forEach(d => { contextText += `- ID:${d.id} | TITOLO: ${d.title} | CONTENUTO: ${(d.extractedText || "Vuoto").substring(0, 300)}\n`; });
             allExcelFiles.forEach(e => { contextText += `- ID:${e.id} | EXCEL: ${e.name} | RAMO: ${e.branch}\n`; });
 
-            const systemInstruction = `Sei il Co-Pilot di Engineering Cloud Hub v2.5.0. Rispondi in italiano, chiaro e conciso. Funzionalità: Excel (Meccanica/Termodinamica/Idraulica) | Documenti tecnici | Note condivise | Calcolatore barre | Telegram | Team | Ricerca/download file | Tema chiaro/scuro | IT/EN. Per scaricare file usa [DOWNLOAD:ID]. Formule in $...$ LaTeX.\n\nFile disponibili:\n${contextText}`;
+            const systemInstruction = `Sei l'assistente di Engineering Cloud Hub v2.5.0. Rispondi in italiano, chiaro e conciso. Funzionalità: Excel (Meccanica/Termodinamica/Idraulica) | Documenti tecnici | Note condivise | Calcolatore barre | Telegram | Team | Ricerca/download file | Tema chiaro/scuro | IT/EN. Per scaricare file usa [DOWNLOAD:ID]. Per le formule matematiche usa sempre $...$ (es. $\tau_{max}$) — verranno visualizzate correttamente.\n\nFile disponibili:\n${contextText}`;
 
             try {
                 const response = await fetch("/api/chat", {
@@ -1125,9 +1125,9 @@
                 }
             }
             
-            let cleanText = replyText.replace(/\$\$(.+?)\$\$/gs, '<div class="bg-slate-800 p-2 rounded my-1 text-emerald-300 text-[11px] font-mono">$1</div>').replace(/\$(.+?)\$/g, '<span class="text-emerald-300 text-[11px] font-mono">$1</span>');
-            replyDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(cleanText) : cleanText.replace(/\n/g, "<br>");
+            replyDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(replyText) : replyText.replace(/\n/g, "<br>");
             container.appendChild(replyDiv);
+            if (window.MathJax?.typesetPromise) MathJax.typesetPromise([replyDiv]).catch(()=>{});
             
             inputEl.disabled = false; sendBtn.disabled = false; inputEl.focus();
             container.scrollTop = container.scrollHeight;
