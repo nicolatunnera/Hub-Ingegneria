@@ -1,93 +1,79 @@
-=========================================================
-  COSE DA RICORDARE - Engineering Cloud Hub
-  v2.5.1
-=========================================================
+─═══ ENGINEERING CLOUD HUB — COSE DA RICORDARE ═══─
 
---- REPO ---
+┌─────────────────────────────────────────────────────────────┐
+│ DUE REPO:                                                   │
+│  1. Hub-Ingegneria (GitHub Pages → Pubblico, Firebase)      │
+│     URL: https://tommy-202.github.io/Hub-Ingegneria/        │
+│     git remote: https://github.com/tommy-202/Hub-Ingegneria │
+│     ↓ se modifichi ↓                                        │
+│     cd C:\Users\User\Desktop\SITO                           │
+│     git add . && git commit -m "msg" && git push            │
+│                                                             │
+│  2. Engineering-Hub (Render → Privato, nedb)                │
+│     URL: https://engineering-hub.onrender.com               │
+│     git remote: https://github.com/tommy-202/Engineering-Hub│
+│     ↓ se modifichi ↓                                        │
+│     cd C:\Users\User\Desktop\SITO\Sito indipendente          │
+│     git add . && git commit -m "msg" && git push            │
+│     (Render fa deploy automatico da main)                   │
+└─────────────────────────────────────────────────────────────┘
 
-Hub-Ingegneria (PUBBLICO - GitHub Pages)
-  https://nicolatunnera.github.io/Hub-Ingegneria/
-  Usa Firebase Firestore
-  Deploy: push su main -> auto
+┌─ LOGIN ─────────────────────────────────────────────────────┐
+│  Utente: Ing   Password: Ing                                │
+│  "Ricordami" salva in localStorage, auto-login al reload    │
+└─────────────────────────────────────────────────────────────┘
 
-Engineering-Hub (PRIVATO - Render)
-  https://engineering-hub-ghih.onrender.com/
-  Usa Node.js + Express + nedb (locale)
-  Deploy: push su main -> auto (Render)
+┌─ AI (Chat Assistente) ──────────────────────────────────────┐
+│  GitHub Pages:                                               │
+│   1. text.pollinations.ai (gratis, no key)                   │
+│   2. Fallback: gen.pollinations.ai + key + model:"openai"   │
+│                                                             │
+│  Render (server.js proxy): /api/chat → stessa logica        │
+│  System prompt: risposte ITA, concise, [Fonte: TitoloFile]  │
+│  Download: [DOWNLOAD:ID] nel testo della risposta           │
+│  LaTeX: cleanLatex() converte tutto in Unicode pre-display  │
+└─────────────────────────────────────────────────────────────┘
 
-Bot-hub-engineering (PRIVATO - Render)
-  https://bot-hub-engineering.onrender.com/
-  Bot Telegram
+┌─ ARCHITETTURA (dopo v2.6.0) ────────────────────────────────┐
+│  GITHUB PAGES (root):                                       │
+│    index.html          → solo HTML + CDN + <script module>  │
+│    style.css           → tutti gli stili custom             │
+│    js/config.js        → Firebase, AI key, Telegram, i18n   │
+│    js/app.js           → ES module: tutta la logica JS     │
+│                                                             │
+│  RENDER (Sito indipendente/client):                         │
+│    index.html          → solo HTML + CDN + <script module>  │
+│    style.css           → copia identica                     │
+│    firebase-shim.js    → shim ES module per nedb API        │
+│    js/config.js        → solo i18n                          │
+│    js/app.js           → ES module: importa firebase-shim   │
+│                                                             │
+│  VERSIONI: v2.5.1 (backup pre-modernizzazione)              │
+│            v2.6.0 (split in moduli)                         │
+└─────────────────────────────────────────────────────────────┘
 
---- LOGIN ---
+┌─ TELEGRAM ──────────────────────────────────────────────────┐
+│  Bot token per notifiche broadcast:                          │
+│  GitHub Pages: hardcoded in js/config.js                     │
+│  Render: via env TELEGRAM_BOT_TOKEN → localStorage           │
+│  Bot: @HubEngineerBot                                       │
+│  Broadcast: a tutti i subscribers con chatId salvato         │
+└─────────────────────────────────────────────────────────────┘
 
-User: Ing
-Pass: Ing
-Ricordami: localStorage.getItem('remembered') === 'true'
+┌─ FIRESTORE (solo GitHub Pages) ─────────────────────────────┐
+│  API Key: AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM          │
+│  Project: hub-ingegneria                                    │
+│  Collezioni: excelHub, textHub, notesHub, newsHub,          │
+│              teamHub, subscribers, historyHub, archiveFolders│
+│  NOTA: Render usa nedb (locale) con /api/*                  │
+│  Migrazione one-shot: pulsante "Importa da Firebase"        │
+└─────────────────────────────────────────────────────────────┘
 
---- AI (POLLINATIONS) ---
-
-Endpoint: https://text.pollinations.ai/ (POST, NO auth, gratuito)
-Model: openai
-Server proxy: /api/chat -> text.pollinations.ai (server.js)
-GitHub Pages: chiama text.pollinations.ai direttamente dal browser
-NON serve piu API key (era gen.pollinations.ai con auth)
-cleanLatex(): converte LaTeX in Unicode prima di mostrare la risposta
-
---- FIREBASE ---
-
-Progetto: hub-ingegneria
-API Key: AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM
-Firestore REST: https://firestore.googleapis.com/v1/projects/hub-ingegneria/databases/(default)/documents/
-Usata solo da GitHub Pages (Hub-Ingegneria)
-
---- TELEGRAM ---
-
-Token: 8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0
-GitHub Pages: hardcoded in index.html
-Render (Engineering-Hub): via env var TELEGRAM_BOT_TOKEN
-Bot-hub-engineering: gestisce il polling, NON farlo dal sito (evita 409 Conflict)
-
---- STRUTTURA LOCALE ---
-
-C:\Users\User\Desktop\SITO\
-  index.html          -- GitHub Pages (Firebase)
-  sw.js               -- Service worker
-  icon-192.png        -- PWA icon
-  icon-512.png        -- PWA icon
-  manifest.json       -- PWA manifest
-  .nojekyll           -- GitHub Pages (disabilita Jekyll)
-  COSE_DA_RICORDARE.txt
-
-  Sito indipendente\  -- Render (repo separato)
-    render.yaml
-    migrate.js
-    client\
-      index.html      -- Frontend standalone
-      firebase-shim.js-- Replica Firestore API -> nedb
-      sw.js           -- Service worker (esclude /api/)
-      icon-192.png
-      icon-512.png
-      manifest.json
-    server\
-      package.json
-      server.js       -- Express + nedb + proxy AI
-      data\           -- Database nedb (gitignored)
-      node_modules\   -- (gitignored)
-
---- MATTONCINI IMPORTANTI ---
-
-- server.js route ORDER: /api/config e /api/chat PRIMA di /api/:collection
-- cleanLatex() function: modifica in index.html (sia root che standalone)
-- system prompt AI: "Hai accesso ai file elencati in fondo"
-- DOWNLOAD marker: [DOWNLOAD:ID] nel testo AI
-- MathJax: RIMOSSO (non serve, cleanLatex converte tutto in Unicode)
-
---- SE DEVI RICOSTRUIRE DA ZERO ---
-
-1. Clona Hub-Ingegneria (pubblico - GitHub Pages)
-2. Clona Engineering-Hub (privato - Render)
-3. Su Render: deploy da main con render.yaml
-4. Per importare dati da Firebase: pulsante arancione in sidebar
-5. migrate.js fa la stessa cosa da terminale
-=========================================================
+┌─ COMANDI GIT UTILI ─────────────────────────────────────────┐
+│  git status                                                 │
+│  git add -A                                                 │
+│  git commit -m "v2.6.0: descrizione"                        │
+│  git push                                                   │
+│  git tag v2.6.0 && git push origin v2.6.0                   │
+│  git log --oneline -5                                       │
+└─────────────────────────────────────────────────────────────┘

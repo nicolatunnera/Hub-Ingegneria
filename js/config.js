@@ -1,0 +1,74 @@
+export const TELEGRAM_BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
+export const AI_KEY = "sk-UHO9awELiLVfpplF65MFeMa4ylD0bOYw";
+
+export const firebaseConfig = {
+  apiKey: "AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM",
+  authDomain: "hub-ingegneria.firebaseapp.com",
+  projectId: "hub-ingegneria",
+  storageBucket: "hub-ingegneria.firebasestorage.app",
+  messagingSenderId: "58933321877",
+  appId: "1:58933321877:web:1e3f4630edc9f192865077"
+};
+
+export const i18n = {
+  it: {
+    hubName:"Engineering Cloud Hub", search:"Cerca", calcTitle:"Calcolatrice", newsTitle:"Notizie",
+    newsTabAll:"Tutte", newsTabTech:"Tecnologia", newsTabEconomy:"Economia", newsLoading:"Caricamento notizie...",
+    chatTitle:"Assistente AI", clear:"Pulisci", chatWelcome:"Ciao! Sono l'assistente dell'Engineering Cloud Hub. Come posso aiutarti oggi?", send:"Invia",
+    userTitle:"Gestione Utenti", userLoading:"Caricamento utenti...",
+    mtbfHours:"Ore di funzionamento totali", mtbfFailures:"Numero guasti", calcMtbfBtn:"Calcola MTBF",
+    subscribersTitle:"Iscritti Newsletter", subscribersLoading:"Caricamento iscritti...",
+    newsHistoryTitle:"Storico Notizie", newsHistoryLoading:"Caricamento storico...",
+    teamTitle:"Team", addMember:"Aggiungi", teamLoading:"Caricamento membri team...",
+    statsTitle:"Statistiche Cloud",
+    dashboardTitle:"Dashboard", dashboardSubtitle:"Seleziona un'operazione per iniziare",
+    dashExcel:"Excel", dashDoc:"Documenti", dashNotes:"Note", dashArchive:"Archivio", dashHistory:"Storico Chat",
+    excelModalTitle:"Carica Excel", excelFolderLabel:"Cartella", branchLabel:"Branch / Commessa",
+    selectFolder:"Seleziona cartella", selectBranch:"Seleziona branch",
+    newFolderName:"Nome nuova cartella", folderColor:"Colore", createFolder:"Crea",
+    excelNoteLabel:"Nota (opzionale)", dropExcel:"Trascina qui il file Excel o clicca per selezionare", uploadExcel:"Carica Excel",
+    docModalTitle:"Carica Documento", docFolderLabel:"Cartella", docTitleLabel:"Titolo documento",
+    docContentLabel:"Contenuto (opzionale)", dropDoc:"Trascina qui il file o clicca per selezionare (PDF, DOC, TXT, DWG, DXF)", uploadDoc:"Carica Documento",
+    notesModalTitle:"Note Rapide", newNoteLabel:"Nuova nota", addNote:"Aggiungi Nota",
+    archiveModalTitle:"Archivio", allFolders:"Tutte le cartelle",
+    downloadSelected:"Scarica selezionati", deleteSelected:"Elimina selezionati",
+    selectAll:"Seleziona tutti", fileName:"Nome File", fileSize:"Dimensione", uploadDate:"Data", uploadedBy:"Caricato da",
+    historyModalTitle:"Storico Chat", message:"Messaggio", date:"Data", user:"Utente",
+    sidebarTitle:"Pannello Cloud", management:"Gestione", manageUsers:"Gestione Utenti", manageTeam:"Gestione Team",
+    newsletterSubscribers:"Iscritti Newsletter", newsHistory:"Storico Notizie",
+    cloudStats:"Statistiche Cloud", hubInfo:"Info Hub", info:"Informazioni",
+    version:"Versione:", uptime:"Attivo da:", lastUpdate:"Ultimo aggiornamento:", localTime:"Ora locale:",
+    footerCopyright:"© 2025 Engineering Cloud Hub", footerRights:"Tutti i diritti riservati.",
+    openPanel:"Apri Pannello", assistant:"Assistente"
+  },
+  en: {
+    hubName:"Engineering Cloud Hub", search:"Search", calcTitle:"Calculator", newsTitle:"News",
+    newsTabAll:"All", newsTabTech:"Technology", newsTabEconomy:"Economy", newsLoading:"Loading news...",
+    chatTitle:"AI Assistant", clear:"Clear", chatWelcome:"Hi! I'm the Engineering Cloud Hub assistant. How can I help you today?", send:"Send",
+    userTitle:"User Management", userLoading:"Loading users...",
+    mtbfHours:"Total operating hours", mtbfFailures:"Number of failures", calcMtbfBtn:"Calculate MTBF",
+    subscribersTitle:"Newsletter Subscribers", subscribersLoading:"Loading subscribers...",
+    newsHistoryTitle:"News History", newsHistoryLoading:"Loading history...",
+    teamTitle:"Team", addMember:"Add", teamLoading:"Loading team members...",
+    statsTitle:"Cloud Statistics",
+    dashboardTitle:"Dashboard", dashboardSubtitle:"Select an operation to start",
+    dashExcel:"Excel", dashDoc:"Documents", dashNotes:"Notes", dashArchive:"Archive", dashHistory:"Chat History",
+    excelModalTitle:"Upload Excel", excelFolderLabel:"Folder", branchLabel:"Branch / Job",
+    selectFolder:"Select folder", selectBranch:"Select branch",
+    newFolderName:"New folder name", folderColor:"Color", createFolder:"Create",
+    excelNoteLabel:"Note (optional)", dropExcel:"Drag Excel file here or click to select", uploadExcel:"Upload Excel",
+    docModalTitle:"Upload Document", docFolderLabel:"Folder", docTitleLabel:"Document title",
+    docContentLabel:"Content (optional)", dropDoc:"Drag file here or click to select (PDF, DOC, TXT, DWG, DXF)", uploadDoc:"Upload Document",
+    notesModalTitle:"Quick Notes", newNoteLabel:"New note", addNote:"Add Note",
+    archiveModalTitle:"Archive", allFolders:"All folders",
+    downloadSelected:"Download selected", deleteSelected:"Delete selected",
+    selectAll:"Select all", fileName:"File Name", fileSize:"Size", uploadDate:"Date", uploadedBy:"Uploaded by",
+    historyModalTitle:"Chat History", message:"Message", date:"Date", user:"User",
+    sidebarTitle:"Cloud Panel", management:"Management", manageUsers:"User Management", manageTeam:"Team Management",
+    newsletterSubscribers:"Newsletter Subscribers", newsHistory:"News History",
+    cloudStats:"Cloud Statistics", hubInfo:"Hub Info", info:"Information",
+    version:"Version:", uptime:"Active since:", lastUpdate:"Last update:", localTime:"Local time:",
+    footerCopyright:"© 2025 Engineering Cloud Hub", footerRights:"All rights reserved.",
+    openPanel:"Open Panel", assistant:"Assistant"
+  }
+};

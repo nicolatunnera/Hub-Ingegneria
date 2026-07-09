@@ -1,1142 +1,411 @@
 <!DOCTYPE html>
-<html lang="it" class="theme-light">
+<html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#2563eb">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="manifest" href="manifest.json">
-    <title>Engineering Cloud Hub - V2.5.0</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = { darkMode: 'class' }
-    </script>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: background-color 0.3s, color 0.3s; }
-        html::-webkit-scrollbar { width: 6px; }
-        html::-webkit-scrollbar-track { background: #0f172a; }
-        html::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #3b82f6, #8b5cf6); border-radius: 9999px; border: 1px solid #1e293b; }
-        html::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, #60a5fa, #a78bfa); }
-        .archivio-scroll-container { height: auto !important; max-height: 400px !important; overflow-y: auto !important; }
-        .storico-scroll-container { height: auto !important; max-height: 350px !important; overflow-y: auto !important; }
-        .chat-scroll-container { max-height: 280px !important; overflow-y: auto !important; }
-        .archivio-scroll-container::-webkit-scrollbar, .storico-scroll-container::-webkit-scrollbar, .chat-scroll-container::-webkit-scrollbar,
-        #chat-container::-webkit-scrollbar, #sidebar::-webkit-scrollbar, #newsSidebar::-webkit-scrollbar,
-        #teamMembersContainer::-webkit-scrollbar, #subscribersContainer::-webkit-scrollbar,
-        #newsHistoryContainer::-webkit-scrollbar { width: 4px; }
-        .archivio-scroll-container::-webkit-scrollbar-track, .storico-scroll-container::-webkit-scrollbar-track, .chat-scroll-container::-webkit-scrollbar-track,
-        #chat-container::-webkit-scrollbar-track, #sidebar::-webkit-scrollbar-track, #newsSidebar::-webkit-scrollbar-track { background: transparent; }
-        .archivio-scroll-container::-webkit-scrollbar-thumb, .storico-scroll-container::-webkit-scrollbar-thumb, .chat-scroll-container::-webkit-scrollbar-thumb,
-        #chat-container::-webkit-scrollbar-thumb, #sidebar::-webkit-scrollbar-thumb, #newsSidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 9999px; transition: background 0.2s; }
-        .archivio-scroll-container::-webkit-scrollbar-thumb:hover, .storico-scroll-container::-webkit-scrollbar-thumb:hover, .chat-scroll-container::-webkit-scrollbar-thumb:hover,
-        #sidebar::-webkit-scrollbar-thumb:hover, #newsSidebar::-webkit-scrollbar-thumb:hover { background: #64748b; }
-        .card-collapsible { transition: all 0.25s ease; }
-        .card-collapsible .card-toggle { cursor: pointer; user-select: none; }
-        .card-collapsible .card-body { transition: max-height 0.3s ease, opacity 0.2s ease; overflow: hidden; }
-        .card-collapsible.collapsed .card-body { max-height: 0 !important; opacity: 0; padding-top: 0 !important; padding-bottom: 0 !important; margin-top: 0 !important; }
-        @keyframes clockPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.3); } 50% { box-shadow: 0 0 0 6px rgba(37,99,235,0); } }
-        .folder-icon { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 76px; height: 78px; border-radius: 12px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; background: rgba(255,255,255,0.03); }
-        .folder-icon:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.2); background: rgba(255,255,255,0.08); }
-        .folder-icon.active { border-color: currentColor; background: rgba(255,255,255,0.09); box-shadow: 0 0 0 2px rgba(255,255,255,0.4), 0 6px 18px rgba(0,0,0,0.25); }
-        .folder-icon .fi-emoji { font-size: 28px; line-height: 1; }
-        .folder-icon .fi-name { font-size: 9px; font-weight: 700; text-align: center; line-height: 1.15; word-break: break-word; max-width: 72px; }
-        .folder-icon .fi-count { font-size: 8px; opacity: 0.6; font-weight: 600; }
-        .folder-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; flex-shrink: 0; }
-        #hubInfoTimeDisplay { animation: clockPulse 2s infinite; }
-        .folder-drop-active { outline: 2px dashed currentColor; outline-offset: -2px; opacity: 0.8; }
-        @media (max-width: 640px) {
-            .p-5 { padding: 0.75rem !important; }
-            .px-4 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
-            .py-6 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
-            .gap-6 { gap: 0.75rem !important; }
-            .max-w-7xl { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
-            #chat-expanded { width: calc(100vw - 1rem) !important; right: 0.5rem !important; }
-            #sidebar { width: 100vw !important; }
-            #statsBarTop { display: none !important; }
-            nav .w-2\/4 .text-sm { font-size: 0.75rem !important; }
-            #searchCloud { width: 8rem !important; }
-            #calcModal > div { max-width: calc(100vw - 2rem) !important; margin: 0 1rem; }
-            .card-toggle { flex-wrap: wrap; gap: 0.25rem; }
-        }
-    </style>
-
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Piattaforma cloud ingegneristico per la gestione di documenti tecnici, preventivi, relazioni e certificazioni." />
+  <title>Engineering Cloud Hub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
 </head>
-<body class="bg-slate-50 text-gray-800 dark:bg-slate-950 dark:text-gray-100 min-h-screen relative overflow-x-hidden">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors">
 
-    <div id="loginBlocker" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 max-w-xs w-full text-center">
-            <div class="text-2xl mb-1">🔐</div>
-            <h2 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-3">Accesso Engineering Hub</h2>
-            <div class="space-y-2.5">
-                <input type="text" id="loginUser" data-i18n="loginUser" placeholder="Nome Utente" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium focus:outline-none focus:border-blue-500">
-                <input type="password" id="loginPass" data-i18n="loginPass" placeholder="Password" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium focus:outline-none focus:border-blue-500">
-                <label class="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-gray-400 cursor-pointer select-none">
-                    <input type="checkbox" id="rememberMe" class="rounded border-gray-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer">
-                    <span data-i18n="rememberMe">Ricordami</span>
-                </label>
-                <button onclick="window.verifyHubLogin()" data-i18n="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-xs tracking-wider uppercase transition-colors cursor-pointer">Verifica ed Entra</button>
-            </div>
-            <p id="loginError" data-i18n="loginError" class="text-red-500 text-[11px] font-medium mt-2 hidden">⚠️ Credenziali errate. Riprova.</p>
-        </div>
+  <!-- NAVBAR -->
+  <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow">E</div>
+        <span class="hidden md:block text-sm font-medium tracking-tight whitespace-nowrap">
+          <span class="logo-text" data-i18n="hubName">Engineering Cloud Hub</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500 ml-2 logo-sub">v1.0</span>
+        </span>
+      </div>
+      <div class="flex items-center gap-2 w-2/4 justify-center">
+        <input type="text" id="searchCloud" class="w-full max-w-xs px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" placeholder="Cerca nel cloud..." />
+        <button id="btnSearchCloud" class="px-3 py-1.5 text-xs bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg transition flex items-center gap-1 shadow whitespace-nowrap"><i class="fas fa-search text-[10px]"></i><span class="hidden sm:inline" data-i18n="search">Cerca</span></button>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="toggleCalc" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="Calcolatrice"><i class="fas fa-calculator text-sm"></i></button>
+        <button id="newsBtn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="Notizie"><i class="fas fa-newspaper text-sm"></i></button>
+        <button id="lang-it" onclick="changeLanguage('it')" class="px-2 py-1 rounded-md bg-blue-600 text-white transition-all text-xs font-bold">IT</button>
+        <button id="lang-en" onclick="changeLanguage('en')" class="px-2 py-1 rounded-md text-gray-400 hover:text-white transition-all text-xs font-bold">EN</button>
+        <button id="themeToggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="Tema"><i class="fas fa-moon text-sm"></i></button>
+        <span id="userGreeting" class="text-xs text-gray-400 dark:text-gray-500 hidden md:block px-2"></span>
+      </div>
     </div>
+  </nav>
 
-    <div id="hubMainContent" class="hidden">
-        <nav class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-3 py-2 shadow-md sticky top-0 z-40 dark:from-blue-800 dark:to-blue-950">
-            <div class="max-w-7xl mx-auto flex items-center">
-                <div class="flex items-center gap-1.5 w-1/4">
-                    <button onclick="toggleSidebar()" class="bg-white/15 hover:bg-white/25 text-xs p-1.5 rounded-lg border border-white/20 cursor-pointer transition-colors flex items-center justify-center leading-none" title="Info & Team" style="width:36px;height:36px">
-                        <span style="font-size:18px;line-height:1">📊</span>
-                    </button>
-                    <button onclick="toggleNewsSidebar()" class="bg-white/15 hover:bg-white/25 text-xs p-1.5 rounded-lg border border-white/20 cursor-pointer transition-colors flex items-center justify-center leading-none relative" title="News & Bacheca" style="width:36px;height:36px">
-                        <span style="font-size:18px;line-height:1">📢</span>
-                        <span id="newsBadge" class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[8px] font-bold rounded-full min-w-[12px] h-3.5 flex items-center justify-center px-0.5 hidden">!</span>
-                    </button>
-                    <button onclick="toggleCalcModal()" class="bg-amber-400/80 hover:bg-amber-300 text-slate-900 text-xs p-1.5 rounded-lg cursor-pointer transition-colors flex items-center justify-center leading-none font-bold" title="Calcolatore Peso" style="width:36px;height:36px">
-                        <span style="font-size:18px;line-height:1">🧮</span>
-                    </button>
-                </div>
-                <div class="w-2/4 text-center cursor-pointer select-none" onclick="toggleHubInfo()">
-                    <div class="text-sm font-bold tracking-wide">Engineering Cloud Hub</div>
-                    <div class="text-[9px] text-blue-200 font-mono">v2.5.0</div>
-                </div>
-                <div class="flex items-center gap-2 w-1/4 justify-end">
-                    <span id="statsBarTop" class="text-[10px] text-blue-200 font-mono flex items-center gap-2">
-                        <span>👥 Team: <span id="topStatTeam">0</span></span>
-                        <span>📡 TG: <span id="topStatTelegram">0</span></span>
-                    </span>
-                    <div class="flex bg-white/15 rounded-md p-0.5 border border-white/20 text-[10px] font-bold">
-                        <button onclick="changeLanguage('it')" id="lang-it" class="px-1.5 py-0.5 rounded bg-blue-600 text-white transition-all leading-none">IT</button>
-                        <button onclick="changeLanguage('en')" id="lang-en" class="px-1.5 py-0.5 rounded text-blue-200 hover:text-white transition-all leading-none">EN</button>
-                    </div>
-                    <button onclick="toggleTheme()" class="bg-white/15 hover:bg-white/25 text-xs p-1.5 rounded-lg border border-white/20 cursor-pointer flex items-center justify-center leading-none" title="Tema" style="width:34px;height:34px">
-                        <span id="theme-icon" style="font-size:16px;line-height:1">🌙</span>
-                    </button>
-                </div>
-            </div>
-        </nav>
-
-        <div id="calcModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
-            <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 dark:border-slate-800">
-                <div class="flex justify-between items-center p-4 border-b sticky top-0 bg-white dark:bg-slate-900 z-10 dark:border-slate-800 rounded-t-2xl">
-                    <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                        <span>🧮</span> <span data-i18n="calcTitle">Calcolatore Peso Barre Metalliche</span>
-                    </h3>
-                    <button onclick="toggleCalcModal()" class="text-gray-400 hover:text-red-500 font-bold text-lg cursor-pointer">✕</button>
-                </div>
-                <div class="p-5 space-y-4">
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase text-gray-400 mb-1" data-i18n="calcMat">Materiale</label>
-                        <select id="calcMaterial" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100 font-medium focus:outline-none">
-                            <option value="7.85">Acciaio al Carbonio (7.85 kg/dm³)</option>
-                            <option value="8.00">Acciaio Inox (8.00 kg/dm³)</option>
-                            <option value="2.70">Alluminio (2.70 kg/dm³)</option>
-                            <option value="8.90">Rame (8.90 kg/dm³)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase text-gray-400 mb-1" data-i18n="calcShape">Geometria Sezione</label>
-                        <select id="calcShape" onchange="updateCalcFields()" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs text-gray-800 dark:text-gray-100 font-medium focus:outline-none">
-                            <option value="tondo">Tondo Pieno (Diametro)</option>
-                            <option value="quadro">Quadro Pieno (Lato)</option>
-                            <option value="piatto">Piatto / Rettangolo (Base x Altezza)</option>
-                        </select>
-                    </div>
-                    <div id="calcDimensions" class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label id="labelDim1" class="block text-[11px] font-bold uppercase text-gray-400 mb-1">Diametro (mm)</label>
-                            <input type="number" id="calcDim1" value="20" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100 font-medium">
-                        </div>
-                        <div id="divDim2" class="hidden">
-                            <label class="block text-[11px] font-bold uppercase text-gray-400 mb-1">Altezza (mm)</label>
-                            <input type="number" id="calcDim2" value="10" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100 font-medium">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase text-gray-400 mb-1" data-i18n="calcLen">Lunghezza Totale Barra (mm)</label>
-                        <input type="number" id="calcLength" value="1000" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100 font-medium">
-                    </div>
-                    <button onclick="calculateWeight()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2 rounded-lg text-xs shadow-2xs cursor-pointer">
-                        📊 Esegui Calcolo Massa Lineare
-                    </button>
-                    <div class="p-3 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-xl mt-2 flex justify-between items-center shadow-2xs">
-                        <span class="text-xs font-semibold text-gray-500" data-i18n="calcRes">Massa Totale:</span>
-                        <span id="calcResult" class="text-sm font-bold text-amber-500">0.00 kg</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="hubInfoModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
-            <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full shadow-2xl border border-gray-200 dark:border-slate-800 overflow-hidden">
-                <div class="flex justify-between items-center p-4 border-b dark:border-slate-800">
-                    <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                        <img src="icon-192.png" class="w-6 h-6 rounded-lg" alt="">
-                        Engineering Cloud Hub
-                    </h3>
-                    <button onclick="toggleHubInfo()" class="text-gray-400 hover:text-red-500 font-bold text-lg cursor-pointer">✕</button>
-                </div>
-                <div class="p-6 text-center space-y-5">
-                    <img src="icon-192.png" class="w-20 h-20 mx-auto rounded-2xl shadow-lg ring-2 ring-blue-500/20" alt="">
-                    <div>
-                        <div class="text-lg font-bold text-gray-900 dark:text-white">Engineering Cloud Hub</div>
-                        <div class="text-xs text-blue-500 font-mono mt-1 tracking-wider">v2.5.0</div>
-                    </div>
-                    <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-3.5 shadow-md">
-                        <div class="text-[10px] uppercase tracking-widest opacity-70 font-semibold mb-1">Data e Ora</div>
-                        <div class="text-base font-mono font-bold tracking-wider" id="hubInfoTimeDisplay">—</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="sidebar" class="fixed top-0 left-0 h-full w-80 bg-white dark:bg-slate-900 shadow-2xl border-r border-gray-200 dark:border-slate-800 z-50 transform -translate-x-full transition-transform duration-300 overflow-y-auto">
-            <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-4 text-white">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-base font-bold flex items-center gap-2"><span>📊</span> <span data-i18n="sidebarTitle">Engineering Hub</span></h2>
-                    <button onclick="toggleSidebar()" class="text-white/80 hover:text-white font-bold p-1 text-lg cursor-pointer transition-colors">✕</button>
-                </div>
-                <p class="text-[11px] text-blue-200 mt-0.5" data-i18n="sidebarSubtitle">Team, notifiche e statistiche</p>
-            </div>
-            
-            <div class="p-3 space-y-2.5">
-                <div class="bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/30 dark:to-slate-900 border border-blue-200 dark:border-blue-900/50 rounded-xl p-3 shadow-xs">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center text-[11px]">📡</span>
-                        <h3 class="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider" data-i18n="sidebarTelegram">Telegram</h3>
-                    </div>
-                    <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-2 leading-relaxed" data-i18n="sidebarTelegramDesc">apri il bot, invia un messaggio (es. /start), ottieni il tuo Chat ID da @userinfobot e incollalo qui sotto</p>
-                    <a href="https://t.me/HubEngineerBot" target="_blank" class="block text-center text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 rounded-lg mb-2.5 transition-colors shadow-xs">🤖 @HubEngineerBot</a>
-                    <div class="space-y-1.5">
-                        <input type="text" id="telChatIdInput" placeholder="Chat ID (es. 1234567)" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 dark:text-gray-100 transition-shadow">
-                        <input type="text" id="telNameInput" placeholder="Tuo Nome / Ruolo" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 dark:text-gray-100 transition-shadow">
-                        <div class="flex gap-2">
-                            <button id="btnSubscribeTelegram" data-i18n="sidebarSubscribe" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-1.5 rounded-lg text-xs cursor-pointer transition-colors shadow-xs">Attiva</button>
-                            <button id="btnUnsubscribeTelegram" data-i18n="sidebarUnsubscribe" class="flex-1 bg-gray-200 hover:bg-red-500 hover:text-white text-gray-600 font-semibold py-1.5 rounded-lg text-xs cursor-pointer transition-colors">Disattiva</button>
-                            <button onclick="testTelegramNotification()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 rounded-lg text-[10px] cursor-pointer transition-colors mt-1">🔔 Test Notifica</button>
-                        </div>
-                    </div>
-                    <div id="subscribersContainer" class="mt-2 space-y-1 max-h-28 overflow-y-auto"></div>
-                </div>
-
-                <div class="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-xl p-3 shadow-xs">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center text-[11px]">👥</span>
-                        <h3 class="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider" data-i18n="sidebarRegister">Team</h3>
-                    </div>
-                    <div class="space-y-1.5">
-                        <input type="text" id="regName" data-i18n="sidebarRegName" placeholder="Il tuo Nome" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 dark:text-gray-100 transition-shadow">
-                        <input type="text" id="regContact" data-i18n="sidebarRegContact" placeholder="Contatto / Email" class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 dark:text-gray-100 transition-shadow">
-                        <button id="btnRegister" data-i18n="sidebarRegBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 rounded-lg text-xs cursor-pointer transition-colors shadow-xs">Entra nel team</button>
-                    </div>
-                    <div id="teamMembersContainer" class="mt-2 space-y-1 max-h-32 overflow-y-auto"></div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-1.5">
-                    <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-xl p-2.5 text-center">
-                        <div class="text-lg font-bold text-emerald-700 dark:text-emerald-400 font-mono" id="statExcel">0</div>
-                        <div class="text-[9px] text-emerald-600 dark:text-emerald-500 font-semibold uppercase tracking-wider" data-i18n="sidebarExcelStat">Excel</div>
-                    </div>
-                    <div class="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 rounded-xl p-2.5 text-center">
-                        <div class="text-lg font-bold text-blue-700 dark:text-blue-400 font-mono" id="statDocs">0</div>
-                        <div class="text-[9px] text-blue-600 dark:text-blue-500 font-semibold uppercase tracking-wider" data-i18n="sidebarDocStat">Docs</div>
-                    </div>
-                    <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-xl p-2.5 text-center">
-                        <div class="text-lg font-bold text-amber-700 dark:text-amber-400 font-mono" id="statNotes">0</div>
-                        <div class="text-[9px] text-amber-600 dark:text-amber-500 font-semibold uppercase tracking-wider" data-i18n="sidebarNotesStat">Note</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="newsModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
-            <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full shadow-2xl border border-gray-200 dark:border-slate-800 max-h-[80vh] flex flex-col">
-                <div class="flex justify-between items-center p-4 border-b sticky top-0 bg-white dark:bg-slate-900 z-10 dark:border-slate-800 rounded-t-2xl">
-                    <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                        <span>📢</span> <span data-i18n="newsTitle">News & Bacheca</span>
-                    </h2>
-                    <button onclick="toggleNewsSidebar()" class="text-gray-400 hover:text-red-500 font-bold text-lg cursor-pointer">✕</button>
-                </div>
-                <div class="p-4 overflow-y-auto flex-1 space-y-4">
-                    <div class="p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 rounded-xl shadow-xs">
-                        <textarea id="newsContent" rows="3" data-i18n="newsPlaceholder" placeholder="Scrivi un update logistico o di bacheca..." class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none focus:border-purple-500 text-gray-800 dark:text-gray-100 resize-none"></textarea>
-                        <button id="btnSendNews" data-i18n="newsBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg text-xs mt-2 transition-colors cursor-pointer">Invia News</button>
-                    </div>
-                    <div id="newsHistoryContainer" class="space-y-3"></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="folderManagerModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
-            <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-sm w-full shadow-2xl border border-gray-200 dark:border-slate-800 overflow-hidden">
-                <div class="flex justify-between items-center p-4 border-b dark:border-slate-800">
-                    <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2"><span>📁</span> Gestione Cartelle</h3>
-                    <button onclick="toggleFolderManager()" class="text-gray-400 hover:text-red-500 font-bold text-lg cursor-pointer">✕</button>
-                </div>
-                <div class="p-4 space-y-4">
-                    <div class="flex gap-2">
-                        <input type="text" id="newFolderName" placeholder="Nome cartella..." class="flex-1 bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100">
-                        <input type="color" id="newFolderColor" value="#3b82f6" class="w-9 h-9 rounded-lg cursor-pointer border border-gray-300 dark:border-slate-700 p-0.5">
-                        <button onclick="addNewFolder()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 rounded-lg text-xs cursor-pointer">+</button>
-                    </div>
-                    <div id="folderList" class="space-y-2 max-h-60 overflow-y-auto"></div>
-                </div>
-            </div>
-        </div>
-
-        <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
-            <div class="space-y-6 lg:col-span-1">
-                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs card-collapsible collapsed">
-                    <div class="card-toggle flex items-center justify-between" onclick="toggleCard(this)">
-                        <h2 class="text-lg font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
-                            <span>⚙️</span> <span data-i18n="titleExcel">File Excel Calcoli</span>
-                        </h2>
-                        <span class="card-icon text-emerald-500 text-sm font-bold">➕</span>
-                    </div>
-                    <div class="card-body space-y-3 mt-3">
-                        <select id="excelFolder" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none" onchange="toggleNewFolderForm(this,'excelNewFolderForm')"></select>
-                        <div id="excelNewFolderForm" class="hidden flex gap-2 items-center">
-                            <input type="text" id="excelNewFolderName" placeholder="Nome cartella..." class="flex-1 bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100">
-                            <input type="color" id="excelNewFolderColor" value="#3b82f6" class="w-8 h-8 rounded cursor-pointer border border-gray-300 dark:border-slate-700 p-0.5">
-                            <button onclick="quickCreateFolder('excelFolder','excelNewFolderName','excelNewFolderColor')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs cursor-pointer">+</button>
-                        </div>
-                        <select id="excelBranch" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
-                            <option value="Meccanica">⚙️ Meccanica</option>
-                            <option value="Termodinamica">🔥 Termodinamica</option>
-                            <option value="Idraulica">💧 Idraulica</option>
-                        </select>
-                        <input type="text" id="excelNote" data-i18n="excelPlaceholder" placeholder="es. Calcolo fatica albero AISI 304" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none">
-                        <div id="dropzoneExcel" class="border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-emerald-500 bg-gray-50/50 dark:bg-slate-800/50 rounded-lg p-4 text-center cursor-pointer">
-                            <input type="file" id="excelFile" accept=".xlsx, .xls" class="hidden">
-                            <div class="text-2xl mb-1">📂</div>
-                            <p id="textDropExcel" class="text-xs text-gray-600 dark:text-gray-400" data-i18n="dropExcel">Trascina qui il file Excel o clicca</p>
-                        </div>
-                        <button id="btnUploadExcel" data-i18n="excelBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-sm cursor-pointer">Carica nel Cloud</button>
-                    </div>
-                </div>
-
-                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs card-collapsible collapsed">
-                    <div class="card-toggle flex items-center justify-between" onclick="toggleCard(this)">
-                        <h2 class="text-lg font-bold text-blue-700 dark:text-blue-400 flex items-center gap-2">
-                            <span>📝</span> <span data-i18n="titleDocs">Documenti e Report</span>
-                        </h2>
-                        <span class="card-icon text-blue-500 text-sm font-bold">➕</span>
-                    </div>
-                    <div class="card-body space-y-3 mt-3">
-                        <select id="docFolder" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none" onchange="toggleNewFolderForm(this,'docNewFolderForm')"></select>
-                        <div id="docNewFolderForm" class="hidden flex gap-2 items-center">
-                            <input type="text" id="docNewFolderName" placeholder="Nome cartella..." class="flex-1 bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none text-gray-800 dark:text-gray-100">
-                            <input type="color" id="docNewFolderColor" value="#3b82f6" class="w-8 h-8 rounded cursor-pointer border border-gray-300 dark:border-slate-700 p-0.5">
-                            <button onclick="quickCreateFolder('docFolder','docNewFolderName','docNewFolderColor')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs cursor-pointer">+</button>
-                        </div>
-                        <input type="text" id="textTitle" data-i18n="docPlaceholder" placeholder="es. Specifica tecnica carter" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm focus:outline-none">
-                        <div id="dropzoneDoc" class="border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-blue-500 bg-gray-50/50 dark:bg-slate-800/50 rounded-lg p-4 text-center cursor-pointer mb-2">
-                            <input type="file" id="docFile" accept=".txt, .pdf, .docx" class="hidden">
-                            <div class="text-2xl mb-1">📄</div>
-                            <p id="textDropDoc" class="text-xs text-gray-600 dark:text-gray-400" data-i18n="dropDoc">Trascina qui il documento o clicca</p>
-                        </div>
-                        <textarea id="textContentBody" rows="3" data-i18n="docBodyPlaceholder" placeholder="Contenuto esteso del report (opzionale per interrogazione RAG)..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs focus:outline-none resize-none"></textarea>
-                        <button id="btnUploadDoc" data-i18n="docBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-sm cursor-pointer">Salva Documento</button>
-                    </div>
-                </div>
-
-                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs card-collapsible collapsed">
-                    <div class="card-toggle flex items-center justify-between" onclick="toggleCard(this)">
-                        <h2 class="text-lg font-bold text-amber-700 dark:text-amber-400 flex items-center gap-2">
-                            <span>📌</span> <span data-i18n="notesTitle">Note Rapide Condivise</span>
-                        </h2>
-                        <span class="card-icon text-amber-500 text-sm font-bold">➕</span>
-                    </div>
-                    <div class="card-body space-y-3 mt-3">
-                        <textarea id="newNoteContent" rows="2" data-i18n="notesPlaceholder" placeholder="Nota logistica o tecnica veloce..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none resize-none"></textarea>
-                        <button id="btnUploadNote" data-i18n="notesBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-lg text-sm cursor-pointer">Aggiungi Nota</button>
-                        <div id="notesContainer" class="space-y-2 max-h-48 overflow-y-auto pt-2 border-t border-gray-200 dark:border-slate-800"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs card-collapsible collapsed">
-                    <div class="card-toggle flex items-center justify-between" onclick="toggleCard(this)">
-                        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                            <span>📁</span> <span data-i18n="archiveTitle">Archivio Cloud Attivo</span>
-                        </h2>
-                        <div class="flex items-center gap-1.5 flex-wrap justify-end">
-                            <button onclick="toggleFolderManager()" class="bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/40 dark:hover:bg-indigo-800/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold px-2 py-1.5 rounded-lg cursor-pointer transition-colors" title="Gestisci cartelle">📂</button>
-                             <div class="flex items-center gap-1.5">
-                                 <select id="folderFilter" class="bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-[10px] rounded-lg px-2 py-1.5 focus:outline-none text-gray-700 dark:text-gray-200 max-w-[120px]" onchange="combineAndRenderArchive()" onclick="event.stopPropagation()"><option value="">📁 Tutte</option></select>
-                                 <input type="text" id="searchCloud" data-i18n="archiveSearch" placeholder="Cerca..." class="bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-xs rounded-lg px-2 py-1.5 focus:outline-none text-gray-800 dark:text-gray-100 w-24 sm:w-28" onclick="event.stopPropagation()">
-                             </div>
-                             <div id="bulkActions" class="flex gap-1 hidden" onclick="event.stopPropagation()">
-                                <button id="downloadSelectedArchive" class="bg-blue-600 hover:bg-blue-700 text-white w-7 h-7 rounded-lg text-xs cursor-pointer transition-colors flex items-center justify-center" title="Scarica selezionati">📥</button>
-                                <button id="deleteSelectedArchive" class="bg-red-600 hover:bg-red-700 text-white w-7 h-7 rounded-lg text-xs cursor-pointer transition-colors flex items-center justify-center" title="Elimina selezionati">🗑️</button>
-                            </div>
-                            <span class="card-icon text-gray-500 text-sm font-bold">➕</span>
-                        </div>
-                    </div>
-                    <div class="card-body mt-3">
-                    <div id="folderIconsBar" class="flex flex-wrap gap-3 mb-3"></div>
-                    <div class="overflow-x-auto archivio-scroll-container">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead>
-                                <tr class="border-b border-gray-200 dark:border-slate-700 text-gray-500 text-xs font-bold uppercase bg-gray-50/70 dark:bg-slate-800/50">
-                                    <th class="p-3 text-center w-8"><input type="checkbox" id="selectAllArchive" class="cursor-pointer"></th>
-                                    <th class="p-3" data-i18n="thName">Nome Elemento</th>
-                                    <th class="p-3" data-i18n="thType">Formato / Tipo</th>
-                                    <th class="p-3">Cartella</th>
-                                    <th class="p-3">Note / Anteprima</th>
-                                    <th class="p-3 text-center" data-i18n="thActions">Azioni</th>
-                                </tr>
-                            </thead>
-                            <tbody id="archiveTableBody" class="divide-y divide-gray-100 dark:divide-slate-800"></tbody>
-                        </table>
-                    </div>
-                </div>
-                </div>
-
-                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-xs card-collapsible collapsed">
-                    <div class="card-toggle flex items-center justify-between" onclick="toggleCard(this)">
-                        <h2 class="text-lg font-bold text-purple-800 dark:text-purple-400 flex items-center gap-2">
-                            <span>⏱️</span> <span data-i18n="historyTitle">Registro Storico Attività</span>
-                        </h2>
-                        <span class="card-icon text-purple-500 text-sm font-bold">➕</span>
-                    </div>
-                    <div class="card-body mt-3"><div class="overflow-x-auto storico-scroll-container border border-gray-100 dark:border-slate-800 rounded-lg">
-                        <table class="w-full text-left border-collapse text-xs text-gray-700 dark:text-gray-300">
-                            <thead>
-                                    <tr class="border-b border-gray-200 dark:border-slate-700 text-gray-500 font-bold uppercase bg-gray-50 dark:bg-slate-800 sticky top-0">
-                                        <th class="p-2.5 text-center w-8"><input type="checkbox" id="selectAllHistory" class="cursor-pointer"></th>
-                                        <th class="p-2.5" data-i18n="thDate">Data / Ora</th>
-                                        <th class="p-2.5" data-i18n="thFile">Nome File / Oggetto</th>
-                                        <th class="p-2.5" data-i18n="thOp">Operazione Svolta</th>
-                                        <th class="p-2.5 text-center" data-i18n="thClean">Ripulitura</th>
-                                    </tr>
-                            </thead>
-                            <tbody id="historyTableBody" class="divide-y divide-gray-100 dark:divide-slate-800 bg-white dark:bg-slate-900"></tbody>
-                        </table>
-                    </div>
-                </div>
-                </div>
-            </div>
-        </main>
-
-        <div id="ai-chat-widget" class="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-0">
-            <div id="chat-expanded" class="w-96 bg-slate-900 text-slate-100 rounded-xl shadow-2xl border border-slate-800 overflow-hidden flex flex-col transition-all duration-300 hidden">
-                <div onclick="toggleChatCollapse()" class="bg-slate-950 p-3 flex justify-between items-center cursor-pointer border-b border-slate-800 select-none">
-                    <div class="flex items-center space-x-2">
-                        <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
-                            <span class="font-bold text-xs tracking-wide text-white">Assistente IA <span class="text-[10px] text-emerald-400 font-mono">v2.5.0</span></span>
-
-                    </div>
-                    <button id="collapse-chat-btn" class="text-gray-400 hover:text-white font-bold text-xs">➖</button>
-                </div>
-                <div id="chat-body" class="flex flex-col flex-grow">
-                    <div id="chat-container" class="h-[260px] overflow-y-auto flex flex-col p-4 bg-slate-950 gap-3 text-xs leading-relaxed chat-scroll-container">
-                        <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">
-                            🤖 Ciao! Sono il tuo assistente. Chiedimi documenti, file Excel, note o altro.
-                        </div>
-                    </div>
-                    <div class="border-t border-slate-800 p-3 bg-slate-900 space-y-2">
-                        <div class="flex gap-2">
-                            <input type="text" id="aiInput" placeholder="Interroga l'archivio dei file..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
-                            <button id="aiSendBtn" onclick="window.askAI()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 rounded-lg text-xs transition-colors cursor-pointer">Invia</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <button id="chat-fab" onclick="toggleChatCollapse()" class="w-14 h-14 bg-slate-900 hover:bg-slate-800 rounded-full shadow-2xl border border-slate-700 flex items-center justify-center text-2xl cursor-pointer transition-all duration-300">🤖</button>
-        </div>
+  <!-- CALC MODAL -->
+  <div id="calcModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeCalc()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-5 w-full max-w-sm mx-4">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-base font-bold"><i class="fas fa-calculator mr-2 text-blue-500"></i><span data-i18n="calcTitle">Calcolatrice</span></h2>
+        <button onclick="closeCalc()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mb-3 text-right text-2xl font-mono font-bold" id="calcDisplay">0</div>
+      <div class="grid grid-cols-4 gap-2">
+        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="7">7</button>
+        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="8">8</button>
+        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="9">9</button>
+        <button class="calc-btn p-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold transition" data-v="/"><i class="fas fa-divide text-sm"></i></button>
+        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="4">4</button>
+        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="5">5</button>
+        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="6">6</button>
+        <button class="calc-btn p-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold transition" data-v="*"><i class="fas fa-times text-sm"></i></button>
+        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="1">1</button>
+        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="2">2</button>
+        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="3">3</button>
+        <button class="calc-btn p-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold transition" data-v="-"><i class="fas fa-minus text-sm"></i></button>
+        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="0">0</button>
+        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v=".">.</button>
+        <button id="calcEqual" class="p-3 rounded-lg bg-green-500 hover:bg-green-600 text-white font-bold transition">=</button>
+        <button class="calc-btn p-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold transition" data-v="+"><i class="fas fa-plus text-sm"></i></button>
+        <button id="calcClear" class="p-3 rounded-lg bg-red-500 hover:bg-red-600 text-white font-bold transition col-span-2">C</button>
+        <button id="calcBackspace" class="p-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-bold transition col-span-2"><i class="fas fa-delete-left"></i></button>
+      </div>
     </div>
+  </div>
 
-    <script>
-        function toggleCalcModal() { document.getElementById('calcModal')?.classList.toggle('hidden'); }
-        function toggleHubInfo() {
-            document.getElementById('hubInfoModal')?.classList.toggle('hidden');
-            if (!document.getElementById('hubInfoModal')?.classList.contains('hidden')) updateHubInfoClock();
-        }
-        function updateHubInfoClock() {
-            const el = document.getElementById('hubInfoTimeDisplay');
-            const modal = document.getElementById('hubInfoModal');
-            if (!el || !modal || modal.classList.contains('hidden')) return;
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            const timeStr = now.toLocaleTimeString('it-IT');
-            el.textContent = `${dateStr} — ${timeStr}`;
-            setTimeout(updateHubInfoClock, 1000);
-        }
-        function updateCalcFields() {
-            const shape = document.getElementById('calcShape').value;
-            const labelDim1 = document.getElementById('labelDim1');
-            const divDim2 = document.getElementById('divDim2');
-            if (shape === 'tondo') { labelDim1.textContent = "Diametro (mm)"; divDim2.classList.add('hidden'); }
-            else if (shape === 'quadro') { labelDim1.textContent = "Lato (mm)"; divDim2.classList.add('hidden'); }
-            else if (shape === 'piatto') { labelDim1.textContent = "Base (mm)"; divDim2.classList.remove('hidden'); }
-        }
-        function calculateWeight() {
-            const density = parseFloat(document.getElementById('calcMaterial').value);
-            const shape = document.getElementById('calcShape').value;
-            const dim1 = parseFloat(document.getElementById('calcDim1').value) || 0;
-            const dim2 = parseFloat(document.getElementById('calcDim2').value) || 0;
-            const length = parseFloat(document.getElementById('calcLength').value) || 0;
-            let volume = 0;
-            if (shape === 'tondo') { volume = Math.PI * Math.pow(dim1 / 2, 2) * length; }
-            else if (shape === 'quadro') { volume = Math.pow(dim1, 2) * length; }
-            else if (shape === 'piatto') { volume = dim1 * dim2 * length; }
-            document.getElementById('calcResult').textContent = ((volume / 1000000) * density).toFixed(2) + " kg";
-        }
-        window.verifyHubLogin = () => {
-            if (document.getElementById('loginUser').value.trim() === 'Ing' && document.getElementById('loginPass').value.trim() === 'Ing') {
-                if (document.getElementById('rememberMe')?.checked) {
-                    localStorage.setItem('hub-user', document.getElementById('loginUser').value.trim());
-                    localStorage.setItem('hub-pass', document.getElementById('loginPass').value.trim());
-                } else {
-                    localStorage.removeItem('hub-user');
-                    localStorage.removeItem('hub-pass');
-                }
-                document.getElementById('loginBlocker').remove();
-                document.getElementById('hubMainContent').classList.remove('hidden');
-            } else { document.getElementById('loginError').classList.remove('hidden'); }
-        }
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedUser = localStorage.getItem('hub-user');
-            const savedPass = localStorage.getItem('hub-pass');
-            if (savedUser && savedPass) {
-                document.getElementById('loginUser').value = savedUser;
-                document.getElementById('loginPass').value = savedPass;
-                document.getElementById('rememberMe').checked = true;
-                window.verifyHubLogin();
-            }
-            document.getElementById('loginUser')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.verifyHubLogin(); });
-            document.getElementById('loginPass')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.verifyHubLogin(); });
-        });
-        let isChatCollapsed = true;
-        function toggleChatCollapse() {
-            isChatCollapsed = !isChatCollapsed;
-            document.getElementById('chat-expanded').classList.toggle('hidden', isChatCollapsed);
-            document.getElementById('chat-fab').classList.toggle('hidden', !isChatCollapsed);
-        }
-        function toggleCard(el) {
-            const card = el.closest('.card-collapsible');
-            const wasCollapsed = card.classList.contains('collapsed');
-            card.classList.toggle('collapsed');
-            el.querySelector('.card-icon').textContent = wasCollapsed ? '➖' : '➕';
-            if (wasCollapsed && card.querySelector('#folderIconsBar')) combineAndRenderArchive();
-        }
-    </script>
+  <!-- NEWS MODAL -->
+  <div id="newsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeNews()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex items-center gap-3">
+          <h2 class="text-base font-bold"><i class="fas fa-newspaper mr-2 text-blue-500"></i><span data-i18n="newsTitle">Notizie</span></h2>
+          <div class="flex gap-1">
+            <button data-i18n="newsTabAll" class="news-tab text-xs px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium" data-cat="all">Tutte</button>
+            <button data-i18n="newsTabTech" class="news-tab text-xs px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400" data-cat="tecnologia">Tecnologia</button>
+            <button data-i18n="newsTabEconomy" class="news-tab text-xs px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400" data-cat="economia">Economia</button>
+          </div>
+        </div>
+        <button onclick="closeNews()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-4" id="newsContainer"><p class="text-xs text-gray-400 text-center py-8" data-i18n="newsLoading">Caricamento notizie...</p></div>
+    </div>
+  </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  <!-- SIDEBAR CHAT MODAL -->
+  <div id="chatModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeChat()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-robot mr-2 text-blue-500"></i><span data-i18n="chatTitle">Assistente AI</span></h2>
+        <div class="flex items-center gap-2">
+          <button id="clearChat" class="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded hover:bg-red-200 dark:hover:bg-red-900/50 transition"><i class="fas fa-trash-alt mr-1"></i><span data-i18n="clear">Pulisci</span></button>
+          <button onclick="closeChat()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+        </div>
+      </div>
+      <div class="chat-scroll-container flex-1 overflow-y-auto p-4 space-y-3" id="chatContainer">
+        <div class="flex items-start gap-2 fade-in">
+          <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs flex-shrink-0 mt-1">AI</div>
+          <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 text-xs max-w-[85%]"><p data-i18n="chatWelcome">Ciao! Sono l'assistente dell'Engineering Cloud Hub. Come posso aiutarti oggi?</p></div>
+        </div>
+      </div>
+      <div class="p-3 border-t border-gray-200 dark:border-gray-700 flex gap-2">
+        <input type="text" id="chatInput" class="flex-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" placeholder="Scrivi un messaggio..." />
+        <button id="sendChat" class="px-4 py-2 text-xs bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg transition flex items-center gap-1 shadow"><i class="fas fa-paper-plane text-[10px]"></i><span data-i18n="send">Invia</span></button>
+      </div>
+    </div>
+  </div>
 
-        // IMPOSTAZIONE TOKEN TELEGRAM
-        const TELEGRAM_BOT_TOKEN = localStorage.getItem('TELEGRAM_BOT_TOKEN') || "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
+  <!-- USER MODAL -->
+  <div id="userModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeUserModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-user-circle mr-2 text-blue-500"></i><span data-i18n="userTitle">Gestione Utenti</span></h2>
+        <button onclick="closeUserModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 flex-1 overflow-y-auto" id="userContainer">
+        <p class="text-xs text-gray-400" data-i18n="userLoading">Caricamento utenti...</p>
+      </div>
+    </div>
+  </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM",
-            authDomain: "hub-ingegneria.firebaseapp.com",
-            projectId: "hub-ingegneria",
-            storageBucket: "hub-ingegneria.firebasestorage.app",
-            messagingSenderId: "58933321877",
-            appId: "1:58933321877:web:1e3f4630edc9f192865077"
-        };
+  <!-- MTBF MODAL -->
+  <div id="mtbfModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeMtbfModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-5 w-full max-w-sm mx-4">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-base font-bold"><i class="fas fa-chart-line mr-2 text-blue-500"></i>MTBF</h2>
+        <button onclick="closeMtbfModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="space-y-3">
+        <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="mtbfHours">Ore di funzionamento totali</label><input type="number" id="mtbfHours" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" placeholder="es. 10000" /></div>
+        <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="mtbfFailures">Numero guasti</label><input type="number" id="mtbfFailures" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" placeholder="es. 5" /></div>
+        <button id="calcMtbf" class="w-full py-2 text-sm bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg transition shadow"><i class="fas fa-calculator mr-1"></i><span data-i18n="calcMtbfBtn">Calcola MTBF</span></button>
+        <div id="mtbfResult" class="text-center text-sm font-bold text-blue-600 dark:text-blue-400 pt-2 hidden"></div>
+      </div>
+    </div>
+  </div>
 
-        const db = getFirestore(initializeApp(firebaseConfig));
+  <!-- SUBSCRIBERS MODAL -->
+  <div id="subscribersModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeSubscribersModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-users mr-2 text-blue-500"></i><span data-i18n="subscribersTitle">Iscritti Newsletter</span></h2>
+        <button onclick="closeSubscribersModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 flex-1 overflow-y-auto" id="subscribersContainer">
+        <p class="text-xs text-gray-400" data-i18n="subscribersLoading">Caricamento iscritti...</p>
+      </div>
+    </div>
+  </div>
 
-        window.toggleSidebar = () => { document.getElementById('sidebar')?.classList.toggle('-translate-x-full'); };
-        window.toggleNewsSidebar = () => { document.getElementById('newsModal')?.classList.toggle('hidden'); };
-        window.toggleTheme = () => { document.documentElement.classList.toggle('dark'); };
+  <!-- NEWS HISTORY MODAL -->
+  <div id="newsHistoryModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeNewsHistoryModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-history mr-2 text-blue-500"></i><span data-i18n="newsHistoryTitle">Storico Notizie</span></h2>
+        <button onclick="closeNewsHistoryModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 flex-1 overflow-y-auto" id="newsHistoryContainer">
+        <p class="text-xs text-gray-400" data-i18n="newsHistoryLoading">Caricamento storico...</p>
+      </div>
+    </div>
+  </div>
 
-        // Dizionario traduzioni
-        const i18n = {
-            it: { navTeam: "Info & Team", navNews: "News & Bacheca", navCalc: "Calcolatore Peso", cloudSync: "Cloud Sincronizzato", titleExcel: "File Excel Calcoli", dropExcel: "Trascina qui il file Excel o clicca", titleDocs: "Documenti e Report", dropDoc: "Trascina qui il documento o clicca", archiveTitle: "Archivio Cloud Attivo", historyTitle: "Registro Storico Attività", calcTitle: "Calcolatore Peso Barre Metalliche", calcMat: "Materiale", calcShape: "Geometria Sezione", calcLen: "Lunghezza Totale Barra (mm)", calcRes: "Massa Totale:", sidebarTitle: "Engineering Hub", sidebarSubtitle: "Team, notifiche e statistiche", sidebarTelegram: "Telegram", sidebarTelegramDesc: "apri il bot, invia /start, poi ottieni il Chat ID da @userinfobot e incollalo qui sotto", sidebarTelegramBtn: "@HubEngineerBot", sidebarSubscribe: "Attiva", sidebarUnsubscribe: "Disattiva", sidebarRegister: "Team", sidebarRegName: "Il tuo Nome", sidebarRegContact: "Contatto / Email", sidebarRegBtn: "Entra nel team", sidebarExcelStat: "Excel", sidebarDocStat: "Docs", sidebarNotesStat: "Note", notesTitle: "Note Rapide Condivise", notesPlaceholder: "Nota logistica o tecnica veloce...", notesBtn: "Aggiungi Nota", excelPlaceholder: "es. Calcolo fatica albero AISI 304", excelBtn: "Carica nel Cloud", docPlaceholder: "es. Specifica tecnica carter", docBodyPlaceholder: "Contenuto esteso del report (opzionale per interrogazione RAG)...", docBtn: "Salva Documento", newsTitle: "News & Bacheca", newsPlaceholder: "Scrivi un update logistico o di bacheca...", newsBtn: "Invia News", archiveSearch: "Cerca nei file...", archiveDesc: "Documenti e file Excel caricati nel cloud. Seleziona elementi per azioni bulk.", loginUser: "Nome Utente", loginPass: "Password", loginBtn: "Verifica ed Entra", loginError: "Credenziali errate. Riprova.", rememberMe: "Ricordami", thName: "Nome Elemento", thType: "Formato / Tipo", thActions: "Azioni", thDate: "Data / Ora", thFile: "Nome File / Oggetto", thOp: "Operazione Svolta", thClean: "Ripulitura" },
-            en: { navTeam: "Info & Team", navNews: "News & Bulletin", navCalc: "Weight Calc", cloudSync: "Cloud Synced", titleExcel: "Calculations Excel Files", dropExcel: "Drag Excel file here or click", titleDocs: "Documents & Reports", dropDoc: "Drag document here or click", archiveTitle: "Active Cloud Archive", historyTitle: "Activity Log History", calcTitle: "Metal Bars Weight Calculator", calcMat: "Material", calcShape: "Section Geometry", calcLen: "Total Bar Length (mm)", calcRes: "Total Mass:", sidebarTitle: "Engineering Hub", sidebarSubtitle: "Team, notifications & stats", sidebarTelegram: "Telegram", sidebarTelegramDesc: "open the bot, send /start, then get your Chat ID from @userinfobot and paste it below", sidebarTelegramBtn: "@HubEngineerBot", sidebarSubscribe: "Activate", sidebarUnsubscribe: "Deactivate", sidebarRegister: "Team", sidebarRegName: "Your Name", sidebarRegContact: "Contact / Email", sidebarRegBtn: "Join the team", sidebarExcelStat: "Excel", sidebarDocStat: "Docs", sidebarNotesStat: "Notes", notesTitle: "Shared Quick Notes", notesPlaceholder: "Quick logistic or technical note...", notesBtn: "Add Note", excelPlaceholder: "e.g. Fatigue calc AISI 304 shaft", excelBtn: "Upload to Cloud", docPlaceholder: "e.g. Technical spec housing", docBodyPlaceholder: "Extended report content (optional for RAG query)...", docBtn: "Save Document", newsTitle: "News & Bulletin", newsPlaceholder: "Write a logistics or bulletin update...", newsBtn: "Send News", archiveSearch: "Search files...", archiveDesc: "Documents and Excel files uploaded to the cloud. Select items for bulk actions.", loginUser: "Username", loginPass: "Password", loginBtn: "Verify & Enter", loginError: "Wrong credentials. Try again.", rememberMe: "Remember me", thName: "Element Name", thType: "Format / Type", thActions: "Actions", thDate: "Date / Time", thFile: "File Name / Object", thOp: "Operation", thClean: "Cleanup" }
-        };
-        window.changeLanguage = (lang) => {
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if(i18n[lang][key]) {
-                    if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = i18n[lang][key];
-                    else el.textContent = i18n[lang][key];
-                }
-            });
-            document.getElementById('lang-it').className = lang === 'it' ? "px-2 py-1 rounded-md bg-blue-600 text-white transition-all" : "px-2 py-1 rounded-md text-gray-400 hover:text-white transition-all";
-            document.getElementById('lang-en').className = lang === 'en' ? "px-2 py-1 rounded-md bg-blue-600 text-white transition-all" : "px-2 py-1 rounded-md text-gray-400 hover:text-white transition-all";
-        };
-        function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
+  <!-- TEAM MODAL -->
+  <div id="teamModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeTeamModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex items-center gap-2">
+          <h2 class="text-base font-bold"><i class="fas fa-users-cog mr-2 text-blue-500"></i><span data-i18n="teamTitle">Team</span></h2>
+          <button id="btnAddMember" class="px-2 py-1 text-xs bg-green-500 hover:bg-green-600 text-white rounded transition shadow-sm"><i class="fas fa-plus mr-1"></i><span data-i18n="addMember">Aggiungi</span></button>
+        </div>
+        <button onclick="closeTeamModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 flex-1 overflow-y-auto" id="teamMembersContainer">
+        <p class="text-xs text-gray-400" data-i18n="teamLoading">Caricamento membri team...</p>
+      </div>
+    </div>
+  </div>
 
-        // UTILITÀ: LEGGE FILE COME BASE64 (per upload reali)
-        function readFileAsBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = () => reject(reader.error);
-                reader.readAsDataURL(file);
-            });
-        }
+  <!-- STATS MODAL -->
+  <div id="statsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeStatsModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-chart-bar mr-2 text-blue-500"></i><span data-i18n="statsTitle">Statistiche Cloud</span></h2>
+        <button onclick="closeStatsModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 flex-1 overflow-y-auto">
+        <div class="grid grid-cols-2 gap-3" id="statsGrid"></div>
+      </div>
+    </div>
+  </div>
 
-        // DRAG & DROP GESTORI GRAFICI
-        const setupDropzone = (zoneId, inputId, textId, defaultText) => {
-            const zone = document.getElementById(zoneId); const input = document.getElementById(inputId);
-            if(!zone || !input) return;
-            zone.onclick = () => input.click();
-            zone.ondragover = (e) => { e.preventDefault(); zone.classList.add('border-blue-500', 'bg-blue-50/10'); };
-            zone.ondragleave = () => { zone.classList.remove('border-blue-500', 'bg-blue-50/10'); };
-            zone.ondrop = (e) => { e.preventDefault(); zone.classList.remove('border-blue-500', 'bg-blue-50/10'); if(e.dataTransfer.files.length) { input.files = e.dataTransfer.files; document.getElementById(textId).textContent = e.dataTransfer.files[0].name; } };
-            input.onchange = () => { if(input.files.length) document.getElementById(textId).textContent = input.files[0].name; };
-        };
-        setupDropzone('dropzoneExcel', 'excelFile', 'textDropExcel', 'Trascina qui il file Excel o clicca');
-        setupDropzone('dropzoneDoc', 'docFile', 'textDropDoc', 'Trascina qui il documento o clicca');
+  <!-- ===== NEW FEATURE MODALS ===== -->
 
-        // BROADCAST NOTIFICHE FAN-OUT TELEGRAM SU SUB CHANNELS
-        function escapeMarkdown(text) {
-            return text.replace(/[_*`\[]/g, '\\$&');
-        }
-        async function sendTelegramBroadcast(text) {
-            if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN.startsWith("IL_TUO")) return;
-            try {
-                const snap = await getDocs(collection(db, "subscribers"));
-                const results = [];
-                snap.forEach(uDoc => {
-                    if(uDoc.data().chatId) {
-                        results.push(
-                            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ chat_id: uDoc.data().chatId, text, parse_mode: "Markdown" })
-                            }).catch(e => console.error("Errore invio a", uDoc.data().chatId, e))
-                        );
-                    }
-                });
-                await Promise.all(results);
-            } catch (e) { console.error("Errore notifica Telegram:", e); }
-        }
+  <!-- EXCEL MODAL -->
+  <div id="excelModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleExcelModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-file-excel mr-2 text-green-500"></i><span data-i18n="excelModalTitle">Carica Excel</span></h2>
+        <button onclick="toggleExcelModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 modal-scroll-body">
+        <div class="grid md:grid-cols-2 gap-4 mb-4">
+          <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="excelFolderLabel">Cartella</label><select id="excelFolder" onchange="toggleNewFolderForm(this,'excelNewFolderForm')" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="" data-i18n="selectFolder">Seleziona cartella</option></select></div>
+          <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="branchLabel">Branch / Commessa</label><select id="excelBranch" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="" data-i18n="selectBranch">Seleziona branch</option><option value="Meccanica">⚙️ Meccanica</option><option value="Termodinamica">🔥 Termodinamica</option><option value="Idraulica">💧 Idraulica</option></select></div>
+        </div>
+        <div id="excelNewFolderForm" class="hidden mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+          <div class="grid md:grid-cols-3 gap-3 items-end">
+            <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="newFolderName">Nome nuova cartella</label><input type="text" id="excelNewFolderName" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" /></div>
+            <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="folderColor">Colore</label><input type="color" id="excelNewFolderColor" class="w-full h-[38px] border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-white dark:bg-gray-700" value="#3b82f6" /></div>
+            <button id="excelCreateFolder" class="px-3 py-2 text-xs bg-green-500 hover:bg-green-600 text-white rounded-lg transition shadow-sm" data-i18n="createFolder">Crea</button>
+          </div>
+        </div>
+        <div class="mb-3"><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="excelNoteLabel">Nota (opzionale)</label><input type="text" id="excelNote" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" /></div>
+        <div id="dropzoneExcel" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 transition bg-gray-50/50 dark:bg-gray-700/30">
+          <i class="fas fa-cloud-upload-alt text-3xl text-gray-300 dark:text-gray-600 mb-2"></i>
+          <p class="text-sm text-gray-400" id="textDropExcel" data-i18n="dropExcel">Trascina qui il file Excel o clicca per selezionare</p>
+          <input type="file" id="excelFile" accept=".xls,.xlsx,.csv" class="hidden" />
+        </div>
+        <button id="btnUploadExcel" class="mt-4 w-full py-2 text-sm bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-lg transition shadow font-medium"><i class="fas fa-upload mr-1"></i><span data-i18n="uploadExcel">Carica Excel</span></button>
+      </div>
+    </div>
+  </div>
 
-        // Il bot Telegram è gestito da un servizio dedicato su Render (Bot-hub-engineering)
-        // Il sito invia solo notifiche in uscita via sendTelegramBroadcast
+  <!-- DOC MODAL -->
+  <div id="docModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleDocModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-file-alt mr-2 text-blue-500"></i><span data-i18n="docModalTitle">Carica Documento</span></h2>
+        <button onclick="toggleDocModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 modal-scroll-body">
+        <div class="mb-3"><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="docFolderLabel">Cartella</label><select id="docFolder" onchange="toggleNewFolderForm(this,'docNewFolderForm')" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="" data-i18n="selectFolder">Seleziona cartella</option></select></div>
+        <div id="docNewFolderForm" class="hidden mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+          <div class="grid md:grid-cols-3 gap-3 items-end">
+            <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="newFolderName">Nome nuova cartella</label><input type="text" id="docNewFolderName" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" /></div>
+            <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="folderColor">Colore</label><input type="color" id="docNewFolderColor" class="w-full h-[38px] border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-white dark:bg-gray-700" value="#3b82f6" /></div>
+            <button id="docCreateFolder" class="px-3 py-2 text-xs bg-green-500 hover:bg-green-600 text-white rounded-lg transition shadow-sm" data-i18n="createFolder">Crea</button>
+          </div>
+        </div>
+        <div class="mb-3"><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="docTitleLabel">Titolo documento</label><input type="text" id="textTitle" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" /></div>
+        <div class="mb-3"><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="docContentLabel">Contenuto (opzionale)</label><textarea id="textContentBody" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition min-h-[100px]" rows="4"></textarea></div>
+        <div id="dropzoneDoc" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 transition bg-gray-50/50 dark:bg-gray-700/30">
+          <i class="fas fa-cloud-upload-alt text-3xl text-gray-300 dark:text-gray-600 mb-2"></i>
+          <p class="text-sm text-gray-400" id="textDropDoc" data-i18n="dropDoc">Trascina qui il file o clicca per selezionare (PDF, DOC, TXT, DWG, DXF)</p>
+          <input type="file" id="docFile" accept=".pdf,.doc,.docx,.txt,.dwg,.dxf,.jpg,.jpeg,.png" class="hidden" />
+        </div>
+        <button id="btnUploadDoc" class="mt-4 w-full py-2 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg transition shadow font-medium"><i class="fas fa-upload mr-1"></i><span data-i18n="uploadDoc">Carica Documento</span></button>
+      </div>
+    </div>
+  </div>
 
-        window.testTelegramNotification = async () => {
-            const chatId = document.getElementById('telChatIdInput').value.trim();
-            if (!chatId) return alert("Inserisci prima un Chat ID.");
-            try {
-                const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                    method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ chat_id: chatId, text: "🔔 *Test notifica Engineering Hub*\n\nSe vedi questo messaggio, il bot funziona correttamente! ✅", parse_mode: "Markdown" })
-                });
-                const data = await res.json();
-                if (data.ok) alert("✅ Notifica inviata! Controlla Telegram.");
-                else alert("❌ Errore: " + (data.description || "Risposta sconosciuta"));
-            } catch (e) { alert("❌ Errore di rete: " + e.message); }
-        };
+  <!-- NOTES MODAL -->
+  <div id="notesModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleNotesModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-sticky-note mr-2 text-yellow-500"></i><span data-i18n="notesModalTitle">Note Rapide</span></h2>
+        <button onclick="toggleNotesModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 modal-scroll-body">
+        <div class="mb-3"><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="newNoteLabel">Nuova nota</label><textarea id="newNoteContent" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition min-h-[80px]" rows="3" placeholder="Scrivi una nota..."></textarea></div>
+        <button id="btnUploadNote" class="mb-4 w-full py-2 text-sm bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white rounded-lg transition shadow font-medium"><i class="fas fa-plus mr-1"></i><span data-i18n="addNote">Aggiungi Nota</span></button>
+        <div id="notesContainer" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>
 
-        // AZIONI ISCRIZIONI TELEGRAM (SEPARATE DAI CONTATORI CLOUD)
-        document.getElementById('btnSubscribeTelegram').onclick = async () => {
-            const chatId = document.getElementById('telChatIdInput').value.trim();
-            const name = document.getElementById('telNameInput').value.trim() || "Membro Hub";
-            if(!chatId) return alert("Inserisci un Chat ID numerico!");
-            await addDoc(collection(db, "subscribers"), { chatId, name, subscribedAt: serverTimestamp() });
-            document.getElementById('telChatIdInput').value = ""; document.getElementById('telNameInput').value = "";
-        };
-        document.getElementById('btnUnsubscribeTelegram').onclick = async () => {
-            const chatId = document.getElementById('telChatIdInput').value.trim();
-            if(!chatId) return alert("Inserisci il Chat ID per disattivare.");
-            const snap = await getDocs(collection(db, "subscribers"));
-            const dels = [];
-            snap.forEach(uDoc => { if(uDoc.data().chatId === chatId) dels.push(deleteDoc(doc(db, "subscribers", uDoc.id))); });
-            await Promise.all(dels);
-            document.getElementById('telChatIdInput').value = "";
-        };
-        onSnapshot(collection(db, "subscribers"), (snap) => {
-            const topTel = document.getElementById('topStatTelegram'); if(topTel) topTel.textContent = snap.size;
-            const container = document.getElementById('subscribersContainer'); if(!container) return;
-            if(snap.empty) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic">Nessun iscritto alle notifiche Telegram.</p>'; return; }
-            container.innerHTML = "";
-            snap.forEach(d => {
-                const name = escapeHtml(d.data().name || "");
-                const chatId = escapeHtml(d.data().chatId || "");
-                container.innerHTML += `<div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg border dark:border-slate-800 text-[11px]"><span class="w-5 h-5 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center text-[10px]">👤</span><div><span class="font-semibold text-gray-700 dark:text-gray-200">${name}</span><span class="text-gray-400 ml-1.5">· ID ${chatId}</span></div></div>`;
-            });
-        });
+  <!-- ARCHIVE MODAL -->
+  <div id="archiveModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleArchiveModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-5xl mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-archive mr-2 text-purple-500"></i><span data-i18n="archiveModalTitle">Archivio</span></h2>
+        <button onclick="toggleArchiveModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 modal-scroll-body">
+        <div class="flex flex-wrap items-center gap-2 mb-3">
+          <select id="folderFilter" onchange="combineAndRenderArchive()" class="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="" data-i18n="allFolders">Tutte le cartelle</option></select>
+          <div id="bulkActions" class="hidden flex items-center gap-2 ml-2">
+            <button id="downloadSelectedArchive" class="px-2 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded transition shadow-sm"><i class="fas fa-download mr-1"></i><span data-i18n="downloadSelected">Scarica selezionati</span></button>
+            <button id="deleteSelectedArchive" class="px-2 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded transition shadow-sm"><i class="fas fa-trash-alt mr-1"></i><span data-i18n="deleteSelected">Elimina selezionati</span></button>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2 mb-3" id="folderIconsBar"></div>
+        <label class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2 cursor-pointer">
+          <input type="checkbox" id="selectAllArchive" class="rounded border-gray-300 dark:border-gray-600" />
+          <span data-i18n="selectAll">Seleziona tutti</span>
+        </label>
+        <div class="archivio-scroll-container border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <table class="w-full text-xs">
+            <thead class="bg-gray-50 dark:bg-gray-700/50 sticky top-0">
+              <tr class="text-left text-gray-500 dark:text-gray-400 font-medium"><th class="p-2 w-8"></th><th class="p-2" data-i18n="fileName">Nome File</th><th class="p-2 hidden md:table-cell" data-i18n="fileSize">Dimensione</th><th class="p-2 hidden md:table-cell" data-i18n="uploadDate">Data</th><th class="p-2 hidden md:table-cell" data-i18n="uploadedBy">Caricato da</th><th class="p-2 w-20"></th></tr>
+            </thead>
+            <tbody id="archiveTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        // BACHECA NEWS E STORICO
-        document.getElementById('btnSendNews').onclick = async () => {
-            const content = document.getElementById('newsContent').value.trim();
-            if(content) {
-                await addDoc(collection(db, "newsHub"), { content, createdAt: serverTimestamp() });
-                document.getElementById('newsContent').value = "";
-                await sendTelegramBroadcast(`📢 *Nuova comunicazione in Bacheca Hub:*\n\n${escapeMarkdown(content)}`);
-            }
-        };
-        onSnapshot(query(collection(db, "newsHub"), orderBy("createdAt", "desc")), (snap) => {
-            const container = document.getElementById('newsHistoryContainer'); if(!container) return; container.innerHTML = "";
-            snap.forEach(d => { container.innerHTML += `<div class="bg-purple-50/50 dark:bg-purple-950/10 p-2.5 rounded-lg border border-purple-100 dark:border-purple-900/40 text-xs text-gray-700 dark:text-gray-300 font-medium break-words">${escapeHtml(d.data().content || "")}</div>`; });
-        });
+  <!-- HISTORY MODAL -->
+  <div id="historyModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleHistoryModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-history mr-2 text-cyan-500"></i><span data-i18n="historyModalTitle">Storico Chat</span></h2>
+        <button onclick="toggleHistoryModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 modal-scroll-body">
+        <label class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2 cursor-pointer">
+          <input type="checkbox" id="selectAllHistory" class="rounded border-gray-300 dark:border-gray-600" />
+          <span data-i18n="selectAll">Seleziona tutti</span>
+        </label>
+        <div class="storico-scroll-container border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <table class="w-full text-xs">
+            <thead class="bg-gray-50 dark:bg-gray-700/50 sticky top-0">
+              <tr class="text-left text-gray-500 dark:text-gray-400 font-medium"><th class="p-2 w-8"></th><th class="p-2" data-i18n="message">Messaggio</th><th class="p-2 hidden md:table-cell" data-i18n="date">Data</th><th class="p-2 hidden md:table-cell" data-i18n="user">Utente</th><th class="p-2 w-16"></th></tr>
+            </thead>
+            <tbody id="historyTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        // STRUTTURA REGISTRAZIONE MEMBRI TEAM
-        document.getElementById('btnRegister').onclick = async () => {
-            const name = document.getElementById('regName').value.trim();
-            const contact = document.getElementById('regContact').value.trim();
-            if (name && contact) {
-                await addDoc(collection(db, "teamHub"), { name, contact, joinedAt: serverTimestamp() });
-                document.getElementById('regName').value = ""; document.getElementById('regContact').value = "";
-            }
-        };
-        onSnapshot(query(collection(db, "teamHub"), orderBy("joinedAt", "desc")), (snap) => {
-            const topTeam = document.getElementById('topStatTeam'); if(topTeam) topTeam.textContent = snap.size;
-            const container = document.getElementById('teamMembersContainer'); if(!container) return;
-            if(snap.empty) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic">Nessun membro registrato.</p>'; return; }
-            container.innerHTML = `<p class="text-[10px] text-gray-400 font-medium mb-1 tracking-wide uppercase">Membri iscritti (${snap.size})</p>`;
-            snap.forEach(d => {
-                const { name, contact } = d.data();
-                container.innerHTML += `<div class="flex items-center justify-between gap-1 bg-white dark:bg-slate-900 p-1.5 rounded-lg border dark:border-slate-700 text-[11px]"><div class="min-w-0 flex-1"><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(name || "")}</span><span class="text-gray-400 ml-1.5">· ${escapeHtml(contact || "")}</span></div><button data-tid="${escapeHtml(d.id)}" class="unregister-btn text-gray-400 hover:text-red-500 hover:font-bold cursor-pointer text-xs leading-none p-0.5">✕</button></div>`;
-            });
-            container.querySelectorAll('.unregister-btn').forEach(btn => {
-                btn.addEventListener('click', () => { window.unregisterMember(btn.dataset.tid); });
-            });
-        });
-        window.unregisterMember = async (id) => {
-            if(confirm("Rimuovere la tua registrazione dal team?")) {
-                await deleteDoc(doc(db, "teamHub", id));
-            }
-        };
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl z-50 hidden overflow-y-auto transition-transform">
+    <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 flex items-center justify-between z-10">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400"><i class="fas fa-cog mr-2"></i><span data-i18n="sidebarTitle">Pannello Cloud</span></h2>
+      <button onclick="closeSidebar()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="p-3 space-y-1" id="sidebarContent">
+      <div class="sidebar-section mb-4">
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2"><span data-i18n="management">Gestione</span></p>
+        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openUserModal()"><i class="fas fa-user-circle text-blue-500 w-4"></i><span data-i18n="manageUsers">Gestione Utenti</span></button>
+        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openTeamModal()"><i class="fas fa-users-cog text-green-500 w-4"></i><span data-i18n="manageTeam">Gestione Team</span></button>
+        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openMtbfModal()"><i class="fas fa-chart-line text-orange-500 w-4"></i><span>MTBF</span></button>
+        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openSubscribersModal()"><i class="fas fa-users text-indigo-500 w-4"></i><span data-i18n="newsletterSubscribers">Iscritti Newsletter</span></button>
+        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openNewsHistoryModal()"><i class="fas fa-history text-teal-500 w-4"></i><span data-i18n="newsHistory">Storico Notizie</span></button>
+      </div>
+      <div class="sidebar-section mb-4">
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2"><span data-i18n="info">Informazioni</span></p>
+        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openStatsModal()"><i class="fas fa-chart-bar text-purple-500 w-4"></i><span data-i18n="cloudStats">Statistiche Cloud</span></button>
+        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="hubInfoToggle" onclick="toggleHubInfo()"><i class="fas fa-info-circle text-cyan-500 w-4"></i><span data-i18n="hubInfo">Info Hub</span></button>
+        <div id="hubInfoPanel" class="hidden mt-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-xs space-y-2">
+          <p><span class="font-medium" data-i18n="version">Versione:</span> <span id="hubInfoVersion">1.0.0</span></p>
+          <p><span class="font-medium" data-i18n="uptime">Attivo da:</span> <span id="hubInfoUptime">--</span></p>
+          <p><span class="font-medium" data-i18n="lastUpdate">Ultimo aggiornamento:</span> <span id="hubInfoUpdate">--</span></p>
+          <p><span class="font-medium" data-i18n="localTime">Ora locale:</span> <span id="hubInfoTimeDisplay">--</span></p>
+        </div>
+      </div>
+    </div>
+  </aside>
 
-        // AZIONI CARICAMENTO FILE (CON LOGICA STORICO CORRETTA)
-        window.toggleNewFolderForm = (select, formId) => {
-            const form = document.getElementById(formId);
-            if (form) form.classList.toggle('hidden', select.value !== '__new__');
-        };
-        window.quickCreateFolder = async (selectId, nameId, colorId) => {
-            const name = document.getElementById(nameId).value.trim();
-            const color = document.getElementById(colorId).value;
-            if (!name) return;
-            const ref = await addDoc(collection(db, "archiveFolders"), { name, color, createdAt: serverTimestamp() });
-            document.getElementById(nameId).value = '';
-            const sel = document.getElementById(selectId);
-            sel.value = ref.id;
-            document.getElementById(colorId === 'excelNewFolderColor' ? 'excelNewFolderForm' : 'docNewFolderForm')?.classList.add('hidden');
-        };
-        document.getElementById('btnUploadExcel').onclick = async () => {
-            const branch = document.getElementById('excelBranch').value;
-            const note = document.getElementById('excelNote').value.trim();
-            if(note) {
-                const sel = document.getElementById('excelFolder');
-                const folderId = sel.value === '__new__' ? '' : sel.value;
-                const fileInput = document.getElementById('excelFile');
-                const file = fileInput?.files?.[0];
-                let fileData, fileName, fileMime;
-                if(file) {
-                    fileData = await readFileAsBase64(file);
-                    fileName = file.name; fileMime = file.type;
-                }
-                await addDoc(collection(db, "excelHub"), { name: note, branch: branch, folderId: folderId || '', fileData: fileData || '', fileName: fileName || '', fileMime: fileMime || '', uploadedAt: serverTimestamp() });
-                await addDoc(collection(db, "historyHub"), { name: note, operation: `Caricato Excel (${branch})`, timestamp: serverTimestamp() });
-                document.getElementById('excelNote').value = ""; if(fileInput) fileInput.value = ""; document.getElementById('textDropExcel').textContent = "Trascina qui il file Excel o clicca";
-                await sendTelegramBroadcast(`⚙️ *Nuovo File Excel:* ${escapeMarkdown(note)}\nRamo: ${escapeMarkdown(branch)}`);
-            }
-        };
-        document.getElementById('btnUploadDoc').onclick = async () => {
-            const title = document.getElementById('textTitle').value.trim();
-            const bodyContent = document.getElementById('textContentBody').value.trim() || "Nessun testo estratto inserito.";
-            if(title) {
-                const sel = document.getElementById('docFolder');
-                const folderId = sel.value === '__new__' ? '' : sel.value;
-                const fileInput = document.getElementById('docFile');
-                const file = fileInput?.files?.[0];
-                let fileData, fileName, fileMime, fileType;
-                if(file) {
-                    fileData = await readFileAsBase64(file);
-                    fileName = file.name; fileMime = file.type;
-                    fileType = file.name.split('.').pop().toUpperCase();
-                }
-                await addDoc(collection(db, "textHub"), { title: title, fileName: fileName || (title + ".txt"), fileType: fileType || "TXT", fileMime: fileMime || "text/plain", fileData: fileData || '', extractedText: bodyContent, folderId: folderId || '', uploadedAt: serverTimestamp() });
-                await addDoc(collection(db, "historyHub"), { name: title, operation: "Caricato Documento / Report", timestamp: serverTimestamp() });
-                document.getElementById('textTitle').value = ""; document.getElementById('textContentBody').value = ""; if(fileInput) fileInput.value = ""; document.getElementById('textDropDoc').textContent = "Trascina qui il documento o clicca";
-                await sendTelegramBroadcast(`📝 *Nuovo Documento:* ${escapeMarkdown(title)}\nAnalizzabile dal Co-Pilot.`);
-            }
-        };
+  <!-- MAIN CONTENT - DASHBOARD -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-6">
+    <div class="mb-6 text-center">
+      <h1 class="text-xl md:text-2xl font-bold" data-i18n="dashboardTitle">Dashboard</h1>
+      <p class="text-xs text-gray-400 mt-1" data-i18n="dashboardSubtitle">Seleziona un'operazione per iniziare</p>
+    </div>
+    <div class="dash-grid">
+      <div class="dash-card" onclick="toggleExcelModal()">
+        <div class="dash-icon">📊</div>
+        <div class="dash-label" data-i18n="dashExcel">Excel</div>
+        <div class="dash-count" id="countExcel">0</div>
+      </div>
+      <div class="dash-card" onclick="toggleDocModal()">
+        <div class="dash-icon">📄</div>
+        <div class="dash-label" data-i18n="dashDoc">Documenti</div>
+        <div class="dash-count" id="countDoc">0</div>
+      </div>
+      <div class="dash-card" onclick="toggleNotesModal()">
+        <div class="dash-icon">📝</div>
+        <div class="dash-label" data-i18n="dashNotes">Note</div>
+        <div class="dash-count" id="countNotes">0</div>
+      </div>
+      <div class="dash-card" onclick="toggleArchiveModal()">
+        <div class="dash-icon">🗂️</div>
+        <div class="dash-label" data-i18n="dashArchive">Archivio</div>
+        <div class="dash-count" id="countArchive">0</div>
+      </div>
+      <div class="dash-card" onclick="toggleHistoryModal()">
+        <div class="dash-icon">💬</div>
+        <div class="dash-label" data-i18n="dashHistory">Storico Chat</div>
+        <div class="dash-count" id="countHistory">0</div>
+      </div>
+    </div>
+  </main>
 
-        // NOTE RAPIDE CONDIVISE
-        document.getElementById('btnUploadNote').onclick = async () => {
-            const content = document.getElementById('newNoteContent').value.trim();
-            if(content) {
-                await addDoc(collection(db, "notesHub"), { content: content, createdAt: serverTimestamp() });
-                await addDoc(collection(db, "historyHub"), { name: "Nota Rapida", operation: "Aggiunta nota condivisa", timestamp: serverTimestamp() });
-                document.getElementById('newNoteContent').value = "";
-                await sendTelegramBroadcast(`📌 *Nuova Nota:* ${escapeMarkdown(content)}`);
-            }
-        };
-        onSnapshot(query(collection(db, "notesHub"), orderBy("createdAt", "desc")), (snap) => {
-            document.getElementById('statNotes').textContent = snap.size;
-            const container = document.getElementById('notesContainer'); if(!container) return; container.innerHTML = "";
-            snap.forEach(d => {
-                const div = document.createElement('div'); div.className = "bg-gray-50/80 dark:bg-slate-800/80 p-2 rounded border border-gray-200 dark:border-slate-700 flex justify-between items-start text-xs text-gray-700 dark:text-gray-300 shadow-2xs";
-                const content = escapeHtml(d.data().content || "");
-                div.innerHTML = `<p class="break-words pr-2">${content}</p><button data-note-id="${escapeHtml(d.id)}" class="delete-note-btn text-gray-400 hover:text-red-600 cursor-pointer">✕</button>`;
-                container.appendChild(div);
-            });
-            container.querySelectorAll('.delete-note-btn').forEach(btn => {
-                btn.addEventListener('click', () => { window.deleteNote(btn.dataset.noteId); });
-            });
-        });
-        window.deleteNote = async (id) => { await deleteDoc(doc(db, "notesHub", id)); };
+  <!-- FOOTER -->
+  <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-3 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 flex items-center justify-between">
+      <div class="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-3">
+        <span data-i18n="footerCopyright">&copy; 2025 Engineering Cloud Hub</span>
+        <span class="hidden sm:inline">|</span>
+        <span class="hidden sm:inline" data-i18n="footerRights">Tutti i diritti riservati.</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="openSidebar()" class="px-3 py-1.5 text-xs bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg transition flex items-center gap-1 shadow-sm"><i class="fas fa-cog text-[10px]"></i><span data-i18n="openPanel">Apri Pannello</span></button>
+        <button id="chatBtn" class="px-3 py-1.5 text-xs bg-gradient-to-r from-gray-700 to-gray-800 dark:from-gray-600 dark:to-gray-700 hover:from-gray-600 hover:to-gray-700 text-white rounded-lg transition flex items-center gap-1 shadow-sm"><i class="fas fa-robot text-[10px]"></i><span data-i18n="assistant">Assistente</span></button>
+      </div>
+    </div>
+  </footer>
 
-        // ASCOLTO UNIFICATO PER ARCHIVIO E STATISTICHE
-        let allExcelFiles = [], allTextFiles = [], allFolders = [];
-        onSnapshot(query(collection(db, "excelHub"), orderBy("uploadedAt", "desc")), (s) => { document.getElementById('statExcel').textContent = s.size; allExcelFiles = []; s.forEach(d => allExcelFiles.push({id: d.id, ...d.data(), isExcel: true})); combineAndRenderArchive(); });
-        onSnapshot(query(collection(db, "textHub"), orderBy("uploadedAt", "desc")), (s) => { document.getElementById('statDocs').textContent = s.size; allTextFiles = []; s.forEach(d => allTextFiles.push({id: d.id, ...d.data(), isExcel: false})); combineAndRenderArchive(); });
-        onSnapshot(query(collection(db, "archiveFolders"), orderBy("createdAt", "asc")), (s) => { allFolders = []; s.forEach(d => allFolders.push({id: d.id, ...d.data()})); populateFolderSelects(); combineAndRenderArchive(); });
-        function populateFolderSelects() {
-            const html = '<option value="">— Nessuna —</option>' + allFolders.map(f => `<option value="${f.id}" style="color:${f.color};font-weight:700">📁 ${f.name}</option>`).join('') + '<option value="__new__">✨ Nuova cartella...</option>';
-            ['excelFolder','docFolder'].forEach(id => { const el = document.getElementById(id); if(el) { const v = el.value; el.innerHTML = html; el.value = v; } });
-            const filter = document.getElementById('folderFilter');
-            if (filter) {
-                const v = filter.value;
-                filter.innerHTML = '<option value="">📁 Tutte</option>' + allFolders.map(f => `<option value="${f.id}" style="color:${f.color}">📁 ${f.name}</option>`).join('');
-                filter.value = v;
-            }
-            renderFolderIcons();
-        }
-        function renderFolderList() {
-            const el = document.getElementById('folderList'); if(!el) return;
-            if (!allFolders.length) { el.innerHTML = '<p class="text-xs text-gray-400 italic text-center py-4">Nessuna cartella. Creane una sopra.</p>'; return; }
-            el.innerHTML = allFolders.map(f => `
-                <div class="flex items-center justify-between gap-2 bg-gray-50 dark:bg-slate-800 p-2 rounded-lg border dark:border-slate-700">
-                    <div class="flex items-center gap-2">
-                        <span class="w-5 h-5 rounded" style="background:${f.color}"></span>
-                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(f.name)}</span>
-                    </div>
-                    <button onclick="deleteFolder('${f.id}')" class="text-gray-400 hover:text-red-500 cursor-pointer text-xs" title="Elimina cartella">✕</button>
-                </div>
-            `).join('');
-        }
-        window.toggleFolderManager = () => {
-            document.getElementById('folderManagerModal')?.classList.toggle('hidden');
-            if (!document.getElementById('folderManagerModal')?.classList.contains('hidden')) renderFolderList();
-        };
-        window.addNewFolder = async () => {
-            const name = document.getElementById('newFolderName').value.trim();
-            const color = document.getElementById('newFolderColor').value;
-            if (!name) return;
-            await addDoc(collection(db, "archiveFolders"), { name, color, createdAt: serverTimestamp() });
-            document.getElementById('newFolderName').value = '';
-            renderFolderList();
-        };
-        window.deleteFolder = async (id) => {
-            const used = [...allExcelFiles, ...allTextFiles].filter(f => f.folderId === id);
-            if (used.length) return alert(`Impossibile eliminare: ${used.length} file presenti in questa cartella.`);
-            if (!confirm("Eliminare questa cartella?")) return;
-            await deleteDoc(doc(db, "archiveFolders", id));
-        };
-
-        window.searchQuery = "";
-        document.getElementById('searchCloud')?.addEventListener('input', (e) => {
-            window.searchQuery = e.target.value.toLowerCase();
-            combineAndRenderArchive();
-        });
-        document.getElementById('selectAllArchive')?.addEventListener('change', (e) => {
-            document.querySelectorAll('.archive-checkbox').forEach(cb => cb.checked = e.target.checked);
-            updateBulkActions();
-        });
-        document.getElementById('deleteSelectedArchive')?.addEventListener('click', async () => {
-            const checked = document.querySelectorAll('.archive-checkbox:checked');
-            if(!checked.length || !confirm(`Eliminare ${checked.length} elemento/i dal Cloud?`)) return;
-            for(const cb of checked) {
-                const id = cb.dataset.id;
-                const isExcel = cb.dataset.excel === 'true';
-                const file = [...allExcelFiles, ...allTextFiles].find(f => f.id === id);
-                const itemName = file ? (file.name || file.title || id) : id;
-                await deleteDoc(doc(db, isExcel ? "excelHub" : "textHub", id));
-                await addDoc(collection(db, "historyHub"), { name: itemName, operation: `Cancellazione ${isExcel ? "Excel" : "Documento"} dal Cloud`, timestamp: serverTimestamp() });
-            }
-        });
-        document.getElementById('downloadSelectedArchive')?.addEventListener('click', async () => {
-            const checked = document.querySelectorAll('.archive-checkbox:checked');
-            if(!checked.length) return;
-            for(const cb of checked) window.downloadDocument(cb.dataset.id);
-        });
-        document.addEventListener('change', (e) => {
-            if(e.target.classList.contains('archive-checkbox')) updateBulkActions();
-        });
-        function getFolder(id) { return allFolders.find(f => f.id === id); }
-
-        function moveFileToFolder(fileId, isExcel, newFolderId) {
-            const col = isExcel ? "excelHub" : "textHub";
-            updateDoc(doc(db, col, fileId), { folderId: newFolderId || '' });
-        }
-        function renderFolderIcons() {
-            const bar = document.getElementById('folderIconsBar'); if(!bar) return;
-            const filterFolder = document.getElementById('folderFilter')?.value || '';
-            const allFiles = [...allExcelFiles, ...allTextFiles];
-            const totalCount = allFiles.length;
-            let html = '<div class="folder-icon' + (!filterFolder ? ' active' : '') + '" style="color:#2563eb" data-folder-id=""><span class="fi-emoji">📁</span><span class="fi-name">Tutte</span><span class="fi-count">' + totalCount + '</span></div>';
-            allFolders.forEach(f => {
-                const cnt = allFiles.filter(x => x.folderId === f.id).length;
-                const active = filterFolder === f.id;
-                html += '<div class="folder-icon' + (active ? ' active' : '') + '" style="color:' + escapeHtml(f.color) + '" data-folder-id="' + f.id + '"><span class="fi-emoji">📁</span><span class="fi-name">' + escapeHtml(f.name) + '</span><span class="fi-count">' + cnt + '</span></div>';
-            });
-            bar.innerHTML = html;
-        }
-        function combineAndRenderArchive() {
-            const body = document.getElementById('archiveTableBody'); if(!body) return; body.innerHTML = "";
-            document.getElementById('selectAllArchive') && (document.getElementById('selectAllArchive').checked = false);
-            renderFolderIcons();
-            const filterFolder = document.getElementById('folderFilter')?.value || '';
-            let items = [...allExcelFiles, ...allTextFiles].filter(f => {
-                if (!window.searchQuery) return true;
-                const haystack = f.isExcel ? `${f.name || ""} ${f.branch || ""}` : `${f.title || ""} ${f.fileType || ""} ${f.extractedText ? f.extractedText.substring(0, 200) : ""}`;
-                return haystack.toLowerCase().includes(window.searchQuery);
-            });
-            if (filterFolder) items = items.filter(f => f.folderId === filterFolder);
-            if (!items.length) {
-                body.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-xs text-gray-400 italic">Nessun file trovato</td></tr>';
-                updateBulkActions(); return;
-            }
-            items.forEach(f => {
-                const folder = f.folderId ? getFolder(f.folderId) : null;
-                const color = folder?.color || '#6b7280';
-                const fName = folder?.name || 'Senza cartella';
-                const tr = document.createElement('tr');
-                tr.className = "text-xs text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-800 hover:bg-slate-50/50";
-                tr.draggable = true;
-                tr.ondragstart = (e) => { e.dataTransfer.setData('text/plain', JSON.stringify({fileId: f.id, isExcel: f.isExcel})); e.dataTransfer.effectAllowed = 'move'; };
-                const folderCell = '<td class="p-3"><span class="folder-dot" style="background:' + color + '"></span>' + escapeHtml(fName) + '</td>';
-                const actionsCell = '<td class="p-3 text-center flex items-center justify-center gap-1"><button data-id="' + escapeHtml(f.id) + '" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">📥</button><button data-id="' + escapeHtml(f.id) + '" data-excel="' + (f.isExcel ? 'true' : 'false') + '" data-name="' + escapeHtml(f.name || f.title || "File") + '" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">🗑️</button></td>';
-                if(f.isExcel) {
-                    const name = escapeHtml(f.name || "File Excel");
-                    tr.innerHTML = '<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="' + escapeHtml(f.id) + '" data-excel="true"></td><td class="p-3 font-medium">' + name + '</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td>' + folderCell + '<td class="p-3 text-gray-500 italic">' + escapeHtml(f.branch || "") + '</td>' + actionsCell;
-                } else {
-                    const title = escapeHtml(f.title || "Documento");
-                    const fileType = escapeHtml(f.fileType || "");
-                    const preview = escapeHtml(f.extractedText ? f.extractedText.substring(0, 40) + "..." : (f.fileName || ""));
-                    tr.innerHTML = '<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="' + escapeHtml(f.id) + '" data-excel="false"></td><td class="p-3 font-medium">' + title + '</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">' + fileType + '</span></td>' + folderCell + '<td class="p-3 text-gray-400 font-mono text-[11px]">' + preview + '</td>' + actionsCell;
-                }
-                body.appendChild(tr);
-            });
-            body.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    window.deleteCloudItem(btn.dataset.id, btn.dataset.excel === 'true', btn.dataset.name);
-                });
-            });
-            body.querySelectorAll('.download-doc-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    window.downloadDocument(btn.dataset.id);
-                });
-            });
-            updateBulkActions();
-        }
-        window.combineAndRenderArchive = combineAndRenderArchive;
-
-        function updateBulkActions() {
-            const checked = document.querySelectorAll('.archive-checkbox:checked');
-            const el = document.getElementById('bulkActions');
-            if(el) el.classList.toggle('hidden', checked.length === 0);
-        }
-        (function() {
-            const bar = document.getElementById('folderIconsBar');
-            if (!bar) return;
-            bar.addEventListener('click', (e) => {
-                const icon = e.target.closest('.folder-icon'); if (!icon) return;
-                document.getElementById('folderFilter').value = icon.dataset.folderId || '';
-                combineAndRenderArchive();
-            });
-            bar.addEventListener('dragover', (e) => { if (e.target.closest('.folder-icon')) e.preventDefault(); });
-            bar.addEventListener('drop', (e) => {
-                const icon = e.target.closest('.folder-icon'); if (!icon) return;
-                e.preventDefault();
-                const raw = e.dataTransfer.getData('text/plain'); if (!raw) return;
-                const data = JSON.parse(raw);
-                if (data && data.fileId) moveFileToFolder(data.fileId, data.isExcel, icon.dataset.folderId || '');
-            });
-        })();
-        
-        window.downloadDocument = (id) => {
-            const file = [...allTextFiles, ...allExcelFiles].find(f => f.id === id);
-            if(!file) return alert("File non trovato.");
-            if(file.fileData) {
-                const link = document.createElement("a");
-                link.href = file.fileData;
-                link.download = file.fileName || (file.title || file.name || "documento");
-                document.body.appendChild(link); link.click(); document.body.removeChild(link);
-            } else if(file.isExcel) {
-                const content = `File Excel: ${file.name}\nRamo: ${file.branch}\nCaricato il: ${file.uploadedAt ? new Date(file.uploadedAt.seconds * 1000).toLocaleString('it-IT') : "N/D"}`;
-                const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a"); a.href = url; a.download = (file.name || "excel") + ".txt";
-                document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-            } else {
-                if(!file.extractedText) return alert("Nessun contenuto testuale disponibile per il download.");
-                const blob = new Blob([file.extractedText], { type: "text/plain;charset=utf-8" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a"); a.href = url; a.download = (file.title || "documento") + ".txt";
-                document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-            }
-        };
-
-        // CANCELLAZIONE FILE CON SCRITTURA CORRETTA SULLO STORICO
-        window.deleteCloudItem = async (id, isExcel, itemName) => {
-            if(confirm(`Eliminare l'elemento "${itemName}" dal Cloud?`)) {
-                const tipo = isExcel ? "Excel" : "Documento";
-                await deleteDoc(doc(db, isExcel ? "excelHub" : "textHub", id));
-                await addDoc(collection(db, "historyHub"), { name: itemName, operation: `Cancellazione ${tipo} dal Cloud`, timestamp: serverTimestamp() });
-            }
-        };
-
-        // GESTIONE STORICO ATTIVITÀ FIXATA
-        onSnapshot(query(collection(db, "historyHub"), orderBy("timestamp", "desc")), (snap) => {
-            const b = document.getElementById('historyTableBody'); if(!b) return; b.innerHTML = "";
-            snap.forEach(d => {
-                const data = d.data();
-                const dStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('it-IT') : "In sincro...";
-                const nameObj = escapeHtml(data.name || "Elemento indefinito");
-                const opObj = data.operation ? escapeHtml(data.operation) : (data.name ? "Azione su: " + escapeHtml(data.name) : "Registrazione del " + dStr);
-                const id = escapeHtml(d.id);
-                b.innerHTML += `<tr class="border-b dark:border-slate-800"><td class="p-2.5 text-center"><input type="checkbox" class="history-checkbox cursor-pointer" data-hid="${id}"></td><td class="p-2.5 font-mono text-[11px] text-purple-600 dark:text-purple-400">${dStr}</td><td class="p-2.5 font-medium">${nameObj}</td><td class="p-2.5 text-gray-500">${opObj}</td><td class="p-2.5 text-center"><button data-hid="${id}" class="delete-history-btn text-gray-400 hover:text-red-500 cursor-pointer">✕</button></td></tr>`;
-            });
-            b.querySelectorAll('.delete-history-btn').forEach(btn => {
-                btn.addEventListener('click', () => { window.deleteHistoryItem(btn.dataset.hid); });
-            });
-            updateSelectAllHistory();
-        });
-        document.getElementById('selectAllHistory')?.addEventListener('change', (e) => {
-            document.querySelectorAll('.history-checkbox').forEach(cb => cb.checked = e.target.checked);
-        });
-        window.deleteHistoryItem = async (id) => { if(confirm("Rimuovere log storico?")) await deleteDoc(doc(db, "historyHub", id)); };
-        function updateSelectAllHistory() {
-            const sa = document.getElementById('selectAllHistory');
-            if(sa) sa.checked = document.querySelectorAll('.history-checkbox:checked').length === document.querySelectorAll('.history-checkbox').length && document.querySelectorAll('.history-checkbox').length > 0;
-        }
-        document.addEventListener('change', (e) => {
-            if(e.target.classList.contains('history-checkbox')) updateSelectAllHistory();
-        });
-        document.addEventListener('keydown', (e) => {
-            if(e.key === 'Delete' && document.querySelectorAll('.history-checkbox:checked').length > 0) {
-                const checked = document.querySelectorAll('.history-checkbox:checked');
-                if(confirm(`Rimuovere ${checked.length} log storico/i?`)) {
-                    checked.forEach(cb => deleteDoc(doc(db, "historyHub", cb.dataset.hid)));
-                }
-            }
-        });
-
-        // ==========================================
-        // CO-PILOT AI
-
-        window.askAI = async () => {
-            const inputEl = document.getElementById('aiInput'); const container = document.getElementById('chat-container');
-            const sendBtn = document.getElementById('aiSendBtn'); const queryText = inputEl.value.trim();
-            if (!queryText) return;
-
-            inputEl.disabled = true; sendBtn.disabled = true;
-            container.innerHTML += `<div class="bg-blue-600/10 border border-blue-500/20 p-2.5 rounded-lg text-slate-200 font-medium text-right max-w-[85%] ml-auto">👤 ${escapeHtml(queryText)}</div>`;
-            inputEl.value = ""; container.scrollTop = container.scrollHeight;
-
-            // Download diretto dalla chat
-            const dlMatch = queryText.match(/^(?:scarica|download|scaricare)\s+(.+)/i);
-            if (dlMatch) {
-                const query = dlMatch[1].toLowerCase().trim();
-                const file = [...allTextFiles, ...allExcelFiles].find(f => {
-                    const name = (f.title || f.name || "").toLowerCase();
-                    return name.includes(query);
-                });
-                if (file) {
-                    window.downloadDocument(file.id);
-                    container.innerHTML += `<div class="bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-emerald-400 max-w-[90%] text-xs">✅ Download avviato: <b>${escapeHtml(file.title || file.name)}</b></div>`;
-                    inputEl.disabled = false; sendBtn.disabled = false; inputEl.focus();
-                    container.scrollTop = container.scrollHeight;
-                    return;
-                }
-            }
-
-            const loadingId = 'loading-' + Date.now();
-            container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">✍️ Sto pensando...</div>`;
-            container.scrollTop = container.scrollHeight;
-
-            let replyText = "";
-
-            // Iniezione del contesto recuperato da Firestore per la logica RAG
-            let contextText = "ARCHIVIO FILE DISPONIBILI:\n";
-            allTextFiles.forEach(d => { contextText += `- ID:${d.id} | FILE: ${d.fileName || "N/A"} | TITOLO: ${d.title} | CONTENUTO: ${(d.extractedText || "Vuoto").substring(0, 300)}\n`; });
-            allExcelFiles.forEach(e => { contextText += `- ID:${e.id} | FILE: ${e.name} | RAMO: ${e.branch}\n`; });
-
-            const systemInstruction = `Sei l'assistente di Engineering Cloud Hub v2.5.0. Risposte in italiano, molto concise, sempre con fonte.
-
-REGOLE:
-- Cita SEMPRE la fonte con [Fonte: TitoloFile] per ogni informazione.
-- Se usi piu file: [Fonte: File1] [Fonte: File2].
-- Se dai info non presenti nei file elencati, dichiara la fonte esterna.
-- Se non sai o non trovi l'informazione, dillo. Non inventare.
-- Per offrire download: [DOWNLOAD:ID].
-
-File:\n${contextText}`;
-
-            const reqBase = { messages: [{ role: "system", content: systemInstruction }, { role: "user", content: queryText }] };
-            const reqBody = JSON.stringify(reqBase);
-            const reqBodyFallback = JSON.stringify({ ...reqBase, model: "openai" });
-            const AI_KEY = "sk-UHO9awELiLVfpplF65MFeMa4ylD0bOYw";
-            async function aiFetch(url, opts) {
-                const r = await fetch(url, opts);
-                if (!r.ok) throw new Error("HTTP " + r.status);
-                const raw = await r.text();
-                try { const j = JSON.parse(raw); return j.choices?.[0]?.message?.content || raw; } catch { return raw; }
-            }
-            try {
-                replyText = await aiFetch("https://text.pollinations.ai/", { method: "POST", headers: { "Content-Type": "application/json" }, body: reqBody });
-            } catch {
-                try {
-                    replyText = await aiFetch("https://gen.pollinations.ai/v1/chat/completions", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + AI_KEY }, body: reqBodyFallback });
-                } catch (err2) {
-                    replyText = "⚠️ AI non disponibile: " + err2.message;
-                }
-            }
-            
-            document.getElementById(loadingId)?.remove();
-            if (!replyText) replyText = "⚠️ Nessuna risposta ricevuta.";
-            function cleanLatex(s){
-              const g={'tau':'τ','omega':'ω','pi':'π','alpha':'α','beta':'β','delta':'δ','theta':'θ','gamma':'γ','lambda':'λ','mu':'μ','sigma':'σ','phi':'φ','psi':'ψ','cdot':'·','times':'×','div':'÷','leq':'≤','geq':'≥','neq':'≠','infty':'∞','partial':'∂','nabla':'∇','rightarrow':'→','leftarrow':'←','cdots':'…','forall':'∀','exists':'∃','emptyset':'∅','subset':'⊂','supset':'⊃','subseteq':'⊆','supseteq':'⊇','cup':'∪','cap':'∩','in':'∈','notin':'∉','approx':'≈','equiv':'≡','propto':'∝','pm':'±','mp':'∓','cdotp':'·','text':''};
-              for(let k in g) s=s.replace(new RegExp('\\\\'+k+'\\b','g'),g[k]);
-              s=s.replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g,'$1/$2');
-              s=s.replace(/\\sqrt(?:\[([^\]]*)\])?\{([^}]*)\}/g,'√($2)');
-              s=s.replace(/\\boxed\{([^}]*)\}/g,'$1');
-              s=s.replace(/\\(?:[,:;]| )/g,' ');
-              s=s.replace(/\\!/g,'');
-              s=s.replace(/\\[a-zA-Z]+/g,'');
-              s=s.replace(/[{}]/g,'');
-              s=s.replace(/\$\$([^$]*)\$\$/g,'$1');
-              s=s.replace(/\$([^$]*)\$/g,'$1');
-              s=s.replace(/\\\[([^\\]*)\\\]/g,'$1');
-              s=s.replace(/\\\(([^\\]*)\\\)/g,'$1');
-              return s;
-            }
-            replyText = cleanLatex(replyText);
-            const replyDiv = document.createElement('div');
-            replyDiv.className = "bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-slate-300 max-w-[90%] text-xs font-normal";
-            
-            // Gestione download marker [DOWNLOAD:id]
-            const downloadMatch = replyText.match(/\[DOWNLOAD:([^\]]+)\]/);
-            if (downloadMatch) {
-                const fileId = downloadMatch[1];
-                const file = [...allTextFiles, ...allExcelFiles].find(f => f.id === fileId);
-                if (file) {
-                    replyText = replyText.replace(/\[DOWNLOAD:[^\]]+\]/, `<button onclick="window.downloadDocument('${fileId}')" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2 py-1 rounded cursor-pointer">📥 Scarica ${file.title || file.name}</button>`);
-                }
-            }
-            
-            replyDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(replyText) : replyText.replace(/\n/g, "<br>");
-            container.appendChild(replyDiv);
-            
-            inputEl.disabled = false; sendBtn.disabled = false; inputEl.focus();
-            container.scrollTop = container.scrollHeight;
-        };
-
-        document.getElementById('aiInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.askAI(); });
-    </script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js?_=' + Date.now()).then(reg => {
-                if (reg.active) reg.update();
-            }).catch(() => {});
-        }
-    </script>
+  <script type="module" src="js/config.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

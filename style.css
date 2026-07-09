@@ -1,0 +1,57 @@
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: background-color 0.3s, color 0.3s; }
+html::-webkit-scrollbar { width: 6px; }
+html::-webkit-scrollbar-track { background: #0f172a; }
+html::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #3b82f6, #8b5cf6); border-radius: 9999px; border: 1px solid #1e293b; }
+html::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, #60a5fa, #a78bfa); }
+.archivio-scroll-container { height: auto !important; max-height: 400px !important; overflow-y: auto !important; }
+.storico-scroll-container { height: auto !important; max-height: 350px !important; overflow-y: auto !important; }
+.chat-scroll-container { max-height: 280px !important; overflow-y: auto !important; }
+.archivio-scroll-container::-webkit-scrollbar, .storico-scroll-container::-webkit-scrollbar, .chat-scroll-container::-webkit-scrollbar,
+#chat-container::-webkit-scrollbar, #sidebar::-webkit-scrollbar, #newsSidebar::-webkit-scrollbar,
+#teamMembersContainer::-webkit-scrollbar, #subscribersContainer::-webkit-scrollbar,
+#newsHistoryContainer::-webkit-scrollbar { width: 4px; }
+.archivio-scroll-container::-webkit-scrollbar-track, .storico-scroll-container::-webkit-scrollbar-track, .chat-scroll-container::-webkit-scrollbar-track,
+#chat-container::-webkit-scrollbar-track, #sidebar::-webkit-scrollbar-track, #newsSidebar::-webkit-scrollbar-track { background: transparent; }
+.archivio-scroll-container::-webkit-scrollbar-thumb, .storico-scroll-container::-webkit-scrollbar-thumb, .chat-scroll-container::-webkit-scrollbar-thumb,
+#chat-container::-webkit-scrollbar-thumb, #sidebar::-webkit-scrollbar-thumb, #newsSidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 9999px; transition: background 0.2s; }
+.archivio-scroll-container::-webkit-scrollbar-thumb:hover, .storico-scroll-container::-webkit-scrollbar-thumb:hover, .chat-scroll-container::-webkit-scrollbar-thumb:hover,
+#sidebar::-webkit-scrollbar-thumb:hover, #newsSidebar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+@keyframes clockPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.3); } 50% { box-shadow: 0 0 0 6px rgba(37,99,235,0); } }
+.folder-icon { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 76px; height: 78px; border-radius: 12px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; background: rgba(255,255,255,0.03); }
+.folder-icon:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.2); background: rgba(255,255,255,0.08); }
+.folder-icon.active { border-color: currentColor; background: rgba(255,255,255,0.09); box-shadow: 0 0 0 2px rgba(255,255,255,0.4), 0 6px 18px rgba(0,0,0,0.25); }
+.folder-icon .fi-emoji { font-size: 28px; line-height: 1; }
+.folder-icon .fi-name { font-size: 9px; font-weight: 700; text-align: center; line-height: 1.15; word-break: break-word; max-width: 72px; }
+.folder-icon .fi-count { font-size: 8px; opacity: 0.6; font-weight: 600; }
+.folder-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; flex-shrink: 0; }
+#hubInfoTimeDisplay { animation: clockPulse 2s infinite; }
+.folder-drop-active { outline: 2px dashed currentColor; outline-offset: -2px; opacity: 0.8; }
+
+/* Dashboard cards */
+.dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; max-width: 900px; margin: 0 auto; }
+.dash-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; padding: 1.75rem 1rem; border-radius: 1rem; background: white; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); cursor: pointer; transition: all 0.2s; }
+.dash-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); transform: translateY(-2px); border-color: #93c5fd; }
+.dark .dash-card { background: #1e293b; border-color: #334155; }
+.dark .dash-card:hover { border-color: #3b82f6; }
+.dash-card .dash-icon { font-size: 2rem; line-height: 1; }
+.dash-card .dash-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+.dash-card .dash-count { font-size: 0.625rem; font-weight: 600; opacity: 0.6; }
+
+/* Modal scrollable body */
+.modal-scroll-body { overflow-y: auto; flex: 1; }
+
+@media (max-width: 640px) {
+  .p-5 { padding: 0.75rem !important; }
+  .px-4 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+  .py-6 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+  .gap-6 { gap: 0.75rem !important; }
+  .max-w-7xl { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
+  #chat-expanded { width: calc(100vw - 1rem) !important; right: 0.5rem !important; }
+  #sidebar { width: 100vw !important; }
+  #statsBarTop { display: none !important; }
+  nav .w-2\/4 .text-sm { font-size: 0.75rem !important; }
+  #searchCloud { width: 8rem !important; }
+  #calcModal > div { max-width: calc(100vw - 2rem) !important; margin: 0 1rem; }
+  .dash-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+  .dash-card { padding: 1rem 0.75rem; }
+}
