@@ -42,7 +42,7 @@
         <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow">E</div>
         <span class="hidden md:block text-sm font-medium tracking-tight whitespace-nowrap">
           <span class="logo-text" data-i18n="hubName">Engineering Cloud Hub</span>
-          <span class="text-xs text-gray-400 dark:text-gray-500 ml-2 logo-sub">v1.0</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500 ml-2 logo-sub">v3.0</span>
         </span>
       </div>
       <div class="flex items-center gap-2 w-2/4 justify-center">
@@ -59,162 +59,6 @@
       </div>
     </div>
   </nav>
-
-  <!-- CALC MODAL -->
-  <div id="calcModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeCalc()">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-5 w-full max-w-sm mx-4">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-base font-bold"><i class="fas fa-calculator mr-2 text-blue-500"></i><span data-i18n="calcTitle">Calcolatrice</span></h2>
-        <button onclick="closeCalc()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mb-3 text-right text-2xl font-mono font-bold" id="calcDisplay">0</div>
-      <div class="grid grid-cols-4 gap-2">
-        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="7">7</button>
-        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="8">8</button>
-        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="9">9</button>
-        <button class="calc-btn p-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold transition" data-v="/"><i class="fas fa-divide text-sm"></i></button>
-        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="4">4</button>
-        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="5">5</button>
-        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="6">6</button>
-        <button class="calc-btn p-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold transition" data-v="*"><i class="fas fa-times text-sm"></i></button>
-        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="1">1</button>
-        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="2">2</button>
-        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="3">3</button>
-        <button class="calc-btn p-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold transition" data-v="-"><i class="fas fa-minus text-sm"></i></button>
-        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v="0">0</button>
-        <button class="calc-btn p-3 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-bold transition" data-v=".">.</button>
-        <button id="calcEqual" class="p-3 rounded-lg bg-green-500 hover:bg-green-600 text-white font-bold transition">=</button>
-        <button class="calc-btn p-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold transition" data-v="+"><i class="fas fa-plus text-sm"></i></button>
-        <button id="calcClear" class="p-3 rounded-lg bg-red-500 hover:bg-red-600 text-white font-bold transition col-span-2">C</button>
-        <button id="calcBackspace" class="p-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-bold transition col-span-2"><i class="fas fa-delete-left"></i></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- NEWS MODAL -->
-  <div id="newsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeNews()">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl mx-4 max-h-[85vh] flex flex-col">
-      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-        <div class="flex items-center gap-3">
-          <h2 class="text-base font-bold"><i class="fas fa-newspaper mr-2 text-blue-500"></i><span data-i18n="newsTitle">Notizie</span></h2>
-          <div class="flex gap-1">
-            <button data-i18n="newsTabAll" class="news-tab text-xs px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium" data-cat="all">Tutte</button>
-            <button data-i18n="newsTabTech" class="news-tab text-xs px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400" data-cat="tecnologia">Tecnologia</button>
-            <button data-i18n="newsTabEconomy" class="news-tab text-xs px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400" data-cat="economia">Economia</button>
-          </div>
-        </div>
-        <button onclick="closeNews()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="flex-1 overflow-y-auto p-4" id="newsContainer"><p class="text-xs text-gray-400 text-center py-8" data-i18n="newsLoading">Caricamento notizie...</p></div>
-    </div>
-  </div>
-
-  <!-- SIDEBAR CHAT MODAL -->
-  <div id="chatModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeChat()">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col">
-      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 class="text-base font-bold"><i class="fas fa-robot mr-2 text-blue-500"></i><span data-i18n="chatTitle">Assistente AI</span></h2>
-        <div class="flex items-center gap-2">
-          <button id="clearChat" class="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded hover:bg-red-200 dark:hover:bg-red-900/50 transition"><i class="fas fa-trash-alt mr-1"></i><span data-i18n="clear">Pulisci</span></button>
-          <button onclick="closeChat()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
-        </div>
-      </div>
-      <div class="chat-scroll-container flex-1 overflow-y-auto p-4 space-y-3" id="chatContainer">
-        <div class="flex items-start gap-2 fade-in">
-          <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs flex-shrink-0 mt-1">AI</div>
-          <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 text-xs max-w-[85%]"><p data-i18n="chatWelcome">Ciao! Sono l'assistente dell'Engineering Cloud Hub. Come posso aiutarti oggi?</p></div>
-        </div>
-      </div>
-      <div class="p-3 border-t border-gray-200 dark:border-gray-700 flex gap-2">
-        <input type="text" id="chatInput" class="flex-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" placeholder="Scrivi un messaggio..." />
-        <button id="sendChat" class="px-4 py-2 text-xs bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg transition flex items-center gap-1 shadow"><i class="fas fa-paper-plane text-[10px]"></i><span data-i18n="send">Invia</span></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- USER MODAL -->
-  <div id="userModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeUserModal()">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
-      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 class="text-base font-bold"><i class="fas fa-user-circle mr-2 text-blue-500"></i><span data-i18n="userTitle">Gestione Utenti</span></h2>
-        <button onclick="closeUserModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="p-4 flex-1 overflow-y-auto" id="userContainer">
-        <p class="text-xs text-gray-400" data-i18n="userLoading">Caricamento utenti...</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- MTBF MODAL -->
-  <div id="mtbfModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeMtbfModal()">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-5 w-full max-w-sm mx-4">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-base font-bold"><i class="fas fa-chart-line mr-2 text-blue-500"></i>MTBF</h2>
-        <button onclick="closeMtbfModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="space-y-3">
-        <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="mtbfHours">Ore di funzionamento totali</label><input type="number" id="mtbfHours" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" placeholder="es. 10000" /></div>
-        <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="mtbfFailures">Numero guasti</label><input type="number" id="mtbfFailures" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" placeholder="es. 5" /></div>
-        <button id="calcMtbf" class="w-full py-2 text-sm bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg transition shadow"><i class="fas fa-calculator mr-1"></i><span data-i18n="calcMtbfBtn">Calcola MTBF</span></button>
-        <div id="mtbfResult" class="text-center text-sm font-bold text-blue-600 dark:text-blue-400 pt-2 hidden"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SUBSCRIBERS MODAL -->
-  <div id="subscribersModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeSubscribersModal()">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
-      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 class="text-base font-bold"><i class="fas fa-users mr-2 text-blue-500"></i><span data-i18n="subscribersTitle">Iscritti Newsletter</span></h2>
-        <button onclick="closeSubscribersModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="p-4 flex-1 overflow-y-auto" id="subscribersContainer">
-        <p class="text-xs text-gray-400" data-i18n="subscribersLoading">Caricamento iscritti...</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- NEWS HISTORY MODAL -->
-  <div id="newsHistoryModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeNewsHistoryModal()">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
-      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 class="text-base font-bold"><i class="fas fa-history mr-2 text-blue-500"></i><span data-i18n="newsHistoryTitle">Storico Notizie</span></h2>
-        <button onclick="closeNewsHistoryModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="p-4 flex-1 overflow-y-auto" id="newsHistoryContainer">
-        <p class="text-xs text-gray-400" data-i18n="newsHistoryLoading">Caricamento storico...</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- TEAM MODAL -->
-  <div id="teamModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeTeamModal()">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
-      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-        <div class="flex items-center gap-2">
-          <h2 class="text-base font-bold"><i class="fas fa-users-cog mr-2 text-blue-500"></i><span data-i18n="teamTitle">Team</span></h2>
-          <button id="btnAddMember" class="px-2 py-1 text-xs bg-green-500 hover:bg-green-600 text-white rounded transition shadow-sm"><i class="fas fa-plus mr-1"></i><span data-i18n="addMember">Aggiungi</span></button>
-        </div>
-        <button onclick="closeTeamModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="p-4 flex-1 overflow-y-auto" id="teamMembersContainer">
-        <p class="text-xs text-gray-400" data-i18n="teamLoading">Caricamento membri team...</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- STATS MODAL -->
-  <div id="statsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeStatsModal()">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
-      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 class="text-base font-bold"><i class="fas fa-chart-bar mr-2 text-blue-500"></i><span data-i18n="statsTitle">Statistiche Cloud</span></h2>
-        <button onclick="closeStatsModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="p-4 flex-1 overflow-y-auto">
-        <div class="grid grid-cols-2 gap-3" id="statsGrid"></div>
-      </div>
-    </div>
-  </div>
 
   <!-- ===== NEW FEATURE MODALS ===== -->
 
@@ -347,6 +191,233 @@
     </div>
   </div>
 
+  <!-- ===== CALC MODAL ===== -->
+  <div id="calcModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleCalcModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-calculator mr-2 text-amber-500"></i><span data-i18n="calcTitle">Calcolatore Peso Barre</span></h2>
+        <button onclick="toggleCalcModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-i18n="calcMat">Materiale</label>
+          <select id="calcMaterial" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition">
+            <option value="7.85">Acciaio al Carbonio (7.85 kg/dm³)</option>
+            <option value="8.00">Acciaio Inox (8.00 kg/dm³)</option>
+            <option value="2.70">Alluminio (2.70 kg/dm³)</option>
+            <option value="8.90">Rame (8.90 kg/dm³)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-i18n="calcShape">Geometria Sezione</label>
+          <select id="calcShape" onchange="updateCalcFields()" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition">
+            <option value="tondo">Tondo Pieno (Diametro)</option>
+            <option value="quadro">Quadro Pieno (Lato)</option>
+            <option value="piatto">Piatto / Rettangolo (Base x Altezza)</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label id="labelDim1" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Diametro (mm)</label>
+            <input type="number" id="calcDim1" value="20" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" />
+          </div>
+          <div id="divDim2" class="hidden">
+            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Altezza (mm)</label>
+            <input type="number" id="calcDim2" value="10" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-i18n="calcLen">Lunghezza Barra (mm)</label>
+          <input type="number" id="calcLength" value="1000" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" />
+        </div>
+        <button onclick="calculateWeight()" class="w-full py-2 text-sm bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white rounded-lg transition shadow font-medium"><i class="fas fa-calculator mr-1"></i> <span data-i18n="calcBtn">Esegui Calcolo</span></button>
+        <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+          <span class="text-xs font-semibold text-gray-500" data-i18n="calcRes">Massa Totale:</span>
+          <span id="calcResult" class="text-sm font-bold text-amber-500">0.00 kg</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== NEWS MODAL ===== -->
+  <div id="newsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleNewsSidebar()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-bullhorn mr-2 text-purple-500"></i><span data-i18n="newsTitle">News & Bacheca</span></h2>
+        <button onclick="toggleNewsSidebar()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 modal-scroll-body space-y-4">
+        <div class="p-3 bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/50 rounded-xl">
+          <textarea id="newsContent" rows="3" data-i18n="newsPlaceholder" placeholder="Scrivi un update logistico o di bacheca..." class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-purple-400 dark:text-white transition resize-none"></textarea>
+          <button id="btnSendNews" class="mt-2 w-full py-2 text-sm bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg transition shadow font-medium"><i class="fas fa-paper-plane mr-1"></i> <span data-i18n="newsBtn">Invia News</span></button>
+        </div>
+        <div id="newsHistoryContainer" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== USER MODAL ===== -->
+  <div id="userModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeUserModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-user-circle mr-2 text-blue-500"></i><span data-i18n="manageUsers">Gestione Utenti</span></h2>
+        <button onclick="closeUserModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 text-center">
+        <p class="text-sm text-gray-500 dark:text-gray-400"><span data-i18n="userMgmtPlaceholder">Gestione utenti in sviluppo.</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TEAM MODAL ===== -->
+  <div id="teamModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeTeamModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-users-cog mr-2 text-green-500"></i><span data-i18n="manageTeam">Gestione Team</span></h2>
+        <button onclick="closeTeamModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 modal-scroll-body space-y-3">
+        <div class="p-3 bg-gray-50/50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 rounded-xl">
+          <div class="space-y-2">
+            <input type="text" id="regName" data-i18n="sidebarRegName" placeholder="Il tuo Nome" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" />
+            <input type="text" id="regContact" data-i18n="sidebarRegContact" placeholder="Contatto / Email" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" />
+            <button id="btnRegister" class="w-full py-2 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg transition shadow font-medium"><i class="fas fa-user-plus mr-1"></i> <span data-i18n="sidebarRegBtn">Entra nel team</span></button>
+          </div>
+          <div id="teamMembersContainer" class="mt-3 space-y-1 max-h-40 overflow-y-auto"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MTBF MODAL ===== -->
+  <div id="mtbfModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeMtbfModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-chart-line mr-2 text-orange-500"></i>MTBF</h2>
+        <button onclick="closeMtbfModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 text-center">
+        <p class="text-sm text-gray-500 dark:text-gray-400">MTBF in sviluppo.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SUBSCRIBERS MODAL ===== -->
+  <div id="subscribersModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeSubscribersModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-users mr-2 text-indigo-500"></i><span data-i18n="newsletterSubscribers">Iscritti Newsletter</span></h2>
+        <button onclick="closeSubscribersModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 modal-scroll-body space-y-3">
+        <div class="p-3 bg-gray-50/50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 rounded-xl">
+          <div class="space-y-2">
+            <input type="text" id="telChatIdInput" placeholder="Chat ID Telegram (es. 1234567)" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" />
+            <input type="text" id="telNameInput" placeholder="Tuo Nome / Ruolo" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" />
+            <div class="flex gap-2">
+              <button id="btnSubscribeTelegram" class="flex-1 py-2 text-xs bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white rounded-lg transition shadow font-medium"><i class="fas fa-bell mr-1"></i> <span data-i18n="sidebarSubscribe">Attiva</span></button>
+              <button id="btnUnsubscribeTelegram" class="flex-1 py-2 text-xs bg-gray-200 dark:bg-gray-600 hover:bg-red-500 hover:text-white text-gray-600 dark:text-gray-300 rounded-lg transition font-medium"><i class="fas fa-bell-slash mr-1"></i> <span data-i18n="sidebarUnsubscribe">Disattiva</span></button>
+            </div>
+            <button onclick="testTelegramNotification()" class="w-full py-1.5 text-[11px] bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"><i class="fas fa-paper-plane mr-1"></i> Test Notifica</button>
+          </div>
+          <div id="subscribersContainer" class="mt-3 space-y-1 max-h-32 overflow-y-auto"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== NEWS HISTORY MODAL ===== -->
+  <div id="newsHistoryModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeNewsHistoryModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-history mr-2 text-teal-500"></i><span data-i18n="newsHistory">Storico Notizie</span></h2>
+        <button onclick="closeNewsHistoryModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 modal-scroll-body">
+        <p class="text-xs text-gray-400 text-center" data-i18n="newsHistoryDesc">Consulta le notizie nella sezione News & Bacheca.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== STATS MODAL ===== -->
+  <div id="statsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeStatsModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-chart-bar mr-2 text-purple-500"></i><span data-i18n="cloudStats">Statistiche Cloud</span></h2>
+        <button onclick="closeStatsModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 modal-scroll-body">
+        <div class="grid grid-cols-2 gap-4 mb-4" id="statsGrid">
+          <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-xl p-4 text-center">
+            <div class="text-2xl font-bold text-emerald-700 dark:text-emerald-400 font-mono" id="statExcel">0</div>
+            <div class="text-[10px] text-emerald-600 dark:text-emerald-500 font-semibold uppercase tracking-wider" data-i18n="sidebarExcelStat">Excel</div>
+          </div>
+          <div class="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 rounded-xl p-4 text-center">
+            <div class="text-2xl font-bold text-blue-700 dark:text-blue-400 font-mono" id="statDocs">0</div>
+            <div class="text-[10px] text-blue-600 dark:text-blue-500 font-semibold uppercase tracking-wider" data-i18n="sidebarDocStat">Docs</div>
+          </div>
+          <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-xl p-4 text-center">
+            <div class="text-2xl font-bold text-amber-700 dark:text-amber-400 font-mono" id="statNotes">0</div>
+            <div class="text-[10px] text-amber-600 dark:text-amber-500 font-semibold uppercase tracking-wider" data-i18n="sidebarNotesStat">Note</div>
+          </div>
+          <div class="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/50 rounded-xl p-4 text-center">
+            <div class="text-2xl font-bold text-indigo-700 dark:text-indigo-400 font-mono" id="topStatTeam">0</div>
+            <div class="text-[10px] text-indigo-600 dark:text-indigo-500 font-semibold uppercase tracking-wider">Team</div>
+          </div>
+          <div class="bg-teal-50 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-900/50 rounded-xl p-4 text-center">
+            <div class="text-2xl font-bold text-teal-700 dark:text-teal-400 font-mono" id="topStatTelegram">0</div>
+            <div class="text-[10px] text-teal-600 dark:text-teal-500 font-semibold uppercase tracking-wider">Telegram</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FOLDER MANAGER MODAL ===== -->
+  <div id="folderManagerModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleFolderManager()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-folder-open mr-2 text-blue-500"></i> Gestione Cartelle</h2>
+        <button onclick="toggleFolderManager()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 modal-scroll-body space-y-4">
+        <div class="flex gap-2">
+          <input type="text" id="newFolderName" placeholder="Nome cartella..." class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" />
+          <input type="color" id="newFolderColor" value="#3b82f6" class="w-9 h-9 rounded-lg cursor-pointer border border-gray-300 dark:border-gray-600 p-0.5 bg-white dark:bg-gray-700" />
+          <button onclick="addNewFolder()" class="px-3 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-sm font-medium">+</button>
+        </div>
+        <div id="folderList" class="space-y-2 max-h-60 overflow-y-auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CHAT FLOATING WIDGET (legacy support) ===== -->
+  <div id="chat-expanded" class="hidden"></div>
+  <button id="chat-fab" class="hidden"></button>
+
+  <!-- ===== CHAT WIDGET ===== -->
+  <div id="chatModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeChat()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-robot mr-2 text-blue-500"></i> <span data-i18n="assistant">Assistente IA</span></h2>
+        <button onclick="closeChat()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="flex flex-col flex-1">
+        <div id="chat-container" class="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900 flex flex-col gap-3 text-xs leading-relaxed min-h-[200px] max-h-[300px]">
+          <div class="bg-slate-900 dark:bg-gray-800 p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+            Ciao! Sono il tuo assistente. Chiedimi documenti, file Excel, note o altro.
+          </div>
+        </div>
+        <div class="border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800">
+          <div class="flex gap-2">
+            <input type="text" id="aiInput" placeholder="Interroga l'archivio dei file..." class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition placeholder-gray-400" />
+            <button id="aiSendBtn" onclick="window.askAI()" class="px-4 py-2 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg transition shadow font-medium"><i class="fas fa-paper-plane mr-1"></i> Invia</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- SIDEBAR -->
   <aside id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl z-50 hidden overflow-y-auto transition-transform">
     <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 flex items-center justify-between z-10">
@@ -367,7 +438,7 @@
         <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openStatsModal()"><i class="fas fa-chart-bar text-purple-500 w-4"></i><span data-i18n="cloudStats">Statistiche Cloud</span></button>
         <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="hubInfoToggle" onclick="toggleHubInfo()"><i class="fas fa-info-circle text-cyan-500 w-4"></i><span data-i18n="hubInfo">Info Hub</span></button>
         <div id="hubInfoPanel" class="hidden mt-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-xs space-y-2">
-          <p><span class="font-medium" data-i18n="version">Versione:</span> <span id="hubInfoVersion">1.0.0</span></p>
+          <p><span class="font-medium" data-i18n="version">Versione:</span> <span id="hubInfoVersion">3.0.0</span></p>
           <p><span class="font-medium" data-i18n="uptime">Attivo da:</span> <span id="hubInfoUptime">--</span></p>
           <p><span class="font-medium" data-i18n="lastUpdate">Ultimo aggiornamento:</span> <span id="hubInfoUpdate">--</span></p>
           <p><span class="font-medium" data-i18n="localTime">Ora locale:</span> <span id="hubInfoTimeDisplay">--</span></p>
