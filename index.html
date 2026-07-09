@@ -12,44 +12,77 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' }</script>
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="icon" type="image/png" href="icon-192.png" />
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors">
 
   <!-- LOGIN BLOCKER -->
-  <div id="loginBlocker" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4" style="z-index:9999">
-    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 max-w-xs w-full text-center">
-      <div class="text-2xl mb-1">🔐</div>
-      <h2 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-3">Accesso Engineering Hub</h2>
-      <div class="space-y-2.5">
-        <input type="text" id="loginUser" data-i18n="loginUser" placeholder="Nome Utente" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium focus:outline-none focus:border-blue-500">
-        <input type="password" id="loginPass" data-i18n="loginPass" placeholder="Password" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium focus:outline-none focus:border-blue-500">
+  <div id="loginBlocker" class="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 z-50 flex items-center justify-center p-4 transition-opacity duration-500" style="z-index:9999">
+    <div class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm p-6 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700/50 max-w-sm w-full text-center animate-[fadeScaleIn_0.3s_ease-out]">
+      <img src="icon-192.png" alt="" class="w-14 h-14 mx-auto mb-2 rounded-2xl shadow-lg ring-2 ring-blue-500/20" onerror="this.remove()">
+      <h2 class="text-sm font-bold text-gray-900 dark:text-white tracking-wide">Engineering Cloud Hub</h2>
+      <p class="text-[11px] text-gray-400 dark:text-gray-500 mb-4" id="loginSubtitle">Accedi per continuare</p>
+
+      <!-- LOGIN FORM -->
+      <div id="loginForm" class="space-y-3">
+        <div class="relative">
+          <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+          <input type="text" id="loginUser" autocomplete="username" placeholder="Nome Utente" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg pl-8 pr-3 py-2.5 text-xs font-medium focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-all">
+        </div>
+        <div class="relative">
+          <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+          <input type="password" id="loginPass" autocomplete="current-password" placeholder="Password" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg pl-8 pr-9 py-2.5 text-xs font-medium focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-all">
+          <button type="button" onclick="toggleLoginPass()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer text-xs px-1"><i class="fas fa-eye"></i></button>
+        </div>
         <label class="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-gray-400 cursor-pointer select-none">
           <input type="checkbox" id="rememberMe" class="rounded border-gray-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer">
-          <span data-i18n="rememberMe">Ricordami</span>
+          <span>Ricordami</span>
         </label>
-        <button onclick="window.verifyHubLogin()" data-i18n="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-xs tracking-wider uppercase transition-colors cursor-pointer">Verifica ed Entra</button>
+        <button id="loginBtn" onclick="window.verifyHubLogin()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wider uppercase transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
+          <span id="loginBtnText">Accedi</span>
+          <span id="loginSpinner" class="hidden"><svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></span>
+        </button>
       </div>
-      <p id="loginError" data-i18n="loginError" class="text-red-500 text-[11px] font-medium mt-2 hidden">⚠️ Credenziali errate. Riprova.</p>
+
+      <!-- GUEST / REGISTER LINKS -->
+      <div class="mt-3 flex flex-col gap-1.5">
+        <button onclick="guestLogin()" class="text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition cursor-pointer bg-transparent border-none">Entra come Ospite</button>
+        <button onclick="toggleRegisterForm()" id="showRegisterBtn" class="text-[11px] text-blue-500 hover:text-blue-400 transition cursor-pointer bg-transparent border-none">Non hai un account? Registrati</button>
+      </div>
+
+      <!-- REGISTRATION FORM (hidden) -->
+      <div id="registerForm" class="hidden mt-3 pt-3 border-t border-gray-200 dark:border-slate-700 space-y-3">
+        <p class="text-[11px] text-gray-500 dark:text-gray-400 font-medium">Crea un account</p>
+        <input type="text" id="regUsername" placeholder="Scegli un username" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500">
+        <input type="password" id="regPassword" placeholder="Scegli una password" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500">
+        <input type="text" id="regFullName" placeholder="Il tuo nome e cognome" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500">
+        <button id="registerBtn" onclick="registerAccount()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2 rounded-lg text-xs tracking-wider uppercase transition-all cursor-pointer shadow-lg shadow-emerald-600/20">Registrati</button>
+        <p id="registerError" class="text-red-500 text-[11px] hidden"></p>
+      </div>
+
+      <p id="loginError" class="text-red-500 text-[11px] font-medium mt-3 hidden transition-all duration-300">⚠️ Credenziali errate. Riprova.</p>
     </div>
   </div>
 
-  <div id="hubMainContent" class="hidden">
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
+
+  <div id="hubMainContent" class="hidden pb-14">
   <!-- NAVBAR -->
   <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow">E</div>
+    <div class="max-w-7xl mx-auto px-4 py-2 flex items-center gap-3">
+      <div class="flex items-center gap-2 flex-1 min-w-0">
+        <input type="text" id="searchCloud" class="w-full max-w-xs px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" placeholder="Cerca nel cloud..." />
+        <button id="btnSearchCloud" class="px-3 py-1.5 text-xs bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg transition flex items-center gap-1 shadow whitespace-nowrap"><i class="fas fa-search text-[10px]"></i><span class="hidden sm:inline" data-i18n="search">Cerca</span></button>
+      </div>
+      <div class="flex items-center gap-2 cursor-pointer select-none shrink-0" id="hubTitleBtn" onclick="toggleHubInfoModal()">
+        <img src="icon-192.png" alt="" class="w-7 h-7 rounded-lg" onerror="this.style.display='none'">
         <span class="hidden md:block text-sm font-medium tracking-tight whitespace-nowrap">
           <span class="logo-text" data-i18n="hubName">Engineering Cloud Hub</span>
           <span class="text-xs text-gray-400 dark:text-gray-500 ml-2 logo-sub">v3.0</span>
         </span>
       </div>
-      <div class="flex items-center gap-2 w-2/4 justify-center">
-        <input type="text" id="searchCloud" class="w-full max-w-xs px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" placeholder="Cerca nel cloud..." />
-        <button id="btnSearchCloud" class="px-3 py-1.5 text-xs bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg transition flex items-center gap-1 shadow whitespace-nowrap"><i class="fas fa-search text-[10px]"></i><span class="hidden sm:inline" data-i18n="search">Cerca</span></button>
-      </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 flex-1 justify-end">
         <button id="toggleCalc" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="Calcolatrice"><i class="fas fa-calculator text-sm"></i></button>
         <button id="newsBtn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="Notizie"><i class="fas fa-newspaper text-sm"></i></button>
         <button id="lang-it" onclick="changeLanguage('it')" class="px-2 py-1 rounded-md bg-blue-600 text-white transition-all text-xs font-bold">IT</button>
@@ -263,8 +296,16 @@
         <h2 class="text-base font-bold"><i class="fas fa-user-circle mr-2 text-blue-500"></i><span data-i18n="manageUsers">Gestione Utenti</span></h2>
         <button onclick="closeUserModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
       </div>
-      <div class="p-4 text-center">
-        <p class="text-sm text-gray-500 dark:text-gray-400"><span data-i18n="userMgmtPlaceholder">Gestione utenti in sviluppo.</span></p>
+      <div class="p-4 modal-scroll-body space-y-3">
+        <div class="p-3 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 rounded-xl">
+          <div class="space-y-2">
+            <input type="text" id="userNameInput" placeholder="Nome utente" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition">
+            <input type="text" id="userRoleInput" placeholder="Ruolo (es: Ingegnere, Tecnico)" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition">
+            <input type="email" id="userEmailInput" placeholder="Email (opzionale)" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition">
+            <button id="btnAddUser" class="w-full py-2 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg transition shadow font-medium"><i class="fas fa-user-plus mr-1"></i> Aggiungi Utente</button>
+          </div>
+          <div id="usersContainer" class="mt-3 space-y-1 max-h-60 overflow-y-auto"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -291,13 +332,69 @@
 
   <!-- ===== MTBF MODAL ===== -->
   <div id="mtbfModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeMtbfModal()">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4 max-h-[85vh] flex flex-col">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm mx-4 flex flex-col">
       <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
         <h2 class="text-base font-bold"><i class="fas fa-chart-line mr-2 text-orange-500"></i>MTBF</h2>
         <button onclick="closeMtbfModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
       </div>
-      <div class="p-4 text-center">
-        <p class="text-sm text-gray-500 dark:text-gray-400">MTBF in sviluppo.</p>
+      <div class="p-4 space-y-4 modal-scroll-body" style="max-height:60vh">
+        <div class="bg-amber-50/80 dark:bg-amber-950/20 p-2.5 rounded-lg border border-amber-200 dark:border-amber-800/40 text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed">
+          <span class="font-bold text-amber-700 dark:text-amber-400">MTBF</span> (Mean Time Between Failures) &egrave; l'intervallo medio tra due guasti consecutivi. Si calcola come:<br>
+          <span class="font-mono font-bold text-amber-600 dark:text-amber-300">MTBF = Ore totali / Numero Guasti</span>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[11px] font-medium text-gray-600 dark:text-gray-400 block mb-1" data-i18n="mtbfHours">Ore di funzionamento</label>
+            <input type="number" id="mtbfHours" value="10000" min="1" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-orange-500">
+          </div>
+          <div>
+            <label class="text-[11px] font-medium text-gray-600 dark:text-gray-400 block mb-1" data-i18n="mtbfFailures">N&deg; Guasti (n)</label>
+            <input type="number" id="mtbfFailures" value="5" min="1" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-orange-500">
+          </div>
+        </div>
+        <button onclick="calcMtbf()" class="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-400 hover:to-amber-500 text-white font-bold py-2 rounded-lg text-xs tracking-wider uppercase transition-all cursor-pointer shadow-lg shadow-orange-500/20">Calcola MTBF</button>
+
+        <!-- RESULT PANEL -->
+        <div id="mtbfResult" class="hidden space-y-3">
+          <div class="text-center p-4 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/20 border border-amber-200 dark:border-amber-800/40">
+            <p class="text-[10px] uppercase tracking-widest text-amber-600 dark:text-amber-400 font-semibold">MTBF</p>
+            <p class="text-3xl font-bold text-amber-700 dark:text-amber-300" id="mtbfValue">--</p>
+            <p class="text-[10px] text-amber-500 dark:text-amber-400 mt-0.5">ore tra un guasto e l'altro</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-center">
+              <p class="text-[9px] uppercase tracking-wider text-gray-400 font-semibold">&lambda; (Failure Rate)</p>
+              <p class="text-sm font-bold text-gray-700 dark:text-gray-200" id="mtbfLambda">--</p>
+              <p class="text-[9px] text-gray-400">guasti/ora</p>
+            </div>
+            <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-center">
+              <p class="text-[9px] uppercase tracking-wider text-gray-400 font-semibold">MTBF (anni)</p>
+              <p class="text-sm font-bold text-gray-700 dark:text-gray-200" id="mtbfYears">--</p>
+              <p class="text-[9px] text-gray-400">su 8760 h/anno</p>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
+            <p class="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-1.5">Affidabilit&agrave; R(t) = e<sup>-&lambda;t</sup></p>
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
+              <div><span class="text-gray-400">Dopo 24h:</span> <span class="font-bold text-emerald-600 dark:text-emerald-400" id="mtbfR24">--</span></div>
+              <div><span class="text-gray-400">Dopo 168h (1 sett.):</span> <span class="font-bold text-emerald-600 dark:text-emerald-400" id="mtbfR168">--</span></div>
+              <div><span class="text-gray-400">Dopo 720h (1 mese):</span> <span class="font-bold text-emerald-600 dark:text-emerald-400" id="mtbfR720">--</span></div>
+              <div><span class="text-gray-400">Dopo 8760h (1 anno):</span> <span class="font-bold text-emerald-600 dark:text-emerald-400" id="mtbfR8760">--</span></div>
+            </div>
+          </div>
+
+          <button onclick="toggleMtbfDetails()" class="w-full py-1.5 text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition cursor-pointer bg-transparent border border-gray-200 dark:border-slate-700 rounded-lg">Mostra dettagli tecnici</button>
+          <div id="mtbfDetails" class="hidden p-2.5 rounded-lg bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed space-y-1">
+            <p><b>MTBF</b> = T / n = ore totali / guasti</p>
+            <p><b>&lambda;</b> (Failure Rate) = 1 / MTBF = n / T</p>
+            <p><b>R(t)</b> = e<sup>-&lambda;t</sup> (affidabilit&agrave; esponenziale)</p>
+            <p><b>MTTR</b> = Tempo medio di riparazione (da inserire separatamente)</p>
+            <p><b>Disponibilit&agrave;</b> A = MTBF / (MTBF + MTTR)</p>
+            <p class="text-gray-400 italic mt-1">I valori sono indicativi e presuppongono una distribuzione esponenziale dei guasti (modello &agrave; tasso costante).</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -334,7 +431,7 @@
         <button onclick="closeNewsHistoryModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
       </div>
       <div class="p-4 modal-scroll-body">
-        <p class="text-xs text-gray-400 text-center" data-i18n="newsHistoryDesc">Consulta le notizie nella sezione News & Bacheca.</p>
+        <div id="newsHistoryList" class="space-y-2"></div>
       </div>
     </div>
   </div>
@@ -391,32 +488,31 @@
     </div>
   </div>
 
-  <!-- ===== CHAT FLOATING WIDGET (legacy support) ===== -->
-  <div id="chat-expanded" class="hidden"></div>
-  <button id="chat-fab" class="hidden"></button>
-
-  <!-- ===== CHAT WIDGET ===== -->
-  <div id="chatModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeChat()">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col">
-      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 class="text-base font-bold"><i class="fas fa-robot mr-2 text-blue-500"></i> <span data-i18n="assistant">Assistente IA</span></h2>
-        <button onclick="closeChat()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+  <!-- ===== FLOATING CHAT ===== -->
+  <div id="chat-expanded" class="fixed bottom-20 right-4 w-80 sm:w-96 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col z-40 hidden transition-all duration-300">
+    <div onclick="toggleChatCollapse()" class="bg-gradient-to-r from-blue-600 to-blue-800 p-3 flex justify-between items-center cursor-pointer border-b border-blue-700 select-none">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+        <span class="font-bold text-xs tracking-wide text-white">Assistente IA <span class="text-[10px] text-blue-200 font-mono">v3.0</span></span>
       </div>
-      <div class="flex flex-col flex-1">
-        <div id="chat-container" class="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900 flex flex-col gap-3 text-xs leading-relaxed min-h-[200px] max-h-[300px]">
-          <div class="bg-slate-900 dark:bg-gray-800 p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
-            Ciao! Sono il tuo assistente. Chiedimi documenti, file Excel, note o altro.
-          </div>
+      <span class="text-white/70 hover:text-white font-bold text-xs cursor-pointer">_</span>
+    </div>
+    <div class="flex flex-col flex-grow">
+      <div id="chat-container" class="h-[260px] overflow-y-auto flex flex-col p-4 bg-gray-50 dark:bg-gray-900 gap-3 text-xs leading-relaxed chat-scroll-container">
+        <div class="bg-white dark:bg-gray-800 p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 shadow-sm">
+          Ciao! Sono il tuo assistente. Chiedimi documenti, file Excel, note o altro.
         </div>
-        <div class="border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800">
-          <div class="flex gap-2">
-            <input type="text" id="aiInput" placeholder="Interroga l'archivio dei file..." class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition placeholder-gray-400" />
-            <button id="aiSendBtn" onclick="window.askAI()" class="px-4 py-2 text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg transition shadow font-medium"><i class="fas fa-paper-plane mr-1"></i> Invia</button>
-          </div>
+      </div>
+      <div class="border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800">
+        <div class="flex gap-2">
+          <input type="text" id="aiInput" placeholder="Interroga l'archivio dei file..." class="flex-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition placeholder-gray-400" />
+          <button id="aiSendBtn" onclick="window.askAI()" class="px-3 py-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg transition shadow font-medium"><i class="fas fa-paper-plane mr-1"></i> Invia</button>
         </div>
       </div>
     </div>
   </div>
+  <button id="chat-fab" onclick="toggleChatCollapse()" class="fixed bottom-28 right-4 w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-700 hover:from-blue-500 hover:to-purple-600 rounded-full shadow-2xl border-2 border-white/20 flex items-center justify-center text-2xl cursor-pointer transition-all duration-300 z-40">🤖</button>
+
 
   <!-- SIDEBAR -->
   <aside id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl z-50 hidden overflow-y-auto transition-transform">
@@ -427,7 +523,7 @@
     <div class="p-3 space-y-1" id="sidebarContent">
       <div class="sidebar-section mb-4">
         <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2"><span data-i18n="management">Gestione</span></p>
-        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openUserModal()"><i class="fas fa-user-circle text-blue-500 w-4"></i><span data-i18n="manageUsers">Gestione Utenti</span></button>
+        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-owner" onclick="openUserModal()"><i class="fas fa-user-circle text-blue-500 w-4"></i><span data-i18n="manageUsers">Gestione Utenti</span></button>
         <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openTeamModal()"><i class="fas fa-users-cog text-green-500 w-4"></i><span data-i18n="manageTeam">Gestione Team</span></button>
         <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openMtbfModal()"><i class="fas fa-chart-line text-orange-500 w-4"></i><span>MTBF</span></button>
         <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openSubscribersModal()"><i class="fas fa-users text-indigo-500 w-4"></i><span data-i18n="newsletterSubscribers">Iscritti Newsletter</span></button>
@@ -482,24 +578,162 @@
     </div>
   </main>
 
-  <!-- FOOTER -->
-  <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-3 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 flex items-center justify-between">
-      <div class="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-3">
-        <span data-i18n="footerCopyright">&copy; 2025 Engineering Cloud Hub</span>
-        <span class="hidden sm:inline">|</span>
-        <span class="hidden sm:inline" data-i18n="footerRights">Tutti i diritti riservati.</span>
+  <!-- HUB INFO MODAL (click logo) -->
+  <div id="hubInfoModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)window.toggleHubInfoModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center space-y-4 border border-gray-200 dark:border-gray-700">
+      <img src="icon-192.png" alt="" class="w-16 h-16 mx-auto rounded-2xl shadow-lg ring-2 ring-blue-500/20" onerror="this.remove()">
+      <div>
+        <div class="text-lg font-bold text-gray-900 dark:text-white">Engineering Cloud Hub</div>
+        <div class="text-xs text-blue-500 font-mono mt-1 tracking-wider">v3.1.0</div>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="openSidebar()" class="px-3 py-1.5 text-xs bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg transition flex items-center gap-1 shadow-sm"><i class="fas fa-cog text-[10px]"></i><span data-i18n="openPanel">Apri Pannello</span></button>
-        <button id="chatBtn" class="px-3 py-1.5 text-xs bg-gradient-to-r from-gray-700 to-gray-800 dark:from-gray-600 dark:to-gray-700 hover:from-gray-600 hover:to-gray-700 text-white rounded-lg transition flex items-center gap-1 shadow-sm"><i class="fas fa-robot text-[10px]"></i><span data-i18n="assistant">Assistente</span></button>
+      <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-3.5 shadow-md">
+        <div class="text-[10px] uppercase tracking-widest opacity-70 font-semibold mb-1">Data e Ora</div>
+        <div class="text-base font-mono font-bold tracking-wider" id="hubInfoTimeDisplayModal">--</div>
       </div>
+      <button onclick="window.toggleHubInfoModal()" class="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">Chiudi</button>
     </div>
-  </footer>
+  </div>
 
   </div><!-- /hubMainContent -->
 
-  <script type="module" src="js/config.js"></script>
-  <script type="module" src="js/app.js"></script>
+  <!-- FOOTER / BOTTOM BAR -->
+  <footer id="hubFooter" class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50 px-4 py-2 flex items-center justify-center gap-4 shadow-lg hidden">
+    <button onclick="openSidebar()" class="px-4 py-2 text-xs bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm"><i class="fas fa-cog text-[10px]"></i><span data-i18n="openPanel">Apri Pannello</span></button>
+    <button id="chatBtn" onclick="toggleChatCollapse()" class="px-4 py-2 text-xs bg-gradient-to-r from-gray-700 to-gray-800 dark:from-gray-600 dark:to-gray-700 hover:from-gray-600 hover:to-gray-700 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm"><i class="fas fa-robot text-[10px]"></i><span data-i18n="assistant">Assistente</span></button>
+    <span class="text-xs text-gray-400 dark:text-gray-500 ml-4" data-i18n="footerCopyright">&copy; 2025 Engineering Cloud Hub</span>
+  </footer>
+
+  <script>
+    window.showToast = function(msg, type) {
+      var c = document.getElementById('toastContainer');
+      if (!c) return;
+      var t = document.createElement('div');
+      t.className = 'pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-lg shadow-lg text-xs font-medium transition-all duration-300 translate-x-4 opacity-0 ' + (type === 'error' ? 'bg-red-600 text-white' : type === 'success' ? 'bg-emerald-600 text-white' : 'bg-gray-800 dark:bg-gray-700 text-white');
+      t.innerHTML = (type === 'error' ? '\u26a0\ufe0f ' : type === 'success' ? '\u2705 ' : '\u2139\ufe0f ') + msg;
+      c.appendChild(t);
+      requestAnimationFrame(function() { t.classList.remove('translate-x-4','opacity-0'); });
+      setTimeout(function() { t.classList.add('translate-x-4','opacity-0'); setTimeout(function() { t.remove(); }, 300); }, 3500);
+    };
+    function enterApp() {
+      var lb = document.getElementById('loginBlocker');
+      lb.style.opacity = '0';
+      setTimeout(function() { lb.remove(); }, 400);
+      document.getElementById('hubMainContent')?.classList.remove('hidden');
+      document.getElementById('hubFooter')?.classList.remove('hidden');
+      document.getElementById('toastContainer')?.classList.remove('hidden');
+    }
+    window.guestLogin = function() {
+      window.userRole = 'guest';
+      window.username = 'Ospite';
+      enterApp();
+      showToast('Accesso come Ospite — solo visualizzazione', 'info');
+    };
+    window.toggleLoginPass = function() {
+      const el = document.getElementById('loginPass');
+      const icon = el.nextElementSibling.querySelector('i');
+      if (el.type === 'password') { el.type = 'text'; icon.className = 'fas fa-eye-slash'; }
+      else { el.type = 'password'; icon.className = 'fas fa-eye'; }
+    };
+    window.toggleRegisterForm = function() {
+      var f = document.getElementById('registerForm');
+      f.classList.toggle('hidden');
+      document.getElementById('showRegisterBtn').classList.toggle('hidden', !f.classList.contains('hidden'));
+    };
+    window.verifyHubLogin = window.verifyHubLogin || function() {
+      const btn = document.getElementById('loginBtn');
+      const spinner = document.getElementById('loginSpinner');
+      const btnText = document.getElementById('loginBtnText');
+      btn.disabled = true; spinner.classList.remove('hidden'); btnText.textContent = 'Verifica...';
+      setTimeout(function() {
+        var u = document.getElementById('loginUser')?.value?.trim();
+        var p = document.getElementById('loginPass')?.value?.trim();
+        if (u === 'Ing' && p === 'Ing') {
+          window.userRole = 'owner';
+          window.username = 'Ing';
+          if (document.getElementById('rememberMe')?.checked) { localStorage.setItem('hub-user', u); localStorage.setItem('hub-pass', p); }
+          else { localStorage.removeItem('hub-user'); localStorage.removeItem('hub-pass'); }
+          enterApp();
+        } else if (u && p && typeof db !== 'undefined' && db) {
+          db.collection('accountsHub').where('username', '==', u).get().then(function(snap) {
+            if (!snap.empty) {
+              var doc = snap.docs[0].data();
+              var hash = 0; for (var i = 0; i < p.length; i++) { hash = ((hash << 5) - hash) + p.charCodeAt(i); hash |= 0; }
+              var pwdHash = hash.toString(36);
+              if (doc.password === pwdHash) {
+                window.userRole = doc.role || 'user';
+                window.username = u;
+                if (document.getElementById('rememberMe')?.checked) { localStorage.setItem('hub-user', u); localStorage.setItem('hub-pass', '__acct__'); }
+                else { localStorage.removeItem('hub-user'); localStorage.removeItem('hub-pass'); }
+                enterApp();
+                return;
+              }
+            }
+            var err = document.getElementById('loginError');
+            err.classList.remove('hidden');
+            setTimeout(function() { err.classList.add('hidden'); }, 4000);
+          }).catch(function() {
+            var err = document.getElementById('loginError');
+            err.textContent = '\u26a0\ufe0f Errore di connessione. Verifica il backend.';
+            err.classList.remove('hidden');
+          }).then(function() {
+            btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Accedi';
+          });
+          return;
+        } else {
+          var err = document.getElementById('loginError');
+          err.classList.remove('hidden');
+          setTimeout(function() { err.classList.add('hidden'); }, 4000);
+        }
+        btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Accedi';
+      }, 600);
+    };
+    window.registerAccount = function() {
+      var u = document.getElementById('regUsername').value.trim();
+      var p = document.getElementById('regPassword').value.trim();
+      var n = document.getElementById('regFullName').value.trim();
+      var errEl = document.getElementById('registerError');
+      if (!u || !p || !n) { errEl.textContent = '\u26a0\ufe0f Compila tutti i campi.'; errEl.classList.remove('hidden'); return; }
+      if (u.toLowerCase() === 'ing' || u.toLowerCase() === 'ospite') { errEl.textContent = '\u26a0\ufe0f Username non disponibile.'; errEl.classList.remove('hidden'); return; }
+      if (p.length < 4) { errEl.textContent = '\u26a0\ufe0f Password almeno 4 caratteri.'; errEl.classList.remove('hidden'); return; }
+      errEl.classList.add('hidden');
+      var hash = 0; for (var i = 0; i < p.length; i++) { hash = ((hash << 5) - hash) + p.charCodeAt(i); hash |= 0; }
+      var pwdHash = hash.toString(36);
+      if (typeof db !== 'undefined' && db) {
+        db.collection('accountsHub').add({ username: u, password: pwdHash, name: n, role: 'user', createdAt: firebase.firestore.FieldValue.serverTimestamp() }).then(function() {
+          window.showToast('Account creato! Ora puoi accedere.', 'success');
+          window.toggleRegisterForm();
+          document.getElementById('regUsername').value = '';
+          document.getElementById('regPassword').value = '';
+          document.getElementById('regFullName').value = '';
+          document.getElementById('loginUser').value = u;
+        }).catch(function(e) {
+          errEl.textContent = '\u26a0\ufe0f Errore: ' + e.message;
+          errEl.classList.remove('hidden');
+        });
+      } else {
+        errEl.textContent = '\u26a0\ufe0f Backend non disponibile.';
+        errEl.classList.remove('hidden');
+      }
+    };
+    window.toggleHubInfoModal = function() {
+      const modal = document.getElementById('hubInfoModal');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        function update() {
+          const el = document.getElementById('hubInfoTimeDisplayModal');
+          const m = document.getElementById('hubInfoModal');
+          if (!el || !m || m.classList.contains('hidden')) return;
+          const now = new Date();
+          el.textContent = now.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ' — ' + now.toLocaleTimeString('it-IT');
+          setTimeout(update, 1000);
+        }
+        update();
+      }
+    };
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

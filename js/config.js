@@ -1,7 +1,7 @@
-export const TELEGRAM_BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
-export const AI_KEY = "sk-UHO9awELiLVfpplF65MFeMa4ylD0bOYw";
+window.TELEGRAM_BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
+window.AI_KEY = "sk-UHO9awELiLVfpplF65MFeMa4ylD0bOYw";
 
-export const firebaseConfig = {
+window.firebaseConfig = {
   apiKey: "AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM",
   authDomain: "hub-ingegneria.firebaseapp.com",
   projectId: "hub-ingegneria",
@@ -10,7 +10,7 @@ export const firebaseConfig = {
   appId: "1:58933321877:web:1e3f4630edc9f192865077"
 };
 
-export const i18n = {
+window.i18n = {
   it: {
     hubName:"Engineering Cloud Hub", search:"Cerca", calcTitle:"Calcolatrice", newsTitle:"Notizie",
     newsTabAll:"Tutte", newsTabTech:"Tecnologia", newsTabEconomy:"Economia", newsLoading:"Caricamento notizie...",
@@ -38,8 +38,10 @@ export const i18n = {
     newsletterSubscribers:"Iscritti Newsletter", newsHistory:"Storico Notizie",
     cloudStats:"Statistiche Cloud", hubInfo:"Info Hub", info:"Informazioni",
     version:"Versione:", uptime:"Attivo da:", lastUpdate:"Ultimo aggiornamento:", localTime:"Ora locale:",
-    footerCopyright:"© 2025 Engineering Cloud Hub", footerRights:"Tutti i diritti riservati.",
-    openPanel:"Apri Pannello", assistant:"Assistente"
+    footerCopyright:"\u00a9 2025 Engineering Cloud Hub", footerRights:"Tutti i diritti riservati.",
+    openPanel:"Apri Pannello", assistant:"Assistente",
+    loginUser:"Nome Utente", loginPass:"Password", rememberMe:"Ricordami", loginBtn:"Accedi",
+    loginError:"\u26a0\ufe0f Credenziali errate. Riprova.", loginSubtitle:"Accedi per continuare"
   },
   en: {
     hubName:"Engineering Cloud Hub", search:"Search", calcTitle:"Calculator", newsTitle:"News",
@@ -68,7 +70,9 @@ export const i18n = {
     newsletterSubscribers:"Newsletter Subscribers", newsHistory:"News History",
     cloudStats:"Cloud Statistics", hubInfo:"Hub Info", info:"Information",
     version:"Version:", uptime:"Active since:", lastUpdate:"Last update:", localTime:"Local time:",
-    footerCopyright:"© 2025 Engineering Cloud Hub", footerRights:"All rights reserved.",
-    openPanel:"Open Panel", assistant:"Assistant"
+    footerCopyright:"\u00a9 2025 Engineering Cloud Hub", footerRights:"All rights reserved.",
+    openPanel:"Open Panel", assistant:"Assistant",
+    loginUser:"Username", loginPass:"Password", rememberMe:"Remember me", loginBtn:"Sign In",
+    loginError:"\u26a0\ufe0f Invalid credentials. Try again.", loginSubtitle:"Sign in to continue"
   }
 };

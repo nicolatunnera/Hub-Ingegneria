@@ -1,46 +1,80 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-import { TELEGRAM_BOT_TOKEN, AI_KEY, firebaseConfig, i18n } from "./config.js";
+// ─── TOAST (override) ────────────────────────────────────────────────
+window.alert = window.showToast || function(msg) { console.warn('[Alert fallback]', msg); };
 
-const db = getFirestore(initializeApp(firebaseConfig));
+// ─── FIREBASE INIT (compat SDK — loaded via <script> in index.html) ────
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
 
 // ─── LOGIN ────────────────────────────────────────────────────────────
 window.verifyHubLogin = () => {
-  const user = document.getElementById('loginUser').value.trim();
-  const pass = document.getElementById('loginPass').value.trim();
-  if (user === 'Ing' && pass === 'Ing') {
-    if (document.getElementById('rememberMe')?.checked) {
-      localStorage.setItem('hub-user', user);
-      localStorage.setItem('hub-pass', pass);
-    } else {
-      localStorage.removeItem('hub-user');
-      localStorage.removeItem('hub-pass');
+  const btn = document.getElementById('loginBtn');
+  const spinner = document.getElementById('loginSpinner');
+  const btnText = document.getElementById('loginBtnText');
+  btn.disabled = true; spinner.classList.remove('hidden'); btnText.textContent = 'Verifica...';
+  setTimeout(() => {
+    const u = document.getElementById('loginUser').value.trim();
+    const p = document.getElementById('loginPass').value.trim();
+    function fail() { const err = document.getElementById('loginError'); err.classList.remove('hidden'); setTimeout(() => err.classList.add('hidden'), 4000); btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Accedi'; }
+    function login(role) {
+      window.userRole = role; window.username = u;
+      if (document.getElementById('rememberMe')?.checked) {
+        localStorage.setItem('hub-user', u);
+        localStorage.setItem('hub-pass', role === 'owner' ? p : '__acct__');
+      } else { localStorage.removeItem('hub-user'); localStorage.removeItem('hub-pass'); }
+      const lb = document.getElementById('loginBlocker'); lb.style.opacity = '0';
+      setTimeout(() => { lb.remove(); document.getElementById('hubMainContent').classList.remove('hidden'); document.getElementById('hubFooter')?.classList.remove('hidden'); }, 400);
+      btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Accedi';
+      setupPermissions();
     }
-    document.getElementById('loginBlocker').remove();
-    document.getElementById('hubMainContent').classList.remove('hidden');
-  } else {
-    document.getElementById('loginError').classList.remove('hidden');
-  }
+    if (u === 'Ing' && p === 'Ing') { login('owner'); return; }
+    if (!u || !p) { fail(); return; }
+    db.collection('accountsHub').where('username', '==', u).get().then(snap => {
+      if (!snap.empty) {
+        const d = snap.docs[0].data();
+        let hash = 0; for (let i = 0; i < p.length; i++) { hash = ((hash << 5) - hash) + p.charCodeAt(i); hash |= 0; }
+        if (d.password === hash.toString(36)) { login(d.role || 'user'); return; }
+      }
+      fail();
+    }).catch(() => {
+      const err = document.getElementById('loginError'); err.textContent = '⚠️ Errore di connessione.'; err.classList.remove('hidden');
+      btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Accedi';
+    });
+  }, 600);
 };
 (function autoLogin() {
   const u = localStorage.getItem('hub-user');
   const p = localStorage.getItem('hub-pass');
   if (u && p) {
-    document.getElementById('loginUser').value = u;
-    document.getElementById('loginPass').value = p;
-    document.getElementById('rememberMe').checked = true;
-    window.verifyHubLogin();
+    if (u === 'Ing' && p === 'Ing') {
+      window.userRole = 'owner'; window.username = 'Ing';
+      const lb = document.getElementById('loginBlocker'); if (lb) lb.style.opacity = '0';
+      setTimeout(() => { if (lb) lb.remove(); document.getElementById('hubMainContent').classList.remove('hidden'); document.getElementById('hubFooter')?.classList.remove('hidden'); setupPermissions(); }, 400);
+    }
   }
 })();
 document.getElementById('loginUser')?.addEventListener('keydown', e => { if (e.key === 'Enter') window.verifyHubLogin(); });
 document.getElementById('loginPass')?.addEventListener('keydown', e => { if (e.key === 'Enter') window.verifyHubLogin(); });
 
+// ─── PERMISSIONS ──────────────────────────────────────────────────────
+function setupPermissions() {
+  const role = window.userRole || 'guest';
+  const isOwner = role === 'owner';
+  const canWrite = role !== 'guest';
+  document.querySelectorAll('.requires-owner').forEach(el => el.classList.toggle('hidden', !isOwner));
+  document.querySelectorAll('.requires-write').forEach(el => el.classList.toggle('hidden', !canWrite));
+  document.querySelectorAll('.requires-guest').forEach(el => el.classList.toggle('hidden', role !== 'guest'));
+  if (role === 'guest') {
+    document.querySelectorAll('.delete-btn, .delete-cloud-btn, .delete-note-btn, .delete-history-btn, .unregister-btn, .delete-user-btn').forEach(el => el.remove());
+    document.querySelectorAll('#btnSendNews, #btnUploadExcel, #btnUploadDoc, #btnUploadNote, #btnRegister, #btnAddUser, #btnSubscribeTelegram, #btnUnsubscribeTelegram, #testTelegramNotification').forEach(el => el.disabled = true);
+  }
+}
+
 // ─── TOGGLE UTILITY ───────────────────────────────────────────────────
 window.closeCalc = () => document.getElementById('calcModal')?.classList.add('hidden');
 window.closeNews = () => document.getElementById('newsModal')?.classList.add('hidden');
-window.closeChat = () => document.getElementById('chatModal')?.classList.add('hidden');
+
 window.closeUserModal = () => document.getElementById('userModal')?.classList.add('hidden');
 window.closeMtbfModal = () => document.getElementById('mtbfModal')?.classList.add('hidden');
 window.closeSubscribersModal = () => document.getElementById('subscribersModal')?.classList.add('hidden');
@@ -67,8 +101,6 @@ window.toggleNewsSidebar = () => document.getElementById('newsModal')?.classList
 document.getElementById('newsBtn')?.addEventListener('click', () => window.toggleNewsSidebar());
 window.toggleTheme = () => document.documentElement.classList.toggle('dark');
 document.getElementById('themeToggle')?.addEventListener('click', () => window.toggleTheme());
-document.getElementById('chatBtn')?.addEventListener('click', () => document.getElementById('chatModal')?.classList.remove('hidden'));
-
 let isChatCollapsed = true;
 window.toggleChatCollapse = () => {
   isChatCollapsed = !isChatCollapsed;
@@ -81,6 +113,14 @@ window.toggleDocModal = () => document.getElementById('docModal')?.classList.tog
 window.toggleNotesModal = () => document.getElementById('notesModal')?.classList.toggle('hidden');
 window.toggleArchiveModal = () => { document.getElementById('archiveModal')?.classList.toggle('hidden'); combineAndRenderArchive(); };
 window.toggleHistoryModal = () => document.getElementById('historyModal')?.classList.toggle('hidden');
+
+// ─── HUB INFO ─────────────────────────────────────────────────────────
+(function populateHubInfo() {
+  const uptime = document.getElementById('hubInfoUptime');
+  const update = document.getElementById('hubInfoUpdate');
+  if (uptime) uptime.textContent = '01/02/2025';
+  if (update) update.textContent = new Date().toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+})();
 
 // ─── HUB INFO CLOCK ──────────────────────────────────────────────────
 function updateHubInfoClock() {
@@ -114,7 +154,27 @@ window.calculateWeight = () => {
   document.getElementById('calcResult').textContent = ((v / 1e6) * d).toFixed(2) + ' kg';
 };
 
-// ─── I18N (imported from config.js) ──────────────────────────────────
+// ─── MTBF ──────────────────────────────────────────────────────────────
+window.calcMtbf = () => {
+  const h = parseFloat(document.getElementById('mtbfHours').value) || 0;
+  const f = parseFloat(document.getElementById('mtbfFailures').value) || 0;
+  const result = document.getElementById('mtbfResult');
+  if (h <= 0 || f <= 0) { result?.classList.add('hidden'); return; }
+  const mtbf = h / f;
+  const lambda = 1 / mtbf;
+  document.getElementById('mtbfValue').textContent = mtbf.toLocaleString('it-IT', { maximumFractionDigits: 1 }) + ' h';
+  document.getElementById('mtbfLambda').textContent = lambda.toExponential(4);
+  document.getElementById('mtbfYears').textContent = (mtbf / 8760).toLocaleString('it-IT', { maximumFractionDigits: 1 });
+  const R = t => Math.exp(-lambda * t);
+  document.getElementById('mtbfR24').textContent = (R(24) * 100).toFixed(2) + '%';
+  document.getElementById('mtbfR168').textContent = (R(168) * 100).toFixed(2) + '%';
+  document.getElementById('mtbfR720').textContent = (R(720) * 100).toFixed(2) + '%';
+  document.getElementById('mtbfR8760').textContent = (R(8760) * 100).toFixed(2) + '%';
+  result.classList.remove('hidden');
+};
+window.toggleMtbfDetails = () => document.getElementById('mtbfDetails')?.classList.toggle('hidden');
+
+// ─── I18N ─────────────────────────────────────────────────────────────
 window.changeLanguage = (lang) => {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
@@ -152,7 +212,7 @@ function escapeMarkdown(text) { return text.replace(/[_*`\[]/g, '\\$&'); }
 async function sendTelegramBroadcast(text) {
   if (!TELEGRAM_BOT_TOKEN) return;
   try {
-    const snap = await getDocs(collection(db, 'subscribers'));
+    const snap = await db.collection('subscribers').get();
     await Promise.all(snap.docs.map(uDoc => {
       if (!uDoc.data().chatId) return;
       return fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -169,33 +229,33 @@ window.testTelegramNotification = async () => {
   try {
     const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text: '🔔 *Test notifica Engineering Hub*\n\nSe vedi questo messaggio, il bot funziona correttamente! ✅', parse_mode: 'Markdown' })
+      body: JSON.stringify({ chat_id: chatId, text: '\u{1F514} *Test notifica Engineering Hub*\n\nSe vedi questo messaggio, il bot funziona correttamente! \u2705', parse_mode: 'Markdown' })
     });
     const data = await res.json();
-    if (data.ok) alert('✅ Notifica inviata! Controlla Telegram.');
-    else alert('❌ Errore: ' + (data.description || 'Risposta sconosciuta'));
-  } catch (e) { alert('❌ Errore di rete: ' + e.message); }
+    if (data.ok) alert('\u2705 Notifica inviata! Controlla Telegram.');
+    else alert('\u274C Errore: ' + (data.description || 'Risposta sconosciuta'));
+  } catch (e) { alert('\u274C Errore di rete: ' + e.message); }
 };
 
 document.getElementById('btnSubscribeTelegram').onclick = async () => {
   const chatId = document.getElementById('telChatIdInput').value.trim();
   const name = document.getElementById('telNameInput').value.trim() || 'Membro Hub';
   if (!chatId) return alert('Inserisci un Chat ID numerico!');
-  await addDoc(collection(db, 'subscribers'), { chatId, name, subscribedAt: serverTimestamp() });
+  await db.collection('subscribers').add({ chatId, name, subscribedAt: firebase.firestore.FieldValue.serverTimestamp() });
   document.getElementById('telChatIdInput').value = '';
   document.getElementById('telNameInput').value = '';
 };
 document.getElementById('btnUnsubscribeTelegram').onclick = async () => {
   const chatId = document.getElementById('telChatIdInput').value.trim();
   if (!chatId) return alert('Inserisci il Chat ID per disattivare.');
-  const snap = await getDocs(collection(db, 'subscribers'));
+  const snap = await db.collection('subscribers').get();
   const dels = [];
-  snap.forEach(uDoc => { if (uDoc.data().chatId === chatId) dels.push(deleteDoc(doc(db, 'subscribers', uDoc.id))); });
+  snap.forEach(uDoc => { if (uDoc.data().chatId === chatId) dels.push(db.collection('subscribers').doc(uDoc.id).delete()); });
   await Promise.all(dels);
   document.getElementById('telChatIdInput').value = '';
 };
 
-onSnapshot(collection(db, 'subscribers'), snap => {
+db.collection('subscribers').onSnapshot(snap => {
   const topTel = document.getElementById('topStatTelegram');
   if (topTel) topTel.textContent = snap.size;
   const container = document.getElementById('subscribersContainer');
@@ -203,7 +263,7 @@ onSnapshot(collection(db, 'subscribers'), snap => {
   if (snap.empty) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic">Nessun iscritto alle notifiche Telegram.</p>'; return; }
   container.innerHTML = '';
   snap.forEach(d => {
-    container.innerHTML += `<div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg border dark:border-slate-800 text-[11px]"><span class="w-5 h-5 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center text-[10px]">👤</span><div><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(d.data().name || '')}</span><span class="text-gray-400 ml-1.5">· ID ${escapeHtml(d.data().chatId || '')}</span></div></div>`;
+    container.innerHTML += `<div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg border dark:border-slate-800 text-[11px]"><span class="w-5 h-5 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center text-[10px]">\u{1F464}</span><div><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(d.data().name || '')}</span><span class="text-gray-400 ml-1.5">\u00b7 ID ${escapeHtml(d.data().chatId || '')}</span></div></div>`;
   });
 });
 
@@ -211,18 +271,26 @@ onSnapshot(collection(db, 'subscribers'), snap => {
 document.getElementById('btnSendNews').onclick = async () => {
   const content = document.getElementById('newsContent').value.trim();
   if (content) {
-    await addDoc(collection(db, 'newsHub'), { content, createdAt: serverTimestamp() });
+    await db.collection('newsHub').add({ content, createdBy: window.username || 'unknown', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
     document.getElementById('newsContent').value = '';
-    await sendTelegramBroadcast(`📢 *Nuova comunicazione in Bacheca Hub:*\n\n${escapeMarkdown(content)}`);
+    await sendTelegramBroadcast(`\u{1F4E2} *Nuova comunicazione in Bacheca Hub:*\n\n${escapeMarkdown(content)}`);
   }
 };
-onSnapshot(query(collection(db, 'newsHub'), orderBy('createdAt', 'desc')), snap => {
+db.collection('newsHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
   const container = document.getElementById('newsHistoryContainer');
-  if (!container) return;
-  container.innerHTML = '';
-  snap.forEach(d => {
-    container.innerHTML += `<div class="bg-purple-50/50 dark:bg-purple-950/10 p-2.5 rounded-lg border border-purple-100 dark:border-purple-900/40 text-xs text-gray-700 dark:text-gray-300 font-medium break-words">${escapeHtml(d.data().content || '')}</div>`;
-  });
+  const list = document.getElementById('newsHistoryList');
+  let html = '';
+  if (snap.empty) {
+    html = '<p class="text-[10px] text-gray-400 italic text-center py-4">Nessuna notizia pubblicata.</p>';
+  } else {
+    snap.forEach((d, i) => {
+      const ts = d.data().createdAt;
+      const dateStr = ts && ts.seconds ? new Date(ts.seconds * 1000).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+      html += `<div class="p-2.5 rounded-lg border text-xs font-medium break-words ${i === 0 ? 'bg-purple-50/80 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900/50 text-gray-800 dark:text-gray-200' : 'bg-gray-50/50 dark:bg-gray-800/30 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400'}">${dateStr ? '<span class="text-[10px] opacity-60 block mb-0.5">' + dateStr + '</span>' : ''}${escapeHtml(d.data().content || '')}</div>`;
+    });
+  }
+  if (container) container.innerHTML = html;
+  if (list) list.innerHTML = html;
 });
 
 // ─── TEAM ─────────────────────────────────────────────────────────────
@@ -230,12 +298,12 @@ document.getElementById('btnRegister').onclick = async () => {
   const name = document.getElementById('regName').value.trim();
   const contact = document.getElementById('regContact').value.trim();
   if (name && contact) {
-    await addDoc(collection(db, 'teamHub'), { name, contact, joinedAt: serverTimestamp() });
+    await db.collection('teamHub').add({ name, contact, joinedBy: window.username || 'unknown', joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
     document.getElementById('regName').value = '';
     document.getElementById('regContact').value = '';
   }
 };
-onSnapshot(query(collection(db, 'teamHub'), orderBy('joinedAt', 'desc')), snap => {
+db.collection('teamHub').orderBy('joinedAt', 'desc').onSnapshot(snap => {
   const topTeam = document.getElementById('topStatTeam');
   if (topTeam) topTeam.textContent = snap.size;
   const container = document.getElementById('teamMembersContainer');
@@ -244,15 +312,48 @@ onSnapshot(query(collection(db, 'teamHub'), orderBy('joinedAt', 'desc')), snap =
   container.innerHTML = `<p class="text-[10px] text-gray-400 font-medium mb-1 tracking-wide uppercase">Membri iscritti (${snap.size})</p>`;
   snap.forEach(d => {
     const { name, contact } = d.data();
-    container.innerHTML += `<div class="flex items-center justify-between gap-1 bg-white dark:bg-slate-900 p-1.5 rounded-lg border dark:border-slate-700 text-[11px]"><div class="min-w-0 flex-1"><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(name || '')}</span><span class="text-gray-400 ml-1.5">· ${escapeHtml(contact || '')}</span></div><button data-tid="${escapeHtml(d.id)}" class="unregister-btn text-gray-400 hover:text-red-500 hover:font-bold cursor-pointer text-xs leading-none p-0.5">✕</button></div>`;
+    container.innerHTML += `<div class="flex items-center justify-between gap-1 bg-white dark:bg-slate-900 p-1.5 rounded-lg border dark:border-slate-700 text-[11px]"><div class="min-w-0 flex-1"><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(name || '')}</span><span class="text-gray-400 ml-1.5">\u00b7 ${escapeHtml(contact || '')}</span></div><button data-tid="${escapeHtml(d.id)}" class="unregister-btn text-gray-400 hover:text-red-500 hover:font-bold cursor-pointer text-xs leading-none p-0.5">\u2715</button></div>`;
   });
   container.querySelectorAll('.unregister-btn').forEach(btn => {
     btn.addEventListener('click', () => window.unregisterMember(btn.dataset.tid));
   });
 });
 window.unregisterMember = async id => {
-  if (confirm('Rimuovere la tua registrazione dal team?')) await deleteDoc(doc(db, 'teamHub', id));
+  if (confirm('Rimuovere la tua registrazione dal team?')) await db.collection('teamHub').doc(id).delete();
 };
+
+// ─── USERS ────────────────────────────────────────────────────────────
+document.getElementById('btnAddUser').onclick = async () => {
+  const name = document.getElementById('userNameInput').value.trim();
+  const role = document.getElementById('userRoleInput').value.trim() || 'Membro';
+  const email = document.getElementById('userEmailInput').value.trim();
+  if (!name) return showToast('Inserisci almeno il nome.', 'error');
+  await db.collection('usersHub').add({ name, role, email, addedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  document.getElementById('userNameInput').value = '';
+  document.getElementById('userRoleInput').value = '';
+  document.getElementById('userEmailInput').value = '';
+  showToast('Utente aggiunto!', 'success');
+};
+db.collection('usersHub').orderBy('addedAt', 'desc').onSnapshot(snap => {
+  const container = document.getElementById('usersContainer');
+  if (!container) return;
+  if (snap.empty) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic text-center py-4">Nessun utente registrato.</p>'; return; }
+  container.innerHTML = '';
+  snap.forEach(d => {
+    const { name, role, email } = d.data();
+    const isOwner = window.userRole === 'owner';
+    container.innerHTML += `<div class="flex items-center justify-between gap-1 bg-white dark:bg-slate-900 p-2 rounded-lg border dark:border-slate-700 text-xs"><div class="min-w-0 flex-1"><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(name || '')}</span><span class="text-[10px] text-gray-400 ml-1.5">${escapeHtml(role || '')}</span>${email ? '<span class="text-[10px] text-gray-400 ml-1.5">· ' + escapeHtml(email) + '</span>' : ''}</div>${isOwner ? `<button data-uid="${escapeHtml(d.id)}" class="delete-user-btn text-gray-400 hover:text-red-500 cursor-pointer text-xs p-0.5">✕</button>` : ''}</div>`;
+  });
+  container.querySelectorAll('.delete-user-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (window.userRole !== 'owner') { showToast('Non autorizzato.', 'error'); return; }
+      if (confirm('Rimuovere questo utente?')) {
+        await db.collection('usersHub').doc(btn.dataset.uid).delete();
+        showToast('Utente rimosso.', 'success');
+      }
+    });
+  });
+});
 
 // ─── FOLDER ───────────────────────────────────────────────────────────
 window.toggleNewFolderForm = (select, formId) => {
@@ -263,7 +364,7 @@ window.quickCreateFolder = async (selectId, nameId, colorId) => {
   const name = document.getElementById(nameId).value.trim();
   const color = document.getElementById(colorId).value;
   if (!name) return;
-  const ref = await addDoc(collection(db, 'archiveFolders'), { name, color, createdAt: serverTimestamp() });
+  const ref = await db.collection('archiveFolders').add({ name, color, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
   document.getElementById(nameId).value = '';
   const sel = document.getElementById(selectId);
   sel.value = ref.id;
@@ -278,15 +379,16 @@ window.addNewFolder = async () => {
   const name = document.getElementById('newFolderName').value.trim();
   const color = document.getElementById('newFolderColor').value;
   if (!name) return;
-  await addDoc(collection(db, 'archiveFolders'), { name, color, createdAt: serverTimestamp() });
+  await db.collection('archiveFolders').add({ name, color, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
   document.getElementById('newFolderName').value = '';
   renderFolderList();
 };
 window.deleteFolder = async id => {
+  if (window.userRole !== 'owner') { showToast('Solo il proprietario può eliminare cartelle.', 'error'); return; }
   const used = [...allExcelFiles, ...allTextFiles].filter(f => f.folderId === id);
-  if (used.length) return alert(`Impossibile eliminare: ${used.length} file presenti in questa cartella.`);
+  if (used.length) return showToast(`Impossibile eliminare: ${used.length} file presenti in questa cartella.`, 'error');
   if (!confirm('Eliminare questa cartella?')) return;
-  await deleteDoc(doc(db, 'archiveFolders', id));
+  await db.collection('archiveFolders').doc(id).delete();
 };
 
 // ─── FILE READ ────────────────────────────────────────────────────────
@@ -310,12 +412,12 @@ document.getElementById('btnUploadExcel').onclick = async () => {
   const file = fileInput?.files?.[0];
   let fileData = '', fileName = '', fileMime = '';
   if (file) { fileData = await readFileAsBase64(file); fileName = file.name; fileMime = file.type; }
-  await addDoc(collection(db, 'excelHub'), { name: note, branch, folderId: folderId || '', fileData, fileName, fileMime, uploadedAt: serverTimestamp() });
-  await addDoc(collection(db, 'historyHub'), { name: note, operation: `Caricato Excel (${branch})`, timestamp: serverTimestamp() });
+  await db.collection('excelHub').add({ name: note, branch, folderId: folderId || '', fileData, fileName, fileMime, uploadedBy: window.username || 'unknown', uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  await db.collection('historyHub').add({ name: note, operation: `Caricato Excel (${branch})`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
   document.getElementById('excelNote').value = '';
   if (fileInput) fileInput.value = '';
   document.getElementById('textDropExcel').textContent = 'Trascina qui il file Excel o clicca';
-  await sendTelegramBroadcast(`⚙️ *Nuovo File Excel:* ${escapeMarkdown(note)}\nRamo: ${escapeMarkdown(branch)}`);
+  await sendTelegramBroadcast(`\u2699\uFE0F *Nuovo File Excel:* ${escapeMarkdown(note)}\nRamo: ${escapeMarkdown(branch)}`);
 };
 
 // ─── UPLOAD DOC ───────────────────────────────────────────────────────
@@ -329,26 +431,26 @@ document.getElementById('btnUploadDoc').onclick = async () => {
   const file = fileInput?.files?.[0];
   let fileData = '', fileName = '', fileMime = '', fileType = '';
   if (file) { fileData = await readFileAsBase64(file); fileName = file.name; fileMime = file.type; fileType = file.name.split('.').pop().toUpperCase(); }
-  await addDoc(collection(db, 'textHub'), { title, fileName: fileName || (title + '.txt'), fileType: fileType || 'TXT', fileMime: fileMime || 'text/plain', fileData: fileData || '', extractedText: bodyContent, folderId: folderId || '', uploadedAt: serverTimestamp() });
-  await addDoc(collection(db, 'historyHub'), { name: title, operation: 'Caricato Documento / Report', timestamp: serverTimestamp() });
+  await db.collection('textHub').add({ title, fileName: fileName || (title + '.txt'), fileType: fileType || 'TXT', fileMime: fileMime || 'text/plain', fileData: fileData || '', extractedText: bodyContent, folderId: folderId || '', uploadedBy: window.username || 'unknown', uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  await db.collection('historyHub').add({ name: title, operation: 'Caricato Documento / Report', uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
   document.getElementById('textTitle').value = '';
   document.getElementById('textContentBody').value = '';
   if (fileInput) fileInput.value = '';
   document.getElementById('textDropDoc').textContent = 'Trascina qui il documento o clicca';
-  await sendTelegramBroadcast(`📝 *Nuovo Documento:* ${escapeMarkdown(title)}\nAnalizzabile dal Co-Pilot.`);
+  await sendTelegramBroadcast(`\u{1F4DD} *Nuovo Documento:* ${escapeMarkdown(title)}\nAnalizzabile dal Co-Pilot.`);
 };
 
 // ─── NOTES ────────────────────────────────────────────────────────────
 document.getElementById('btnUploadNote').onclick = async () => {
   const content = document.getElementById('newNoteContent').value.trim();
   if (content) {
-    await addDoc(collection(db, 'notesHub'), { content, createdAt: serverTimestamp() });
-    await addDoc(collection(db, 'historyHub'), { name: 'Nota Rapida', operation: 'Aggiunta nota condivisa', timestamp: serverTimestamp() });
+    await db.collection('notesHub').add({ content, createdBy: window.username || 'unknown', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    await db.collection('historyHub').add({ name: 'Nota Rapida', operation: 'Aggiunta nota condivisa', uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
     document.getElementById('newNoteContent').value = '';
-    await sendTelegramBroadcast(`📌 *Nuova Nota:* ${escapeMarkdown(content)}`);
+    await sendTelegramBroadcast(`\u{1F4CC} *Nuova Nota:* ${escapeMarkdown(content)}`);
   }
 };
-onSnapshot(query(collection(db, 'notesHub'), orderBy('createdAt', 'desc')), snap => {
+db.collection('notesHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
   const cn = document.getElementById('countNotes'); if (cn) cn.textContent = snap.size;
   const container = document.getElementById('notesContainer');
   if (!container) return;
@@ -356,31 +458,32 @@ onSnapshot(query(collection(db, 'notesHub'), orderBy('createdAt', 'desc')), snap
   snap.forEach(d => {
     const div = document.createElement('div');
     div.className = 'bg-gray-50/80 dark:bg-slate-800/80 p-2 rounded border border-gray-200 dark:border-slate-700 flex justify-between items-start text-xs text-gray-700 dark:text-gray-300 shadow-2xs';
-    div.innerHTML = `<p class="break-words pr-2">${escapeHtml(d.data().content || '')}</p><button data-note-id="${escapeHtml(d.id)}" class="delete-note-btn text-gray-400 hover:text-red-600 cursor-pointer">✕</button>`;
+    const canDelete = window.userRole === 'owner' || d.data().createdBy === window.username;
+    div.innerHTML = `<p class="break-words pr-2">${escapeHtml(d.data().content || '')}</p>` + (canDelete ? `<button data-note-id="${escapeHtml(d.id)}" class="delete-note-btn text-gray-400 hover:text-red-600 cursor-pointer">\u2715</button>` : '');
     container.appendChild(div);
   });
   container.querySelectorAll('.delete-note-btn').forEach(btn => {
     btn.addEventListener('click', () => window.deleteNote(btn.dataset.noteId));
   });
 });
-window.deleteNote = async id => { await deleteDoc(doc(db, 'notesHub', id)); };
+window.deleteNote = async id => { await db.collection('notesHub').doc(id).delete(); };
 
 // ─── ARCHIVE + HISTORY ────────────────────────────────────────────────
 let allExcelFiles = [], allTextFiles = [], allFolders = [];
 
-onSnapshot(query(collection(db, 'excelHub'), orderBy('uploadedAt', 'desc')), s => {
+db.collection('excelHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
   const ce = document.getElementById('countExcel'); if (ce) ce.textContent = s.size;
   allExcelFiles = [];
   s.forEach(d => allExcelFiles.push({ id: d.id, ...d.data(), isExcel: true }));
   combineAndRenderArchive();
 });
-onSnapshot(query(collection(db, 'textHub'), orderBy('uploadedAt', 'desc')), s => {
+db.collection('textHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
   const cd = document.getElementById('countDoc'); if (cd) cd.textContent = s.size;
   allTextFiles = [];
   s.forEach(d => allTextFiles.push({ id: d.id, ...d.data(), isExcel: false }));
   combineAndRenderArchive();
 });
-onSnapshot(query(collection(db, 'archiveFolders'), orderBy('createdAt', 'asc')), s => {
+db.collection('archiveFolders').orderBy('createdAt', 'asc').onSnapshot(s => {
   allFolders = [];
   s.forEach(d => allFolders.push({ id: d.id, ...d.data() }));
   populateFolderSelects();
@@ -388,12 +491,12 @@ onSnapshot(query(collection(db, 'archiveFolders'), orderBy('createdAt', 'asc')),
 });
 
 function populateFolderSelects() {
-  const html = '<option value="">— Nessuna —</option>' + allFolders.map(f => `<option value="${f.id}" style="color:${f.color};font-weight:700">📁 ${f.name}</option>`).join('') + '<option value="__new__">✨ Nuova cartella...</option>';
+  const html = '<option value="">\u2014 Nessuna \u2014</option>' + allFolders.map(f => `<option value="${f.id}" style="color:${f.color};font-weight:700">\u{1F4C1} ${f.name}</option>`).join('') + '<option value="__new__">\u2728 Nuova cartella...</option>';
   ['excelFolder', 'docFolder'].forEach(id => { const el = document.getElementById(id); if (el) { const v = el.value; el.innerHTML = html; el.value = v; } });
   const filter = document.getElementById('folderFilter');
   if (filter) {
     const v = filter.value;
-    filter.innerHTML = '<option value="">📁 Tutte</option>' + allFolders.map(f => `<option value="${f.id}" style="color:${f.color}">📁 ${f.name}</option>`).join('');
+    filter.innerHTML = '<option value="">\u{1F4C1} Tutte</option>' + allFolders.map(f => `<option value="${f.id}" style="color:${f.color}">\u{1F4C1} ${f.name}</option>`).join('');
     filter.value = v;
   }
   renderFolderIcons();
@@ -409,7 +512,7 @@ function renderFolderList() {
         <span class="w-5 h-5 rounded" style="background:${f.color}"></span>
         <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(f.name)}</span>
       </div>
-      <button onclick="deleteFolder('${f.id}')" class="text-gray-400 hover:text-red-500 cursor-pointer text-xs" title="Elimina cartella">✕</button>
+      <button onclick="deleteFolder('${f.id}')" class="text-gray-400 hover:text-red-500 cursor-pointer text-xs" title="Elimina cartella">\u2715</button>
     </div>
   `).join('');
 }
@@ -417,7 +520,7 @@ function renderFolderList() {
 function getFolder(id) { return allFolders.find(f => f.id === id); }
 
 function moveFileToFolder(fileId, isExcel, newFolderId) {
-  updateDoc(doc(db, isExcel ? 'excelHub' : 'textHub', fileId), { folderId: newFolderId || '' });
+  db.collection(isExcel ? 'excelHub' : 'textHub').doc(fileId).update({ folderId: newFolderId || '' });
 }
 
 function renderFolderIcons() {
@@ -426,10 +529,10 @@ function renderFolderIcons() {
   const filterFolder = document.getElementById('folderFilter')?.value || '';
   const allFiles = [...allExcelFiles, ...allTextFiles];
   const totalCount = allFiles.length;
-  let html = '<div class="folder-icon' + (!filterFolder ? ' active' : '') + '" style="color:#2563eb" data-folder-id=""><span class="fi-emoji">📁</span><span class="fi-name">Tutte</span><span class="fi-count">' + totalCount + '</span></div>';
+  let html = '<div class="folder-icon' + (!filterFolder ? ' active' : '') + '" style="color:#2563eb" data-folder-id=""><span class="fi-emoji">\u{1F4C1}</span><span class="fi-name">Tutte</span><span class="fi-count">' + totalCount + '</span></div>';
   allFolders.forEach(f => {
     const cnt = allFiles.filter(x => x.folderId === f.id).length;
-    html += '<div class="folder-icon' + (filterFolder === f.id ? ' active' : '') + '" style="color:' + escapeHtml(f.color) + '" data-folder-id="' + f.id + '"><span class="fi-emoji">📁</span><span class="fi-name">' + escapeHtml(f.name) + '</span><span class="fi-count">' + cnt + '</span></div>';
+    html += '<div class="folder-icon' + (filterFolder === f.id ? ' active' : '') + '" style="color:' + escapeHtml(f.color) + '" data-folder-id="' + f.id + '"><span class="fi-emoji">\u{1F4C1}</span><span class="fi-name">' + escapeHtml(f.name) + '</span><span class="fi-count">' + cnt + '</span></div>';
   });
   bar.innerHTML = html;
 }
@@ -445,14 +548,16 @@ document.getElementById('selectAllArchive')?.addEventListener('change', e => {
 });
 document.getElementById('deleteSelectedArchive')?.addEventListener('click', async () => {
   const checked = document.querySelectorAll('.archive-checkbox:checked');
-  if (!checked.length || !confirm(`Eliminare ${checked.length} elemento/i dal Cloud?`)) return;
+  if (!checked.length) return;
+  if (window.userRole !== 'owner') { showToast('Solo il proprietario pu\u00f2 eliminare in blocco.', 'error'); return; }
+  if (!confirm(`Eliminare ${checked.length} elemento/i dal Cloud?`)) return;
   for (const cb of checked) {
     const id = cb.dataset.id;
     const isExcel = cb.dataset.excel === 'true';
     const file = [...allExcelFiles, ...allTextFiles].find(f => f.id === id);
     const itemName = file ? (file.name || file.title || id) : id;
-    await deleteDoc(doc(db, isExcel ? 'excelHub' : 'textHub', id));
-    await addDoc(collection(db, 'historyHub'), { name: itemName, operation: `Cancellazione ${isExcel ? 'Excel' : 'Documento'} dal Cloud`, timestamp: serverTimestamp() });
+    await db.collection(isExcel ? 'excelHub' : 'textHub').doc(id).delete();
+    await db.collection('historyHub').add({ name: itemName, operation: `Cancellazione ${isExcel ? 'Excel' : 'Documento'} dal Cloud`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
   }
 });
 document.getElementById('downloadSelectedArchive')?.addEventListener('click', async () => {
@@ -519,7 +624,8 @@ function combineAndRenderArchive() {
     tr.draggable = true;
     tr.ondragstart = e => { e.dataTransfer.setData('text/plain', JSON.stringify({ fileId: f.id, isExcel: f.isExcel })); e.dataTransfer.effectAllowed = 'move'; };
     const folderCell = `<td class="p-3"><span class="folder-dot" style="background:${color}"></span>${escapeHtml(fName)}</td>`;
-    const actionsCell = `<td class="p-3 text-center flex items-center justify-center gap-1"><button data-id="${escapeHtml(f.id)}" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">📥</button><button data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}" data-name="${escapeHtml(f.name || f.title || 'File')}" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">🗑️</button></td>`;
+    const canDel = window.userRole === 'owner' || f.uploadedBy === window.username;
+    const actionsCell = `<td class="p-3 text-center flex items-center justify-center gap-1"><button data-id="${escapeHtml(f.id)}" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">\u{1F4E5}</button>${canDel ? `<button data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}" data-name="${escapeHtml(f.name || f.title || 'File')}" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">\u{1F5D1}\uFE0F</button>` : ''}</td>`;
     if (f.isExcel) {
       tr.innerHTML = `<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="${escapeHtml(f.id)}" data-excel="true"></td><td class="p-3 font-medium">${escapeHtml(f.name || 'File Excel')}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td>${folderCell}<td class="p-3 text-gray-500 italic">${escapeHtml(f.branch || '')}</td>${actionsCell}`;
     } else {
@@ -561,15 +667,19 @@ window.downloadDocument = id => {
 };
 
 window.deleteCloudItem = async (id, isExcel, itemName) => {
+  if (window.userRole !== 'owner') {
+    const file = [...allExcelFiles, ...allTextFiles].find(f => f.id === id);
+    if (!file || file.uploadedBy !== window.username) { showToast('Non hai i permessi per eliminare questo file.', 'error'); return; }
+  }
   if (confirm(`Eliminare l'elemento "${itemName}" dal Cloud?`)) {
     const tipo = isExcel ? 'Excel' : 'Documento';
-    await deleteDoc(doc(db, isExcel ? 'excelHub' : 'textHub', id));
-    await addDoc(collection(db, 'historyHub'), { name: itemName, operation: `Cancellazione ${tipo} dal Cloud`, timestamp: serverTimestamp() });
+    await db.collection(isExcel ? 'excelHub' : 'textHub').doc(id).delete();
+    await db.collection('historyHub').add({ name: itemName, operation: `Cancellazione ${tipo} dal Cloud`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
   }
 };
 
 // ─── HISTORY ──────────────────────────────────────────────────────────
-onSnapshot(query(collection(db, 'historyHub'), orderBy('timestamp', 'desc')), snap => {
+db.collection('historyHub').orderBy('timestamp', 'desc').onSnapshot(snap => {
   const b = document.getElementById('historyTableBody');
   if (!b) return;
   b.innerHTML = '';
@@ -578,7 +688,7 @@ onSnapshot(query(collection(db, 'historyHub'), orderBy('timestamp', 'desc')), sn
     const dStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('it-IT') : 'In sincro...';
     const nameObj = escapeHtml(data.name || 'Elemento indefinito');
     const opObj = data.operation ? escapeHtml(data.operation) : (data.name ? 'Azione su: ' + escapeHtml(data.name) : 'Registrazione del ' + dStr);
-    b.innerHTML += `<tr class="border-b dark:border-slate-800"><td class="p-2.5 text-center"><input type="checkbox" class="history-checkbox cursor-pointer" data-hid="${escapeHtml(d.id)}"></td><td class="p-2.5 font-mono text-[11px] text-purple-600 dark:text-purple-400">${dStr}</td><td class="p-2.5 font-medium">${nameObj}</td><td class="p-2.5 text-gray-500">${opObj}</td><td class="p-2.5 text-center"><button data-hid="${escapeHtml(d.id)}" class="delete-history-btn text-gray-400 hover:text-red-500 cursor-pointer">✕</button></td></tr>`;
+    b.innerHTML += `<tr class="border-b dark:border-slate-800"><td class="p-2.5 text-center"><input type="checkbox" class="history-checkbox cursor-pointer" data-hid="${escapeHtml(d.id)}"></td><td class="p-2.5 font-mono text-[11px] text-purple-600 dark:text-purple-400">${dStr}</td><td class="p-2.5 font-medium">${nameObj}</td><td class="p-2.5 text-gray-500">${opObj}</td><td class="p-2.5 text-center"><button data-hid="${escapeHtml(d.id)}" class="delete-history-btn text-gray-400 hover:text-red-500 cursor-pointer">\u2715</button></td></tr>`;
   });
   b.querySelectorAll('.delete-history-btn').forEach(btn => {
     btn.addEventListener('click', () => window.deleteHistoryItem(btn.dataset.hid));
@@ -588,7 +698,10 @@ onSnapshot(query(collection(db, 'historyHub'), orderBy('timestamp', 'desc')), sn
 document.getElementById('selectAllHistory')?.addEventListener('change', e => {
   document.querySelectorAll('.history-checkbox').forEach(cb => cb.checked = e.target.checked);
 });
-window.deleteHistoryItem = async id => { if (confirm('Rimuovere log storico?')) await deleteDoc(doc(db, 'historyHub', id)); };
+window.deleteHistoryItem = async id => {
+  if (window.userRole !== 'owner') { showToast('Solo il proprietario pu\u00f2 eliminare log storici.', 'error'); return; }
+  if (confirm('Rimuovere log storico?')) await db.collection('historyHub').doc(id).delete();
+};
 function updateSelectAllHistory() {
   const sa = document.getElementById('selectAllHistory');
   if (sa) sa.checked = document.querySelectorAll('.history-checkbox:checked').length === document.querySelectorAll('.history-checkbox').length && document.querySelectorAll('.history-checkbox').length > 0;
@@ -598,17 +711,18 @@ document.addEventListener('change', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Delete' && document.querySelectorAll('.history-checkbox:checked').length > 0) {
+    if (window.userRole !== 'owner') { showToast('Solo il proprietario.', 'error'); return; }
     const checked = document.querySelectorAll('.history-checkbox:checked');
-    if (confirm(`Rimuovere ${checked.length} log storico/i?`)) checked.forEach(cb => deleteDoc(doc(db, 'historyHub', cb.dataset.hid)));
+    if (confirm(`Rimuovere ${checked.length} log storico/i?`)) checked.forEach(cb => db.collection('historyHub').doc(cb.dataset.hid).delete());
   }
 });
 
 // ─── AI ASSISTANT ─────────────────────────────────────────────────────
 function cleanLatex(s) {
-  const g = { 'tau': 'τ', 'omega': 'ω', 'pi': 'π', 'alpha': 'α', 'beta': 'β', 'delta': 'δ', 'theta': 'θ', 'gamma': 'γ', 'lambda': 'λ', 'mu': 'μ', 'sigma': 'σ', 'phi': 'φ', 'psi': 'ψ', 'cdot': '·', 'times': '×', 'div': '÷', 'leq': '≤', 'geq': '≥', 'neq': '≠', 'infty': '∞', 'partial': '∂', 'nabla': '∇', 'rightarrow': '→', 'leftarrow': '←', 'cdots': '…', 'forall': '∀', 'exists': '∃', 'emptyset': '∅', 'subset': '⊂', 'supset': '⊃', 'subseteq': '⊆', 'supseteq': '⊇', 'cup': '∪', 'cap': '∩', 'in': '∈', 'notin': '∉', 'approx': '≈', 'equiv': '≡', 'propto': '∝', 'pm': '±', 'mp': '∓', 'cdotp': '·', 'text': '' };
+  const g = { 'tau': '\u03c4', 'omega': '\u03c9', 'pi': '\u03c0', 'alpha': '\u03b1', 'beta': '\u03b2', 'delta': '\u03b4', 'theta': '\u03b8', 'gamma': '\u03b3', 'lambda': '\u03bb', 'mu': '\u03bc', 'sigma': '\u03c3', 'phi': '\u03c6', 'psi': '\u03c8', 'cdot': '\u00b7', 'times': '\u00d7', 'div': '\u00f7', 'leq': '\u2264', 'geq': '\u2265', 'neq': '\u2260', 'infty': '\u221e', 'partial': '\u2202', 'nabla': '\u2207', 'rightarrow': '\u2192', 'leftarrow': '\u2190', 'cdots': '\u2026', 'forall': '\u2200', 'exists': '\u2203', 'emptyset': '\u2205', 'subset': '\u2282', 'supset': '\u2283', 'subseteq': '\u2286', 'supseteq': '\u2287', 'cup': '\u222a', 'cap': '\u2229', 'in': '\u2208', 'notin': '\u2209', 'approx': '\u2248', 'equiv': '\u2261', 'propto': '\u221d', 'pm': '\u00b1', 'mp': '\u2213', 'cdotp': '\u00b7', 'text': '' };
   for (let k in g) s = s.replace(new RegExp('\\\\' + k + '\\b', 'g'), g[k]);
   s = s.replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '$1/$2');
-  s = s.replace(/\\sqrt(?:\[([^\]]*)\])?\{([^}]*)\}/g, '√($2)');
+  s = s.replace(/\\sqrt(?:\[([^\]]*)\])?\{([^}]*)\}/g, '\u221a($2)');
   s = s.replace(/\\boxed\{([^}]*)\}/g, '$1');
   s = s.replace(/\\(?:[,:;]| )/g, ' ');
   s = s.replace(/\\!/g, '');
@@ -630,7 +744,7 @@ window.askAI = async () => {
 
   inputEl.disabled = true;
   sendBtn.disabled = true;
-  container.innerHTML += `<div class="bg-blue-600/10 border border-blue-500/20 p-2.5 rounded-lg text-slate-200 font-medium text-right max-w-[85%] ml-auto">👤 ${escapeHtml(queryText)}</div>`;
+  container.innerHTML += `<div class="bg-blue-100 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-700/50 p-2.5 rounded-lg text-blue-900 dark:text-blue-100 font-medium text-right max-w-[85%] ml-auto">\u{1F464} ${escapeHtml(queryText)}</div>`;
   inputEl.value = '';
   container.scrollTop = container.scrollHeight;
 
@@ -640,7 +754,7 @@ window.askAI = async () => {
     const file = [...allTextFiles, ...allExcelFiles].find(f => (f.title || f.name || '').toLowerCase().includes(query));
     if (file) {
       window.downloadDocument(file.id);
-      container.innerHTML += `<div class="bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-emerald-400 max-w-[90%] text-xs">✅ Download avviato: <b>${escapeHtml(file.title || file.name)}</b></div>`;
+      container.innerHTML += `<div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 p-2.5 rounded-lg text-emerald-800 dark:text-emerald-300 max-w-[90%] text-xs">\u2705 Download avviato: <b>${escapeHtml(file.title || file.name)}</b></div>`;
       inputEl.disabled = false; sendBtn.disabled = false; inputEl.focus();
       container.scrollTop = container.scrollHeight;
       return;
@@ -648,14 +762,14 @@ window.askAI = async () => {
   }
 
   const loadingId = 'loading-' + Date.now();
-  container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">✍️ Sto pensando...</div>`;
+  container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">\u270D\uFE0F Sto pensando...</div>`;
   container.scrollTop = container.scrollHeight;
 
   let contextText = 'ARCHIVIO FILE DISPONIBILI:\n';
   allTextFiles.forEach(d => { contextText += `- ID:${d.id} | FILE: ${d.fileName || 'N/A'} | TITOLO: ${d.title} | CONTENUTO: ${(d.extractedText || 'Vuoto').substring(0, 300)}\n`; });
   allExcelFiles.forEach(e => { contextText += `- ID:${e.id} | FILE: ${e.name} | RAMO: ${e.branch}\n`; });
 
-  const systemInstruction = `Sei l'assistente di Engineering Cloud Hub v2.5.0. Risposte in italiano, molto concise, sempre con fonte.
+  const systemInstruction = `Sei l'assistente di Engineering Cloud Hub v3.0. Risposte in italiano, molto concise, sempre con fonte.
 
 REGOLE:
 - Cita SEMPRE la fonte con [Fonte: TitoloFile] per ogni informazione.
@@ -685,12 +799,12 @@ File:\n${contextText}`;
         body: JSON.stringify({ ...reqBase, model: 'openai' })
       });
     } catch (err2) {
-      replyText = '⚠️ AI non disponibile: ' + err2.message;
+      replyText = '\u26A0\uFE0F AI non disponibile: ' + err2.message;
     }
   }
 
   document.getElementById(loadingId)?.remove();
-  if (!replyText) replyText = '⚠️ Nessuna risposta ricevuta.';
+  if (!replyText) replyText = '\u26A0\uFE0F Nessuna risposta ricevuta.';
   replyText = cleanLatex(replyText);
 
   const downloadMatch = replyText.match(/\[DOWNLOAD:([^\]]+)\]/);
@@ -698,12 +812,12 @@ File:\n${contextText}`;
     const fileId = downloadMatch[1];
     const file = [...allTextFiles, ...allExcelFiles].find(f => f.id === fileId);
     if (file) {
-      replyText = replyText.replace(/\[DOWNLOAD:[^\]]+\]/, `<button onclick="window.downloadDocument('${fileId}')" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2 py-1 rounded cursor-pointer">📥 Scarica ${file.title || file.name}</button>`);
+      replyText = replyText.replace(/\[DOWNLOAD:[^\]]+\]/, `<button onclick="window.downloadDocument('${fileId}')" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2 py-1 rounded cursor-pointer">\u{1F4E5} Scarica ${file.title || file.name}</button>`);
     }
   }
 
   const replyDiv = document.createElement('div');
-  replyDiv.className = 'bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-slate-300 max-w-[90%] text-xs font-normal';
+  replyDiv.className = 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-lg text-gray-800 dark:text-gray-200 max-w-[90%] text-xs font-normal shadow-sm';
   replyDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(replyText) : replyText.replace(/\n/g, '<br>');
   container.appendChild(replyDiv);
 
