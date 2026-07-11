@@ -41,6 +41,12 @@ html::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, #60
 /* Modal scrollable body */
 .modal-scroll-body { overflow-y: auto; flex: 1; }
 
+/* Mobile touch improvements */
+button { cursor: pointer; touch-action: manipulation; }
+[onclick] { cursor: pointer; touch-action: manipulation; }
+.sidebar-btn { cursor: pointer; touch-action: manipulation; }
+.dash-card { cursor: pointer; touch-action: manipulation; }
+
 @media (max-width: 640px) {
   .p-5 { padding: 0.75rem !important; }
   .px-4 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }

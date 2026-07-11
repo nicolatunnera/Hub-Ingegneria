@@ -2,8 +2,17 @@
 window.alert = window.showToast || function(msg) { console.warn('[Alert fallback]', msg); };
 
 // ─── FIREBASE INIT (compat SDK — loaded via <script> in index.html) ────
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+let db = null;
+try {
+  if (typeof firebase !== 'undefined' && firebase.initializeApp) {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  } else {
+    console.warn('Firebase SDK non caricato. Modalità offline.');
+  }
+} catch (e) {
+  console.warn('Firebase init fallito:', e);
+}
 
 function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
 
@@ -255,6 +264,7 @@ document.getElementById('btnUnsubscribeTelegram').onclick = async () => {
   document.getElementById('telChatIdInput').value = '';
 };
 
+if (!db) { console.warn('Firestore non disponibile — snapshot non registrati'); } else {
 db.collection('subscribers').onSnapshot(snap => {
   const topTel = document.getElementById('topStatTelegram');
   if (topTel) topTel.textContent = snap.size;
@@ -489,6 +499,7 @@ db.collection('archiveFolders').orderBy('createdAt', 'asc').onSnapshot(s => {
   populateFolderSelects();
   combineAndRenderArchive();
 });
+}
 
 function populateFolderSelects() {
   const html = '<option value="">\u2014 Nessuna \u2014</option>' + allFolders.map(f => `<option value="${f.id}" style="color:${f.color};font-weight:700">\u{1F4C1} ${f.name}</option>`).join('') + '<option value="__new__">\u2728 Nuova cartella...</option>';
@@ -679,7 +690,7 @@ window.deleteCloudItem = async (id, isExcel, itemName) => {
 };
 
 // ─── HISTORY ──────────────────────────────────────────────────────────
-db.collection('historyHub').orderBy('timestamp', 'desc').onSnapshot(snap => {
+if (!db) { console.warn('Firestore non disponibile — history snapshot non registrato'); } else { db.collection('historyHub').orderBy('timestamp', 'desc').onSnapshot(snap => {
   const b = document.getElementById('historyTableBody');
   if (!b) return;
   b.innerHTML = '';
@@ -694,7 +705,7 @@ db.collection('historyHub').orderBy('timestamp', 'desc').onSnapshot(snap => {
     btn.addEventListener('click', () => window.deleteHistoryItem(btn.dataset.hid));
   });
   updateSelectAllHistory();
-});
+}); }
 document.getElementById('selectAllHistory')?.addEventListener('change', e => {
   document.querySelectorAll('.history-checkbox').forEach(cb => cb.checked = e.target.checked);
 });
