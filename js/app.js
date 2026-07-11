@@ -124,7 +124,16 @@ window.toggleChatCollapse = () => {
 window.toggleExcelModal = () => document.getElementById('excelModal')?.classList.toggle('hidden');
 window.toggleDocModal = () => document.getElementById('docModal')?.classList.toggle('hidden');
 window.toggleNotesModal = () => document.getElementById('notesModal')?.classList.toggle('hidden');
-window.toggleArchiveModal = () => { document.getElementById('archiveModal')?.classList.toggle('hidden'); combineAndRenderArchive(); };
+window.archiveTypeFilter = '';
+window.openArchive = (typeFilter) => {
+  window.archiveTypeFilter = typeFilter || '';
+  document.getElementById('archiveModal')?.classList.remove('hidden');
+  combineAndRenderArchive();
+};
+window.closeArchiveModal = () => {
+  document.getElementById('archiveModal')?.classList.add('hidden');
+  window.archiveTypeFilter = '';
+};
 window.toggleHistoryModal = () => document.getElementById('historyModal')?.classList.toggle('hidden');
 
 // ─── HUB INFO ─────────────────────────────────────────────────────────
@@ -483,16 +492,22 @@ db.collection('notesHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
 });
 window.deleteNote = async id => { await db.collection('notesHub').doc(id).delete(); };
 
+function updateCountArchive() {
+  const ca = document.getElementById('countArchive');
+  if (ca) ca.textContent = allExcelFiles.length + allTextFiles.length;
+}
 db.collection('excelHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
   const ce = document.getElementById('countExcel'); if (ce) ce.textContent = s.size;
   allExcelFiles = [];
   s.forEach(d => allExcelFiles.push({ id: d.id, ...d.data(), isExcel: true }));
+  updateCountArchive();
   combineAndRenderArchive();
 });
 db.collection('textHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
   const cd = document.getElementById('countDoc'); if (cd) cd.textContent = s.size;
   allTextFiles = [];
   s.forEach(d => allTextFiles.push({ id: d.id, ...d.data(), isExcel: false }));
+  updateCountArchive();
   combineAndRenderArchive();
 });
 db.collection('archiveFolders').orderBy('createdAt', 'asc').onSnapshot(s => {
@@ -542,7 +557,12 @@ function renderFolderIcons() {
   const filterFolder = document.getElementById('folderFilter')?.value || '';
   const allFiles = [...allExcelFiles, ...allTextFiles];
   const totalCount = allFiles.length;
-  let html = '<div class="folder-icon' + (!filterFolder ? ' active' : '') + '" style="color:#2563eb" data-folder-id=""><span class="fi-emoji">\u{1F4C1}</span><span class="fi-name">Tutte</span><span class="fi-count">' + totalCount + '</span></div>';
+  let html = '<div class="folder-icon' + (!filterFolder && !window.archiveTypeFilter ? ' active' : '') + '" style="color:#2563eb" data-folder-id="" data-type-all="true"><span class="fi-emoji">\u{1F4C1}</span><span class="fi-name">Tutte</span><span class="fi-count">' + totalCount + '</span></div>';
+  if (window.archiveTypeFilter) {
+    const typeLabel = window.archiveTypeFilter === 'excel' ? 'Excel' : 'Documenti';
+    const typeCount = allFiles.filter(f => window.archiveTypeFilter === 'excel' ? f.isExcel : !f.isExcel).length;
+    html += '<div class="folder-icon active" style="color:#8b5cf6" data-type-clear="true"><span class="fi-emoji">' + (window.archiveTypeFilter === 'excel' ? '\u{1F4CA}' : '\u{1F4C4}') + '</span><span class="fi-name">' + typeLabel + '</span><span class="fi-count">' + typeCount + '</span></div>';
+  }
   allFolders.forEach(f => {
     const cnt = allFiles.filter(x => x.folderId === f.id).length;
     html += '<div class="folder-icon' + (filterFolder === f.id ? ' active' : '') + '" style="color:' + escapeHtml(f.color) + '" data-folder-id="' + f.id + '"><span class="fi-emoji">\u{1F4C1}</span><span class="fi-name">' + escapeHtml(f.name) + '</span><span class="fi-count">' + cnt + '</span></div>';
@@ -594,7 +614,14 @@ function updateBulkActions() {
   bar.addEventListener('click', e => {
     const icon = e.target.closest('.folder-icon');
     if (!icon) return;
-    document.getElementById('folderFilter').value = icon.dataset.folderId || '';
+    if (icon.dataset.typeClear) {
+      window.archiveTypeFilter = '';
+    } else if (icon.dataset.typeAll) {
+      window.archiveTypeFilter = '';
+      document.getElementById('folderFilter').value = '';
+    } else {
+      document.getElementById('folderFilter').value = icon.dataset.folderId || '';
+    }
     combineAndRenderArchive();
   });
   bar.addEventListener('dragover', e => { if (e.target.closest('.folder-icon')) e.preventDefault(); });
@@ -615,9 +642,17 @@ function combineAndRenderArchive() {
   body.innerHTML = '';
   const sa = document.getElementById('selectAllArchive');
   if (sa) sa.checked = false;
+  const titleEl = document.getElementById('archiveModalTitle');
+  if (titleEl) {
+    if (window.archiveTypeFilter === 'excel') titleEl.textContent = 'Archivio Excel';
+    else if (window.archiveTypeFilter === 'doc') titleEl.textContent = 'Archivio Documenti';
+    else titleEl.textContent = 'Archivio';
+  }
   renderFolderIcons();
   const filterFolder = document.getElementById('folderFilter')?.value || '';
   let items = [...allExcelFiles, ...allTextFiles].filter(f => {
+    if (window.archiveTypeFilter === 'excel' && !f.isExcel) return false;
+    if (window.archiveTypeFilter === 'doc' && f.isExcel) return false;
     if (!window.searchQuery) return true;
     const haystack = f.isExcel ? `${f.name || ''} ${f.branch || ''}` : `${f.title || ''} ${f.fileType || ''} ${f.extractedText ? f.extractedText.substring(0, 200) : ''}`;
     return haystack.toLowerCase().includes(window.searchQuery);
@@ -693,6 +728,7 @@ window.deleteCloudItem = async (id, isExcel, itemName) => {
 
 // ─── HISTORY ──────────────────────────────────────────────────────────
 if (!db) { console.warn('Firestore non disponibile — history snapshot non registrato'); } else { db.collection('historyHub').orderBy('timestamp', 'desc').onSnapshot(snap => {
+  const ch = document.getElementById('countHistory'); if (ch) ch.textContent = snap.size;
   const b = document.getElementById('historyTableBody');
   if (!b) return;
   b.innerHTML = '';
