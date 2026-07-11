@@ -80,7 +80,7 @@ function setupPermissions() {
   document.querySelectorAll('.requires-guest').forEach(el => el.classList.toggle('hidden', role !== 'guest'));
   if (role === 'guest') {
     document.querySelectorAll('.delete-btn, .delete-cloud-btn, .delete-note-btn, .delete-history-btn, .unregister-btn, .delete-user-btn').forEach(el => el.remove());
-    document.querySelectorAll('#btnSendNews, #btnUploadExcel, #btnUploadDoc, #btnUploadNote, #btnRegister, #btnAddUser, #btnSubscribeTelegram, #btnUnsubscribeTelegram, #testTelegramNotification').forEach(el => el.disabled = true);
+    document.querySelectorAll('#btnSendNews, #btnUploadExcel, #btnUploadDoc, #btnRegister, #btnAddUser, #btnSubscribeTelegram, #btnUnsubscribeTelegram, #testTelegramNotification').forEach(el => el.disabled = true);
   }
 }
 
@@ -557,6 +557,15 @@ function renderFolderIcons() {
 window.searchQuery = '';
 document.getElementById('searchCloud')?.addEventListener('input', e => {
   window.searchQuery = e.target.value.toLowerCase();
+  const clearBtn = document.getElementById('clearSearch');
+  if (clearBtn) clearBtn.classList.toggle('hidden', !e.target.value);
+  combineAndRenderArchive();
+});
+document.getElementById('clearSearch')?.addEventListener('click', () => {
+  const input = document.getElementById('searchCloud');
+  if (input) { input.value = ''; input.focus(); }
+  window.searchQuery = '';
+  document.getElementById('clearSearch')?.classList.add('hidden');
   combineAndRenderArchive();
 });
 document.getElementById('selectAllArchive')?.addEventListener('change', e => {
@@ -633,20 +642,22 @@ function combineAndRenderArchive() {
     return;
   }
   items.forEach(f => {
+    const isGuest = window.userRole === 'guest';
     const folder = f.folderId ? getFolder(f.folderId) : null;
     const color = folder?.color || '#6b7280';
     const fName = folder?.name || 'Senza cartella';
     const tr = document.createElement('tr');
     tr.className = 'text-xs text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-800 hover:bg-slate-50/50';
-    tr.draggable = true;
-    tr.ondragstart = e => { e.dataTransfer.setData('text/plain', JSON.stringify({ fileId: f.id, isExcel: f.isExcel })); e.dataTransfer.effectAllowed = 'move'; };
+    tr.draggable = !isGuest;
+    if (!isGuest) tr.ondragstart = e => { e.dataTransfer.setData('text/plain', JSON.stringify({ fileId: f.id, isExcel: f.isExcel })); e.dataTransfer.effectAllowed = 'move'; };
     const folderCell = `<td class="p-3"><span class="folder-dot" style="background:${color}"></span>${escapeHtml(fName)}</td>`;
-    const canDel = window.userRole === 'owner' || f.uploadedBy === window.username;
-    const actionsCell = `<td class="p-3 text-center flex items-center justify-center gap-1"><button data-id="${escapeHtml(f.id)}" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">\u{1F4E5}</button>${canDel ? `<button data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}" data-name="${escapeHtml(f.name || f.title || 'File')}" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">\u{1F5D1}\uFE0F</button>` : ''}</td>`;
+    const canDel = !isGuest && (window.userRole === 'owner' || f.uploadedBy === window.username);
+    const checkbox = isGuest ? '' : `<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}"></td>`;
+    const actionsCell = isGuest ? '<td class="p-3"></td>' : `<td class="p-3 text-center flex items-center justify-center gap-1"><button data-id="${escapeHtml(f.id)}" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">\u{1F4E5}</button>${canDel ? `<button data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}" data-name="${escapeHtml(f.name || f.title || 'File')}" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">\u{1F5D1}\uFE0F</button>` : ''}</td>`;
     if (f.isExcel) {
-      tr.innerHTML = `<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="${escapeHtml(f.id)}" data-excel="true"></td><td class="p-3 font-medium">${escapeHtml(f.name || 'File Excel')}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td>${folderCell}<td class="p-3 text-gray-500 italic">${escapeHtml(f.branch || '')}</td>${actionsCell}`;
+      tr.innerHTML = `${checkbox}<td class="p-3 font-medium">${escapeHtml(f.name || 'File Excel')}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td>${folderCell}<td class="p-3 text-gray-500 italic">${escapeHtml(f.branch || '')}</td>${actionsCell}`;
     } else {
-      tr.innerHTML = `<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="${escapeHtml(f.id)}" data-excel="false"></td><td class="p-3 font-medium">${escapeHtml(f.title || 'Documento')}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${escapeHtml(f.fileType || '')}</span></td>${folderCell}<td class="p-3 text-gray-400 font-mono text-[11px]">${escapeHtml(f.extractedText ? f.extractedText.substring(0, 40) + '...' : (f.fileName || ''))}</td>${actionsCell}`;
+      tr.innerHTML = `${checkbox}<td class="p-3 font-medium">${escapeHtml(f.title || 'Documento')}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${escapeHtml(f.fileType || '')}</span></td>${folderCell}<td class="p-3 text-gray-400 font-mono text-[11px]">${escapeHtml(f.extractedText ? f.extractedText.substring(0, 40) + '...' : (f.fileName || ''))}</td>${actionsCell}`;
     }
     body.appendChild(tr);
   });
@@ -661,6 +672,7 @@ function combineAndRenderArchive() {
 window.combineAndRenderArchive = combineAndRenderArchive;
 
 window.downloadDocument = id => {
+  if (window.userRole === 'guest') { showToast('Accesso ai file non consentito per gli ospiti.', 'error'); return; }
   const file = [...allTextFiles, ...allExcelFiles].find(f => f.id === id);
   if (!file) return alert('File non trovato.');
   if (file.fileData) {
@@ -684,6 +696,7 @@ window.downloadDocument = id => {
 };
 
 window.deleteCloudItem = async (id, isExcel, itemName) => {
+  if (window.userRole === 'guest') { showToast('Non puoi eliminare file.', 'error'); return; }
   if (window.userRole !== 'owner') {
     const file = [...allExcelFiles, ...allTextFiles].find(f => f.id === id);
     if (!file || file.uploadedBy !== window.username) { showToast('Non hai i permessi per eliminare questo file.', 'error'); return; }

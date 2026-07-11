@@ -76,9 +76,6 @@
   <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 py-2 flex items-center gap-3">
       <div class="flex items-center gap-2 flex-1 min-w-0">
-        <input type="text" id="searchCloud" class="w-full max-w-xs px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" placeholder="Cerca nel cloud..." />
-        <button id="btnSearchCloud" class="px-3 py-1.5 text-xs bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg transition flex items-center gap-1 shadow whitespace-nowrap"><i class="fas fa-search text-[10px]"></i><span class="hidden sm:inline" data-i18n="search">Cerca</span></button>
-      </div>
       <div class="flex items-center gap-2 cursor-pointer select-none shrink-0" id="hubTitleBtn" onclick="toggleHubInfoModal()">
         <img src="icon-192.png" alt="" class="w-7 h-7 rounded-lg" onerror="this.style.display='none'">
         <span class="hidden md:block text-sm font-medium tracking-tight whitespace-nowrap">
@@ -180,15 +177,20 @@
         <button onclick="toggleArchiveModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
       </div>
       <div class="p-4 modal-scroll-body">
+        <div class="relative mb-3">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+          <input type="text" id="searchCloud" class="w-full pl-8 pr-8 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" placeholder="Cerca per nome, descrizione o tipo file..." autocomplete="off" />
+          <button id="clearSearch" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hidden text-sm leading-none cursor-pointer">&times;</button>
+        </div>
         <div class="flex flex-wrap items-center gap-2 mb-3">
           <select id="folderFilter" onchange="combineAndRenderArchive()" class="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="" data-i18n="allFolders">Tutte le cartelle</option></select>
-          <div id="bulkActions" class="hidden flex items-center gap-2 ml-2">
+          <div id="bulkActions" class="hidden flex items-center gap-2 ml-2 requires-write">
             <button id="downloadSelectedArchive" class="px-2 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded transition shadow-sm"><i class="fas fa-download mr-1"></i><span data-i18n="downloadSelected">Scarica selezionati</span></button>
             <button id="deleteSelectedArchive" class="px-2 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded transition shadow-sm"><i class="fas fa-trash-alt mr-1"></i><span data-i18n="deleteSelected">Elimina selezionati</span></button>
           </div>
         </div>
         <div class="flex flex-wrap gap-2 mb-3" id="folderIconsBar"></div>
-        <label class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2 cursor-pointer">
+        <label class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2 cursor-pointer requires-write">
           <input type="checkbox" id="selectAllArchive" class="rounded border-gray-300 dark:border-gray-600" />
           <span data-i18n="selectAll">Seleziona tutti</span>
         </label>
@@ -567,7 +569,7 @@
         <div class="dash-label" data-i18n="dashNotes">Note</div>
         <div class="dash-count" id="countNotes">0</div>
       </div>
-      <div class="dash-card" onclick="toggleArchiveModal()">
+      <div class="dash-card requires-write" onclick="toggleArchiveModal()">
         <div class="dash-icon">🗂️</div>
         <div class="dash-label" data-i18n="dashArchive">Archivio</div>
         <div class="dash-count" id="countArchive">0</div>
