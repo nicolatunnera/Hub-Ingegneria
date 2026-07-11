@@ -24,7 +24,7 @@
       <p class="text-[11px] text-gray-400 dark:text-gray-500 mb-4" id="loginSubtitle">Accedi per continuare</p>
 
       <!-- LOGIN FORM -->
-      <div id="loginForm" class="space-y-3">
+      <form id="loginForm" class="space-y-3" onsubmit="event.preventDefault(); window.verifyHubLogin()">
         <div class="relative">
           <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
           <input type="text" id="loginUser" autocomplete="username" placeholder="Nome Utente" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg pl-8 pr-3 py-2.5 text-xs font-medium focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-all">
@@ -38,11 +38,11 @@
           <input type="checkbox" id="rememberMe" class="rounded border-gray-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer">
           <span>Ricordami</span>
         </label>
-        <button id="loginBtn" onclick="window.verifyHubLogin()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wider uppercase transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
+        <button id="loginBtn" type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-lg text-xs tracking-wider uppercase transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
           <span id="loginBtnText">Accedi</span>
           <span id="loginSpinner" class="hidden"><svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></span>
         </button>
-      </div>
+      </form>
 
       <!-- GUEST / REGISTER LINKS -->
       <div class="mt-3 flex flex-col gap-1.5">
@@ -68,6 +68,7 @@
   <div id="toastContainer" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
 
   <div id="hubMainContent" class="hidden pb-14">
+  <div id="fbOfflineBanner" class="hidden bg-red-500/90 text-white text-[10px] text-center py-1 px-2 font-medium">Firebase non disponibile — dati non caricati. Verifica la connessione.</div>
   <!-- NAVBAR -->
   <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 py-2 flex items-center gap-3">
@@ -79,7 +80,7 @@
         <img src="icon-192.png" alt="" class="w-7 h-7 rounded-lg" onerror="this.style.display='none'">
         <span class="hidden md:block text-sm font-medium tracking-tight whitespace-nowrap">
           <span class="logo-text" data-i18n="hubName">Engineering Cloud Hub</span>
-          <span class="text-xs text-gray-400 dark:text-gray-500 ml-2 logo-sub">v3.0</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500 ml-2 logo-sub">v3.1.0</span>
         </span>
       </div>
       <div class="flex items-center gap-2 flex-1 justify-end">
@@ -604,6 +605,7 @@
   </footer>
 
   <script>
+    window.onerror = function(msg, url, line) { try { if (window.showToast) window.showToast('JS: ' + msg + ' (riga ' + line + ')', 'error'); } catch(e) {} };
     window.showToast = function(msg, type) {
       var c = document.getElementById('toastContainer');
       if (!c) return;

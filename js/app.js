@@ -1,3 +1,6 @@
+// ─── GLOBAL ERROR HANDLER ────────────────────────────────────────────
+window.onerror = function(msg, url, line) { try { if (window.showToast) window.showToast('JS: ' + msg + ' (riga ' + line + ')', 'error'); } catch(e) {} console.error(msg, url, line); };
+
 // ─── TOAST (override) ────────────────────────────────────────────────
 window.alert = window.showToast || function(msg) { console.warn('[Alert fallback]', msg); };
 
@@ -264,7 +267,7 @@ document.getElementById('btnUnsubscribeTelegram').onclick = async () => {
   document.getElementById('telChatIdInput').value = '';
 };
 
-if (!db) { console.warn('Firestore non disponibile — snapshot non registrati'); } else {
+if (!db) { console.warn('Firestore non disponibile — snapshot non registrati'); const fbBanner = document.getElementById('fbOfflineBanner'); if (fbBanner) fbBanner.classList.remove('hidden'); } else {
 db.collection('subscribers').onSnapshot(snap => {
   const topTel = document.getElementById('topStatTelegram');
   if (topTel) topTel.textContent = snap.size;
