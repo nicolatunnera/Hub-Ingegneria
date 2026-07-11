@@ -5,13 +5,12 @@ window.onerror = function(msg, url, line) { try { if (window.showToast) window.s
 window.alert = window.showToast || function(msg) { console.warn('[Alert fallback]', msg); };
 
 // ─── FIREBASE INIT (compat SDK — loaded via <script> in index.html) ────
-let db = null, auth = null, storage = null;
+let db = null, auth = null;
 try {
   if (typeof firebase !== 'undefined' && firebase.initializeApp) {
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
     auth = firebase.auth();
-    storage = firebase.storage();
     auth.signInAnonymously().catch(function(e) { console.warn('Auth anonimo fallito:', e); });
   } else {
     console.warn('Firebase SDK non caricato. Modalità offline.');
@@ -409,7 +408,7 @@ window.deleteFolder = async id => {
   await db.collection('archiveFolders').doc(id).delete();
 };
 
-// ─── FILE READ / UPLOAD ──────────────────────────────────────────────
+// ─── FILE READ ────────────────────────────────────────────────────────
 function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -417,14 +416,6 @@ function readFileAsBase64(file) {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
-}
-
-async function uploadFileToStorage(file) {
-  if (!storage) return null;
-  const path = 'files/' + Date.now() + '_' + file.name;
-  const snap = await storage.ref(path).put(file);
-  const url = await snap.ref.getDownloadURL();
-  return { storagePath: path, downloadUrl: url };
 }
 
 // ─── UPLOAD EXCEL ─────────────────────────────────────────────────────
@@ -436,12 +427,9 @@ document.getElementById('btnUploadExcel').onclick = async () => {
   const folderId = sel.value === '__new__' ? '' : sel.value;
   const fileInput = document.getElementById('excelFile');
   const file = fileInput?.files?.[0];
-  let storageInfo = null;
-  if (file) storageInfo = await uploadFileToStorage(file);
-  const data = { name: note, branch, folderId: folderId || '', fileName: file ? file.name : '', fileMime: file ? file.type : '', uploadedBy: window.username || 'unknown', uploadedAt: firebase.firestore.FieldValue.serverTimestamp() };
-  if (storageInfo) { data.storagePath = storageInfo.storagePath; data.downloadUrl = storageInfo.downloadUrl; }
-  if (!storageInfo && file) data.fileData = await readFileAsBase64(file);
-  await db.collection('excelHub').add(data);
+  let fileData = '', fileName = '', fileMime = '';
+  if (file) { fileData = await readFileAsBase64(file); fileName = file.name; fileMime = file.type; }
+  await db.collection('excelHub').add({ name: note, branch, folderId: folderId || '', fileData, fileName, fileMime, uploadedBy: window.username || 'unknown', uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
   await db.collection('historyHub').add({ name: note, operation: `Caricato Excel (${branch})`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
   document.getElementById('excelNote').value = '';
   if (fileInput) fileInput.value = '';
@@ -458,15 +446,9 @@ document.getElementById('btnUploadDoc').onclick = async () => {
   const folderId = sel.value === '__new__' ? '' : sel.value;
   const fileInput = document.getElementById('docFile');
   const file = fileInput?.files?.[0];
-  let storageInfo = null, fileData = '', fileType = '';
-  if (file) {
-    storageInfo = await uploadFileToStorage(file);
-    fileType = file.name.split('.').pop().toUpperCase();
-  }
-  const data = { title, fileName: file ? file.name : (title + '.txt'), fileType: fileType || 'TXT', fileMime: file ? file.type : 'text/plain', extractedText: bodyContent, folderId: folderId || '', uploadedBy: window.username || 'unknown', uploadedAt: firebase.firestore.FieldValue.serverTimestamp() };
-  if (storageInfo) { data.storagePath = storageInfo.storagePath; data.downloadUrl = storageInfo.downloadUrl; }
-  if (!storageInfo && file) { data.fileData = await readFileAsBase64(file); }
-  await db.collection('textHub').add(data);
+  let fileData = '', fileName = '', fileMime = '', fileType = '';
+  if (file) { fileData = await readFileAsBase64(file); fileName = file.name; fileMime = file.type; fileType = file.name.split('.').pop().toUpperCase(); }
+  await db.collection('textHub').add({ title, fileName: fileName || (title + '.txt'), fileType: fileType || 'TXT', fileMime: fileMime || 'text/plain', fileData: fileData || '', extractedText: bodyContent, folderId: folderId || '', uploadedBy: window.username || 'unknown', uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
   await db.collection('historyHub').add({ name: title, operation: 'Caricato Documento / Report', uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
   document.getElementById('textTitle').value = '';
   document.getElementById('textContentBody').value = '';
@@ -602,9 +584,6 @@ document.getElementById('deleteSelectedArchive')?.addEventListener('click', asyn
     const isExcel = cb.dataset.excel === 'true';
     const file = [...allExcelFiles, ...allTextFiles].find(f => f.id === id);
     const itemName = file ? (file.name || file.title || id) : id;
-    if (file && file.storagePath && storage) {
-      storage.ref(file.storagePath).delete().catch(function(e) { console.warn('Errore cancellazione Storage:', e); });
-    }
     await db.collection(isExcel ? 'excelHub' : 'textHub').doc(id).delete();
     await db.collection('historyHub').add({ name: itemName, operation: `Cancellazione ${isExcel ? 'Excel' : 'Documento'} dal Cloud`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
   }
@@ -694,17 +673,11 @@ function combineAndRenderArchive() {
 }
 window.combineAndRenderArchive = combineAndRenderArchive;
 
-window.downloadDocument = async (id) => {
+window.downloadDocument = function(id) {
   if (window.userRole === 'guest') { showToast('Accesso ai file non consentito per gli ospiti.', 'error'); return; }
   const file = [...allTextFiles, ...allExcelFiles].find(f => f.id === id);
   if (!file) return alert('File non trovato.');
-  if (file.downloadUrl) {
-    const a = document.createElement('a');
-    a.href = file.downloadUrl;
-    a.download = file.fileName || (file.title || file.name || 'documento');
-    a.target = '_blank';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  } else if (file.fileData) {
+  if (file.fileData) {
     const link = document.createElement('a');
     link.href = file.fileData;
     link.download = file.fileName || (file.title || file.name || 'documento');
@@ -726,14 +699,11 @@ window.downloadDocument = async (id) => {
 
 window.deleteCloudItem = async (id, isExcel, itemName) => {
   if (window.userRole === 'guest') { showToast('Non puoi eliminare file.', 'error'); return; }
-  const file = [...allExcelFiles, ...allTextFiles].find(f => f.id === id);
   if (window.userRole !== 'owner') {
+    const file = [...allExcelFiles, ...allTextFiles].find(f => f.id === id);
     if (!file || file.uploadedBy !== window.username) { showToast('Non hai i permessi per eliminare questo file.', 'error'); return; }
   }
   if (confirm(`Eliminare l'elemento "${itemName}" dal Cloud?`)) {
-    if (file && file.storagePath && storage) {
-      storage.ref(file.storagePath).delete().catch(function(e) { console.warn('Errore cancellazione Storage:', e); });
-    }
     const tipo = isExcel ? 'Excel' : 'Documento';
     await db.collection(isExcel ? 'excelHub' : 'textHub').doc(id).delete();
     await db.collection('historyHub').add({ name: itemName, operation: `Cancellazione ${tipo} dal Cloud`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
