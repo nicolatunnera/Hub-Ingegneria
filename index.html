@@ -11,8 +11,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' }</script>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="icon" type="image/png" href="icon-192.png" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="stylesheet" href="style.css?v=20250711" />
+  <link rel="icon" type="image/png" href="icon-192.png?v=20250711" />
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors">
 
@@ -732,10 +735,11 @@
         update();
       }
     };
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js?_=' + Date.now()).then(function(reg) { if (reg.active) reg.update(); }).catch(function() {}); }
   </script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/config.js?v=20250711"></script>
+  <script src="js/app.js?v=20250711"></script>
 </body>
 </html>

@@ -42,6 +42,7 @@ window.verifyHubLogin = () => {
     }
     if (u === 'Ing' && p === 'Ing') { login('owner'); return; }
     if (!u || !p) { fail(); return; }
+    if (!db) { fail(); return; }
     db.collection('accountsHub').where('username', '==', u).get().then(snap => {
       if (!snap.empty) {
         const d = snap.docs[0].data();
@@ -843,7 +844,3 @@ File:\n${contextText}`;
 
 document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') window.askAI(); });
 
-// ─── SERVICE WORKER ───────────────────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js?_=' + Date.now()).then(reg => { if (reg.active) reg.update(); }).catch(() => {});
-}

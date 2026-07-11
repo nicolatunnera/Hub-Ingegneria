@@ -1,8 +1,11 @@
-const CACHE = 'eng-hub-v3';
+const CACHE = 'eng-hub-v4';
 const ASSETS = [
   'manifest.json',
   'icon-192.png',
-  'icon-512.png'
+  'icon-512.png',
+  'js/app.js',
+  'js/config.js',
+  'style.css'
 ];
 
 self.addEventListener('install', (e) => {
@@ -33,11 +36,11 @@ self.addEventListener('fetch', (e) => {
     );
   } else {
     e.respondWith(
-      caches.match(request).then(cached => cached || fetch(request).then(res => {
+      fetch(request).then(res => {
         const clone = res.clone();
         caches.open(CACHE).then(c => c.put(request, clone));
         return res;
-      }))
+      }).catch(() => caches.match(request))
     );
   }
 });
