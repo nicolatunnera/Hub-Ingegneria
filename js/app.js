@@ -268,6 +268,12 @@ document.getElementById('btnUnsubscribeTelegram').onclick = async () => {
   document.getElementById('telChatIdInput').value = '';
 };
 
+let allExcelFiles = [], allTextFiles = [], allFolders = [];
+var combineAndRenderArchive = function() {};
+var populateFolderSelects = function() {};
+var renderFolderList = function() {};
+var renderFolderIcons = function() {};
+var updateBulkActions = function() {};
 if (!db) { console.warn('Firestore non disponibile — snapshot non registrati'); const fbBanner = document.getElementById('fbOfflineBanner'); if (fbBanner) fbBanner.classList.remove('hidden'); } else {
 db.collection('subscribers').onSnapshot(snap => {
   const topTel = document.getElementById('topStatTelegram');
@@ -481,9 +487,6 @@ db.collection('notesHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
   });
 });
 window.deleteNote = async id => { await db.collection('notesHub').doc(id).delete(); };
-
-// ─── ARCHIVE + HISTORY ────────────────────────────────────────────────
-let allExcelFiles = [], allTextFiles = [], allFolders = [];
 
 db.collection('excelHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
   const ce = document.getElementById('countExcel'); if (ce) ce.textContent = s.size;
