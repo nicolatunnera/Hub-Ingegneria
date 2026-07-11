@@ -269,11 +269,6 @@ document.getElementById('btnUnsubscribeTelegram').onclick = async () => {
 };
 
 let allExcelFiles = [], allTextFiles = [], allFolders = [];
-var combineAndRenderArchive = function() {};
-var populateFolderSelects = function() {};
-var renderFolderList = function() {};
-var renderFolderIcons = function() {};
-var updateBulkActions = function() {};
 if (!db) { console.warn('Firestore non disponibile — snapshot non registrati'); const fbBanner = document.getElementById('fbOfflineBanner'); if (fbBanner) fbBanner.classList.remove('hidden'); } else {
 db.collection('subscribers').onSnapshot(snap => {
   const topTel = document.getElementById('topStatTelegram');
