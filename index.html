@@ -173,11 +173,11 @@
   </div>
 
   <!-- ARCHIVE MODAL -->
-  <div id="archiveModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeArchiveModal()">
+  <div id="archiveModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleArchiveModal()">
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-5xl w-full mx-4 p-4 md:p-6 max-h-[85vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b dark:border-gray-700 pb-3 mb-4">
-        <h2 class="text-base font-bold"><i class="fas fa-archive mr-2 text-purple-500"></i><span id="archiveModalTitle">Archivio</span></h2>
-        <button onclick="closeArchiveModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+        <h2 class="text-base font-bold"><i class="fas fa-archive mr-2 text-purple-500"></i><span data-i18n="archiveModalTitle">Archivio</span></h2>
+        <button onclick="toggleArchiveModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
       </div>
       <div class="p-4 modal-scroll-body">
         <div class="flex flex-wrap items-center gap-2 mb-3">
@@ -554,22 +554,20 @@
       <p class="text-xs text-gray-400 mt-1" data-i18n="dashboardSubtitle">Seleziona un'operazione per iniziare</p>
     </div>
     <div class="dash-grid">
-      <div class="dash-card" onclick="openArchive('excel')">
+      <div class="dash-card" onclick="toggleExcelModal()">
         <div class="dash-icon">📊</div>
         <div class="dash-label" data-i18n="dashExcel">Excel</div>
-        <div class="dash-count" id="countExcel">0</div>
       </div>
-      <div class="dash-card" onclick="openArchive('doc')">
+      <div class="dash-card" onclick="toggleDocModal()">
         <div class="dash-icon">📄</div>
         <div class="dash-label" data-i18n="dashDoc">Documenti</div>
-        <div class="dash-count" id="countDoc">0</div>
       </div>
       <div class="dash-card" onclick="toggleNotesModal()">
         <div class="dash-icon">📝</div>
         <div class="dash-label" data-i18n="dashNotes">Note</div>
         <div class="dash-count" id="countNotes">0</div>
       </div>
-      <div class="dash-card" onclick="openArchive('')">
+      <div class="dash-card" onclick="toggleArchiveModal()">
         <div class="dash-icon">🗂️</div>
         <div class="dash-label" data-i18n="dashArchive">Archivio</div>
         <div class="dash-count" id="countArchive">0</div>
