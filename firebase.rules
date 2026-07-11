@@ -1,0 +1,81 @@
+╔══════════════════════════════════════════════════════╗
+║  ENGINEERING CLOUD HUB — FIREBASE SECURITY RULES    ║
+║  Deploy these rules in Firebase Console → Firestore  ║
+║  and Storage to enforce access control.              ║
+╚══════════════════════════════════════════════════════╝
+
+─── FIRESTORE RULES ─────────────────────────────────────
+Copy and paste into: Firebase Console → Firestore → Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── REGOLE DI DEFAULT: nega tutto ──
+    // Solo utenti autenticati (auth anonimo) possono leggere/scrivere.
+    // Chiunque NON passi dall'app (dove c'è signInAnonymously) è bloccato.
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    // ── REGOLE FUTURE (opzionali) ──
+    // Esempio: solo l'owner può scrivere su accountsHub
+    // Sostituisci ING_UID con l'UID dell'utente Ing dopo aver fatto
+    // il login con email/password e aver preso l'UID dalla console Auth.
+    //
+    // match /accountsHub/{doc} {
+    //   allow read: if request.auth != null;
+    //   allow write: if request.auth.uid == 'ING_UID';
+    // }
+    //
+    // Esempio: solo chi ha creato un documento può eliminarlo
+    // match /notesHub/{doc} {
+    //   allow read: if request.auth != null;
+    //   allow create: if request.auth != null;
+    //   allow delete: if request.auth != null &&  // + logica custom
+    // }
+  }
+}
+
+
+─── STORAGE RULES ──────────────────────────────────────
+Copy and paste into: Firebase Console → Storage → Rules
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── REGOLA BASE: solo utenti autenticati ──
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    // ── REGOLE FUTURE (opzionali) ──
+    // Limita la dimensione dei file a 10 MB:
+    //   match /files/{fileName} {
+    //     allow write: if request.auth != null
+    //                  && request.resource.size < 10 * 1024 * 1024;
+    //   }
+    //
+    // Blocca tipi di file pericolosi:
+    //   match /files/{fileName} {
+    //     allow write: if request.auth != null
+    //                  && request.resource.contentType.matches('image/|application/pdf|text/|application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    //   }
+  }
+}
+
+
+─── ISTRUZIONI ─────────────────────────────────────────
+1. Vai su https://console.firebase.google.com/project/hub-ingegneria
+2. Firestore → Rules → incolla le regole FIRESTORE → PUBBLICA
+3. Storage → Rules → incolla le regole STORAGE → PUBBLICA
+4. Auth → Sign-in method → abilita "Anonimo" (già usato dall'app)
+
+📌 NOTA: L'app usa auth anonimo (signInAnonymously).
+    Questo basta a soddisfare request.auth != null.
+    In futuro, per regole più granulari, passa a email/password
+    e usa request.auth.uid per identificare l'utente.
+
+📌 Per trovare l'UID di "Ing":
+    Firebase Console → Authentication → cerca l'utente → copia UID

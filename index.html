@@ -556,11 +556,11 @@
       <p class="text-xs text-gray-400 mt-1" data-i18n="dashboardSubtitle">Seleziona un'operazione per iniziare</p>
     </div>
     <div class="dash-grid">
-      <div class="dash-card" onclick="toggleExcelModal()">
+      <div class="dash-card requires-write" onclick="toggleExcelModal()">
         <div class="dash-icon">📊</div>
         <div class="dash-label" data-i18n="dashExcel">Excel</div>
       </div>
-      <div class="dash-card" onclick="toggleDocModal()">
+      <div class="dash-card requires-write" onclick="toggleDocModal()">
         <div class="dash-icon">📄</div>
         <div class="dash-label" data-i18n="dashDoc">Documenti</div>
       </div>
@@ -739,6 +739,8 @@
   </script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
   <script src="js/config.js?v=20250711"></script>
   <script src="js/app.js?v=20250711"></script>
 </body>
