@@ -1,11 +1,8 @@
-const CACHE = 'eng-hub-v5';
+const CACHE = 'eng-hub-v6';
 const ASSETS = [
   'manifest.json',
   'icon-192.png',
-  'icon-512.png',
-  'js/app.js',
-  'js/config.js',
-  'style.css'
+  'icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {
