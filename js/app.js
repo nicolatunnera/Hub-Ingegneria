@@ -81,8 +81,8 @@ function setupPermissions() {
   document.querySelectorAll('.requires-write').forEach(el => el.classList.toggle('hidden', !canWrite));
   document.querySelectorAll('.requires-guest').forEach(el => el.classList.toggle('hidden', role !== 'guest'));
   if (role === 'guest') {
-    document.querySelectorAll('.delete-btn, .delete-cloud-btn, .delete-note-btn, .delete-history-btn, .unregister-btn, .delete-user-btn').forEach(el => el.remove());
-    document.querySelectorAll('#btnSendNews, #btnUploadExcel, #btnUploadDoc, #btnRegister, #btnAddUser, #btnSubscribeTelegram, #btnUnsubscribeTelegram, #testTelegramNotification').forEach(el => el.disabled = true);
+    document.querySelectorAll('.delete-btn, .delete-cloud-btn, .delete-note-btn, .delete-history-btn').forEach(el => el.remove());
+    document.querySelectorAll('#btnSendNews, #btnUploadExcel, #btnUploadDoc, #btnSubscribeTelegram, #btnUnsubscribeTelegram, #testTelegramNotification').forEach(el => el.disabled = true);
   }
   setTimeout(checkPrivateAccess, 500);
 }
@@ -92,13 +92,24 @@ window.closeCalc = () => document.getElementById('calcModal')?.classList.add('hi
 window.closeNews = () => document.getElementById('newsModal')?.classList.add('hidden');
 
 window.closeUserModal = () => document.getElementById('userModal')?.classList.add('hidden');
+window.closeAccountModal = () => document.getElementById('teamModal')?.classList.add('hidden');
 window.closeMtbfModal = () => document.getElementById('mtbfModal')?.classList.add('hidden');
 window.closeSubscribersModal = () => document.getElementById('subscribersModal')?.classList.add('hidden');
 window.closeNewsHistoryModal = () => document.getElementById('newsHistoryModal')?.classList.add('hidden');
-window.closeTeamModal = () => document.getElementById('teamModal')?.classList.add('hidden');
 window.closeStatsModal = () => document.getElementById('statsModal')?.classList.add('hidden');
 window.openUserModal = () => document.getElementById('userModal')?.classList.remove('hidden');
-window.openTeamModal = () => document.getElementById('teamModal')?.classList.remove('hidden');
+window.openAccountModal = () => {
+  document.getElementById('teamModal')?.classList.remove('hidden');
+  const uInput = document.getElementById('myAccountUsername');
+  const nInput = document.getElementById('myAccountName');
+  if (uInput) uInput.value = window.username || '';
+  if (nInput) nInput.value = window.username || '';
+  if (window.username && db) {
+    db.collection('accountsHub').where('username', '==', window.username).get().then(snap => {
+      if (!snap.empty && nInput) nInput.value = snap.docs[0].data().name || window.username;
+    }).catch(() => {});
+  }
+};
 window.openMtbfModal = () => document.getElementById('mtbfModal')?.classList.remove('hidden');
 window.openSubscribersModal = () => document.getElementById('subscribersModal')?.classList.remove('hidden');
 window.openNewsHistoryModal = () => document.getElementById('newsHistoryModal')?.classList.remove('hidden');
@@ -333,33 +344,29 @@ db.collection('newsHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
   if (list) list.innerHTML = html;
 });
 
-// ─── TEAM ─────────────────────────────────────────────────────────────
-document.getElementById('btnRegister').onclick = async () => {
-  const name = document.getElementById('regName').value.trim();
-  const contact = document.getElementById('regContact').value.trim();
-  if (name && contact) {
-    await db.collection('teamHub').add({ name, contact, joinedBy: window.username || 'unknown', joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
-    document.getElementById('regName').value = '';
-    document.getElementById('regContact').value = '';
+// ─── MY ACCOUNT ─────────────────────────────────────────────────────────
+document.getElementById('btnSaveAccount').onclick = async () => {
+  const name = document.getElementById('myAccountName').value.trim();
+  const curPwd = document.getElementById('myAccountCurPwd').value;
+  const newPwd = document.getElementById('myAccountNewPwd').value;
+  const user = window.username;
+  if (!user || !db) return showToast('Non disponibile.', 'error');
+  const snap = await db.collection('accountsHub').where('username', '==', user).get();
+  if (snap.empty) return showToast('Account non trovato.', 'error');
+  const docRef = snap.docs[0].ref;
+  const data = snap.docs[0].data();
+  if (name && name !== data.name) {
+    await docRef.update({ name });
   }
-};
-db.collection('teamHub').orderBy('joinedAt', 'desc').onSnapshot(snap => {
-  const topTeam = document.getElementById('topStatTeam');
-  if (topTeam) topTeam.textContent = snap.size;
-  const container = document.getElementById('teamMembersContainer');
-  if (!container) return;
-  if (snap.empty) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic">Nessun membro registrato.</p>'; return; }
-  container.innerHTML = `<p class="text-[10px] text-gray-400 font-medium mb-1 tracking-wide uppercase">Membri iscritti (${snap.size})</p>`;
-  snap.forEach(d => {
-    const { name, contact } = d.data();
-    container.innerHTML += `<div class="flex items-center justify-between gap-1 bg-white dark:bg-slate-900 p-1.5 rounded-lg border dark:border-slate-700 text-[11px]"><div class="min-w-0 flex-1"><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(name || '')}</span><span class="text-gray-400 ml-1.5">\u00b7 ${escapeHtml(contact || '')}</span></div><button data-tid="${escapeHtml(d.id)}" class="unregister-btn text-gray-400 hover:text-red-500 hover:font-bold cursor-pointer text-xs leading-none p-0.5">\u2715</button></div>`;
-  });
-  container.querySelectorAll('.unregister-btn').forEach(btn => {
-    btn.addEventListener('click', () => window.unregisterMember(btn.dataset.tid));
-  });
-});
-window.unregisterMember = async id => {
-  if (confirm('Rimuovere la tua registrazione dal team?')) await db.collection('teamHub').doc(id).delete();
+  if (curPwd && newPwd) {
+    let hash = 0; for (let i = 0; i < curPwd.length; i++) { hash = ((hash << 5) - hash) + curPwd.charCodeAt(i); hash |= 0; }
+    if (data.password !== hash.toString(36)) { showToast('Password attuale errata.', 'error'); return; }
+    hash = 0; for (let i = 0; i < newPwd.length; i++) { hash = ((hash << 5) - hash) + newPwd.charCodeAt(i); hash |= 0; }
+    await docRef.update({ password: hash.toString(36) });
+  }
+  document.getElementById('myAccountCurPwd').value = '';
+  document.getElementById('myAccountNewPwd').value = '';
+  showToast('Account aggiornato!', 'success');
 };
 
 // ─── ACCOUNTS (registered) ──────────────────────────────────────────────
@@ -367,12 +374,16 @@ db.collection('accountsHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
   const container = document.getElementById('accountsContainer');
   if (!container) return;
   if (snap.empty) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic text-center py-4">Nessun account registrato.</p>'; return; }
-  container.innerHTML = '';
+  let html = `<p class="text-[10px] text-gray-500 dark:text-gray-400 font-medium mb-2">Totale: <span class="text-gray-700 dark:text-gray-200">${snap.size}</span></p>`;
   snap.forEach(d => {
     const { username, name, role } = d.data();
+    const ts = d.data().createdAt;
+    const dateStr = ts && ts.seconds ? new Date(ts.seconds * 1000).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric' }) : '—';
     const isOwner = window.userRole === 'owner';
-    container.innerHTML += `<div class="flex items-center justify-between gap-1 bg-white dark:bg-slate-900 p-2 rounded-lg border dark:border-slate-700 text-xs"><div class="min-w-0 flex-1"><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(username || '')}</span><span class="text-[10px] text-gray-400 ml-1.5">${escapeHtml(name || '')}</span><span class="text-[10px] text-gray-400 ml-1.5">· ${escapeHtml(role || 'user')}</span></div>${isOwner ? `<button data-accid="${escapeHtml(d.id)}" class="delete-acc-btn text-gray-400 hover:text-red-500 cursor-pointer text-xs p-0.5">✕</button>` : ''}</div>`;
+    const roleLabel = role === 'owner' ? 'Proprietario' : role === 'user' ? 'Utente' : role || 'Utente';
+    html += `<div class="flex items-center justify-between bg-white dark:bg-slate-900 p-2.5 rounded-lg border dark:border-slate-700"><div class="min-w-0 flex-1"><div class="flex items-center gap-2"><span class="font-semibold text-xs text-gray-800 dark:text-gray-100">${escapeHtml(username || '')}</span><span class="text-[10px] px-1.5 py-0.5 rounded-full ${role === 'owner' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300'}">${roleLabel}</span></div><div class="flex items-center gap-2 mt-1"><span class="text-[10px] text-gray-400">${escapeHtml(name || '—')}</span><span class="text-[9px] text-gray-300 dark:text-gray-600">·</span><span class="text-[9px] text-gray-400">${dateStr}</span></div></div>${isOwner ? `<button data-accid="${escapeHtml(d.id)}" class="delete-acc-btn text-gray-400 hover:text-red-500 cursor-pointer text-xs p-0.5 ml-2">✕</button>` : ''}</div>`;
   });
+  container.innerHTML = html;
   container.querySelectorAll('.delete-acc-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       if (window.userRole !== 'owner') { showToast('Non autorizzato.', 'error'); return; }
