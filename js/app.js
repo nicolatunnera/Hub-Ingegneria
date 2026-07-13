@@ -84,6 +84,7 @@ function setupPermissions() {
     document.querySelectorAll('.delete-btn, .delete-cloud-btn, .delete-note-btn, .delete-history-btn, .unregister-btn, .delete-user-btn').forEach(el => el.remove());
     document.querySelectorAll('#btnSendNews, #btnUploadExcel, #btnUploadDoc, #btnRegister, #btnAddUser, #btnSubscribeTelegram, #btnUnsubscribeTelegram, #testTelegramNotification').forEach(el => el.disabled = true);
   }
+  setTimeout(checkPrivateAccess, 500);
 }
 
 // ─── TOGGLE UTILITY ───────────────────────────────────────────────────
@@ -112,6 +113,11 @@ window.toggleHubInfo = () => {
 window.openSidebar = () => document.getElementById('sidebar')?.classList.remove('hidden');
 window.closeSidebar = () => document.getElementById('sidebar')?.classList.add('hidden');
 window.toggleSidebar = () => document.getElementById('sidebar')?.classList.toggle('hidden');
+document.getElementById('sidebarContent')?.addEventListener('click', e => {
+  if (e.target.closest('.sidebar-btn') && window.innerWidth < 768) {
+    setTimeout(() => window.closeSidebar(), 100);
+  }
+});
 window.toggleNewsSidebar = () => document.getElementById('newsModal')?.classList.toggle('hidden');
 document.getElementById('newsBtn')?.addEventListener('click', () => window.toggleNewsSidebar());
 window.toggleTheme = () => document.documentElement.classList.toggle('dark');
@@ -133,8 +139,10 @@ window.toggleHistoryModal = () => document.getElementById('historyModal')?.class
 (function populateHubInfo() {
   const uptime = document.getElementById('hubInfoUptime');
   const update = document.getElementById('hubInfoUpdate');
+  const ver = document.getElementById('hubInfoVersion');
   if (uptime) uptime.textContent = '01/02/2025';
   if (update) update.textContent = new Date().toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  if (ver) ver.textContent = '3.3.0';
 })();
 
 // ─── HUB INFO CLOCK ──────────────────────────────────────────────────
@@ -372,6 +380,131 @@ db.collection('usersHub').orderBy('addedAt', 'desc').onSnapshot(snap => {
   });
 });
 
+// ─── ACCOUNTS (registered) ──────────────────────────────────────────────
+db.collection('accountsHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
+  const container = document.getElementById('accountsContainer');
+  if (!container) return;
+  if (snap.empty) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic text-center py-4">Nessun account registrato.</p>'; return; }
+  container.innerHTML = '';
+  snap.forEach(d => {
+    const { username, name, role } = d.data();
+    const isOwner = window.userRole === 'owner';
+    container.innerHTML += `<div class="flex items-center justify-between gap-1 bg-white dark:bg-slate-900 p-2 rounded-lg border dark:border-slate-700 text-xs"><div class="min-w-0 flex-1"><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(username || '')}</span><span class="text-[10px] text-gray-400 ml-1.5">${escapeHtml(name || '')}</span><span class="text-[10px] text-gray-400 ml-1.5">· ${escapeHtml(role || 'user')}</span></div>${isOwner ? `<button data-accid="${escapeHtml(d.id)}" class="delete-acc-btn text-gray-400 hover:text-red-500 cursor-pointer text-xs p-0.5">✕</button>` : ''}</div>`;
+  });
+  container.querySelectorAll('.delete-acc-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (window.userRole !== 'owner') { showToast('Non autorizzato.', 'error'); return; }
+      if (confirm('Rimuovere questo account registrato?')) {
+        await db.collection('accountsHub').doc(btn.dataset.accid).delete();
+        showToast('Account rimosso.', 'success');
+      }
+    });
+  });
+});
+
+// ─── PRIVATE SPACE ────────────────────────────────────────────────────────
+function cleanupExpiredPrivate() {
+  if (!db) return;
+  ['excelHub', 'textHub', 'notesHub'].forEach(col => {
+    db.collection(col).where('private', '==', true).get().then(snap => {
+      snap.forEach(d => {
+        if (d.data().expiresAt && d.data().expiresAt.seconds * 1000 < Date.now()) {
+          db.collection(col).doc(d.id).delete();
+        }
+      });
+    }).catch(() => {});
+  });
+}
+cleanupExpiredPrivate();
+setInterval(cleanupExpiredPrivate, 3600000);
+
+function isPrivateVisible(item) {
+  if (!item.private) return true;
+  const role = window.userRole || 'guest';
+  if (role === 'owner') return true;
+  return item.uploadedBy === window.username;
+}
+
+window.requestPrivateSpace = async function() {
+  if (!db) return showToast('Backend non disponibile.', 'error');
+  const user = window.username;
+  if (!user) return showToast('Nessun utente loggato.', 'error');
+  const existing = await db.collection('privateSpaceRequests').where('username', '==', user).get();
+  if (!existing.empty) {
+    const req = existing.docs[0].data();
+    if (req.approved) { showToast('Spazio privato già attivo!', 'info'); return; }
+    showToast('Richiesta già inviata in attesa di approvazione.', 'info');
+    return;
+  }
+  await db.collection('privateSpaceRequests').add({ username: user, approved: false, requestedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  showToast('Richiesta inviata! Attendi approvazione dal proprietario.', 'success');
+};
+
+window.openPrivateRequestsModal = async function() {
+  const modal = document.getElementById('privateRequestsModal');
+  const list = document.getElementById('privateRequestsList');
+  if (!modal || !list) return;
+  modal.classList.remove('hidden');
+  list.innerHTML = '<p class="text-sm text-gray-400">Caricamento...</p>';
+  const snap = await db.collection('privateSpaceRequests').where('approved', '==', false).get();
+  if (snap.empty) { list.innerHTML = '<p class="text-sm text-gray-400 italic text-center py-4">Nessuna richiesta in sospeso.</p>'; return; }
+  list.innerHTML = '';
+  snap.forEach(d => {
+    const { username, requestedAt } = d.data();
+    const dateStr = requestedAt && requestedAt.seconds ? new Date(requestedAt.seconds * 1000).toLocaleString('it-IT') : 'N/D';
+    list.innerHTML += `<div class="flex items-center justify-between gap-2 bg-white dark:bg-slate-900 p-3 rounded-lg border dark:border-slate-700 text-xs"><div><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(username || '')}</span><span class="text-gray-400 ml-2">${dateStr}</span></div><button data-reqid="${escapeHtml(d.id)}" data-requser="${escapeHtml(username)}" class="approve-private-btn px-3 py-1 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition">Approva</button></div>`;
+  });
+  list.querySelectorAll('.approve-private-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (window.userRole !== 'owner') return;
+      await db.collection('privateSpaceRequests').doc(btn.dataset.reqid).update({ approved: true });
+      await db.collection('historyHub').add({ name: 'Spazio Privato', operation: 'Approvato spazio privato per ' + btn.dataset.requser, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+      showToast('Spazio privato approvato per ' + btn.dataset.requser, 'success');
+      window.openPrivateRequestsModal();
+    });
+  });
+};
+
+window.closePrivateRequestsModal = function() {
+  document.getElementById('privateRequestsModal')?.classList.add('hidden');
+};
+
+async function checkPrivateAccess() {
+  const status = document.getElementById('privateStatus');
+  const toggles = document.querySelectorAll('.private-toggle');
+  const reqBtn = document.getElementById('btnRequestPrivate');
+  if (!db || !window.username || window.userRole === 'owner') {
+    if (window.userRole === 'owner') {
+      toggles.forEach(el => el.classList.remove('hidden'));
+      if (status) status.classList.remove('hidden');
+      if (reqBtn) reqBtn.classList.add('hidden');
+    }
+    return;
+  }
+  const snap = await db.collection('privateSpaceRequests').where('username', '==', window.username).where('approved', '==', true).get();
+  if (!snap.empty) {
+    toggles.forEach(el => el.classList.remove('hidden'));
+    if (status) status.classList.remove('hidden');
+    if (reqBtn) reqBtn.classList.add('hidden');
+  } else {
+    toggles.forEach(el => el.classList.add('hidden'));
+    if (status) status.classList.add('hidden');
+  }
+}
+window.checkPrivateAccess = checkPrivateAccess;
+
+window.deleteMyAccount = async function() {
+  if (!db || !window.username) return;
+  if (window.userRole === 'owner') { showToast('Non puoi eliminare l\'account proprietario.', 'error'); return; }
+  const snap = await db.collection('accountsHub').where('username', '==', window.username).get();
+  if (!snap.empty) {
+    await db.collection('accountsHub').doc(snap.docs[0].id).delete();
+  }
+  localStorage.removeItem('hub-user');
+  localStorage.removeItem('hub-pass');
+  showToast('Account eliminato. La pagina si ricaricherà.', 'success');
+  setTimeout(() => location.reload(), 1500);
+};
 // ─── FOLDER ───────────────────────────────────────────────────────────
 window.toggleNewFolderForm = (select, formId) => {
   const form = document.getElementById(formId);
@@ -429,7 +562,8 @@ document.getElementById('btnUploadExcel').onclick = async () => {
   const file = fileInput?.files?.[0];
   let fileData = '', fileName = '', fileMime = '';
   if (file) { fileData = await readFileAsBase64(file); fileName = file.name; fileMime = file.type; }
-  await db.collection('excelHub').add({ name: note, branch, folderId: folderId || '', fileData, fileName, fileMime, uploadedBy: window.username || 'unknown', uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  const isPrivate = document.getElementById('excelPrivate')?.checked || false;
+  await db.collection('excelHub').add({ name: note, branch, folderId: folderId || '', fileData, fileName, fileMime, uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
   await db.collection('historyHub').add({ name: note, operation: `Caricato Excel (${branch})`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
   document.getElementById('excelNote').value = '';
   if (fileInput) fileInput.value = '';
@@ -448,7 +582,8 @@ document.getElementById('btnUploadDoc').onclick = async () => {
   const file = fileInput?.files?.[0];
   let fileData = '', fileName = '', fileMime = '', fileType = '';
   if (file) { fileData = await readFileAsBase64(file); fileName = file.name; fileMime = file.type; fileType = file.name.split('.').pop().toUpperCase(); }
-  await db.collection('textHub').add({ title, fileName: fileName || (title + '.txt'), fileType: fileType || 'TXT', fileMime: fileMime || 'text/plain', fileData: fileData || '', extractedText: bodyContent, folderId: folderId || '', uploadedBy: window.username || 'unknown', uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  const isPrivate = document.getElementById('docPrivate')?.checked || false;
+  await db.collection('textHub').add({ title, fileName: fileName || (title + '.txt'), fileType: fileType || 'TXT', fileMime: fileMime || 'text/plain', fileData: fileData || '', extractedText: bodyContent, folderId: folderId || '', uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
   await db.collection('historyHub').add({ name: title, operation: 'Caricato Documento / Report', uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
   document.getElementById('textTitle').value = '';
   document.getElementById('textContentBody').value = '';
@@ -461,22 +596,27 @@ document.getElementById('btnUploadDoc').onclick = async () => {
 document.getElementById('btnUploadNote').onclick = async () => {
   const content = document.getElementById('newNoteContent').value.trim();
   if (content) {
-    await db.collection('notesHub').add({ content, createdBy: window.username || 'unknown', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    const isPrivate = document.getElementById('notePrivate')?.checked || false;
+    await db.collection('notesHub').add({ content, createdBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
     await db.collection('historyHub').add({ name: 'Nota Rapida', operation: 'Aggiunta nota condivisa', uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
     document.getElementById('newNoteContent').value = '';
     await sendTelegramBroadcast(`\u{1F4CC} *Nuova Nota:* ${escapeMarkdown(content)}`);
   }
 };
 db.collection('notesHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
-  const cn = document.getElementById('countNotes'); if (cn) cn.textContent = snap.size;
+  const visible = snap.docs.filter(d => isPrivateVisible({ private: d.data().private, uploadedBy: d.data().createdBy }));
+  const cn = document.getElementById('countNotes'); if (cn) cn.textContent = visible.length;
   const container = document.getElementById('notesContainer');
   if (!container) return;
   container.innerHTML = '';
-  snap.forEach(d => {
+  visible.forEach(d => {
     const div = document.createElement('div');
     div.className = 'bg-gray-50/80 dark:bg-slate-800/80 p-2 rounded border border-gray-200 dark:border-slate-700 flex justify-between items-start text-xs text-gray-700 dark:text-gray-300 shadow-2xs';
     const canDelete = window.userRole === 'owner' || d.data().createdBy === window.username;
-    div.innerHTML = `<p class="break-words pr-2">${escapeHtml(d.data().content || '')}</p>` + (canDelete ? `<button data-note-id="${escapeHtml(d.id)}" class="delete-note-btn text-gray-400 hover:text-red-600 cursor-pointer">\u2715</button>` : '');
+    const label = d.data().private ? '<span class="text-[10px] text-purple-500 ml-1">\u{1F512}</span>' : '';
+    div.innerHTML = `<p class="break-words pr-2">${escapeHtml(d.data().content || '')}${label}</p>` + (canDelete ? `<button data-note-id="${escapeHtml(d.id)}" class="delete-note-btn text-gray-400 hover:text-red-600 cursor-pointer">\u2715</button>` : '');
+    container.appendChild(div);
+  });
     container.appendChild(div);
   });
   container.querySelectorAll('.delete-note-btn').forEach(btn => {
@@ -487,7 +627,7 @@ window.deleteNote = async id => { await db.collection('notesHub').doc(id).delete
 
 function updateCountArchive() {
   const ca = document.getElementById('countArchive');
-  if (ca) ca.textContent = allExcelFiles.length + allTextFiles.length;
+  if (ca) ca.textContent = [...allExcelFiles, ...allTextFiles].filter(f => isPrivateVisible(f)).length;
 }
 db.collection('excelHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
   allExcelFiles = [];
@@ -546,7 +686,7 @@ function renderFolderIcons() {
   const bar = document.getElementById('folderIconsBar');
   if (!bar) return;
   const filterFolder = document.getElementById('folderFilter')?.value || '';
-  const allFiles = [...allExcelFiles, ...allTextFiles];
+  const allFiles = [...allExcelFiles, ...allTextFiles].filter(f => isPrivateVisible(f));
   const totalCount = allFiles.length;
   let html = '<div class="folder-icon' + (!filterFolder ? ' active' : '') + '" style="color:#2563eb" data-folder-id=""><span class="fi-emoji">\u{1F4C1}</span><span class="fi-name">Tutte</span><span class="fi-count">' + totalCount + '</span></div>';
   allFolders.forEach(f => {
@@ -633,6 +773,7 @@ function combineAndRenderArchive() {
   renderFolderIcons();
   const filterFolder = document.getElementById('folderFilter')?.value || '';
   let items = [...allExcelFiles, ...allTextFiles].filter(f => {
+    if (!isPrivateVisible(f)) return false;
     if (!window.searchQuery) return true;
     const haystack = f.isExcel ? `${f.name || ''} ${f.branch || ''}` : `${f.title || ''} ${f.fileType || ''} ${f.extractedText ? f.extractedText.substring(0, 200) : ''}`;
     return haystack.toLowerCase().includes(window.searchQuery);
@@ -657,9 +798,9 @@ function combineAndRenderArchive() {
     const checkbox = isGuest ? '' : `<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}"></td>`;
     const actionsCell = isGuest ? '<td class="p-3"></td>' : `<td class="p-3 text-center flex items-center justify-center gap-1"><button data-id="${escapeHtml(f.id)}" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">\u{1F4E5}</button>${canDel ? `<button data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}" data-name="${escapeHtml(f.name || f.title || 'File')}" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">\u{1F5D1}\uFE0F</button>` : ''}</td>`;
     if (f.isExcel) {
-      tr.innerHTML = `${checkbox}<td class="p-3 font-medium">${escapeHtml(f.name || 'File Excel')}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td>${folderCell}<td class="p-3 text-gray-500 italic">${escapeHtml(f.branch || '')}</td>${actionsCell}`;
+      tr.innerHTML = `${checkbox}<td class="p-3 font-medium">${f.private ? '<span class="text-purple-500 mr-1">\u{1F512}</span>' : ''}${escapeHtml(f.name || 'File Excel')}</td><td><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">EXCEL</span></td>${folderCell}<td class="p-3 text-gray-500 italic">${escapeHtml(f.branch || '')}</td>${actionsCell}`;
     } else {
-      tr.innerHTML = `${checkbox}<td class="p-3 font-medium">${escapeHtml(f.title || 'Documento')}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${escapeHtml(f.fileType || '')}</span></td>${folderCell}<td class="p-3 text-gray-400 font-mono text-[11px]">${escapeHtml(f.extractedText ? f.extractedText.substring(0, 40) + '...' : (f.fileName || ''))}</td>${actionsCell}`;
+      tr.innerHTML = `${checkbox}<td class="p-3 font-medium">${f.private ? '<span class="text-purple-500 mr-1">\u{1F512}</span>' : ''}${escapeHtml(f.title || 'Documento')}</td><td><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">${escapeHtml(f.fileType || '')}</span></td>${folderCell}<td class="p-3 text-gray-400 font-mono text-[11px]">${escapeHtml(f.extractedText ? f.extractedText.substring(0, 40) + '...' : (f.fileName || ''))}</td>${actionsCell}`;
     }
     body.appendChild(tr);
   });
