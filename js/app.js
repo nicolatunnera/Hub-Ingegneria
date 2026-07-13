@@ -437,8 +437,14 @@ function isPrivateVisible(item) {
 
 window.requestPrivateSpace = async function() {
   if (!db) return showToast('Backend non disponibile.', 'error');
+  if (window.userRole === 'guest') return showToast('Accesso non consentito agli ospiti.', 'error');
   const user = window.username;
   if (!user) return showToast('Nessun utente loggato.', 'error');
+  let fullName = user;
+  try {
+    const accSnap = await db.collection('accountsHub').where('username', '==', user).get();
+    if (!accSnap.empty) fullName = accSnap.docs[0].data().name || user;
+  } catch(e) {}
   const existing = await db.collection('privateSpaceRequests').where('username', '==', user).get();
   if (!existing.empty) {
     const req = existing.docs[0].data();
@@ -446,7 +452,7 @@ window.requestPrivateSpace = async function() {
     showToast('Richiesta già inviata in attesa di approvazione.', 'info');
     return;
   }
-  await db.collection('privateSpaceRequests').add({ username: user, approved: false, requestedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  await db.collection('privateSpaceRequests').add({ username: user, name: fullName, approved: false, requestedAt: firebase.firestore.FieldValue.serverTimestamp() });
   showToast('Richiesta inviata! Attendi approvazione dal proprietario.', 'success');
 };
 
@@ -460,9 +466,9 @@ window.openPrivateRequestsModal = async function() {
   if (snap.empty) { list.innerHTML = '<p class="text-sm text-gray-400 italic text-center py-4">Nessuna richiesta in sospeso.</p>'; return; }
   list.innerHTML = '';
   snap.forEach(d => {
-    const { username, requestedAt } = d.data();
+    const { username, name, requestedAt } = d.data();
     const dateStr = requestedAt && requestedAt.seconds ? new Date(requestedAt.seconds * 1000).toLocaleString('it-IT') : 'N/D';
-    list.innerHTML += `<div class="flex items-center justify-between gap-2 bg-white dark:bg-slate-900 p-3 rounded-lg border dark:border-slate-700 text-xs"><div><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(username || '')}</span><span class="text-gray-400 ml-2">${dateStr}</span></div><button data-reqid="${escapeHtml(d.id)}" data-requser="${escapeHtml(username)}" class="approve-private-btn px-3 py-1 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition">Approva</button></div>`;
+    list.innerHTML += `<div class="flex items-center justify-between gap-2 bg-white dark:bg-slate-900 p-3 rounded-lg border dark:border-slate-700 text-xs"><div><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(username || '')}</span><span class="text-gray-400 ml-1">${escapeHtml(name || '')}</span><div class="text-[10px] text-gray-400 mt-0.5">${dateStr}</div></div><div class="flex gap-1"><button data-reqid="${escapeHtml(d.id)}" data-requser="${escapeHtml(username)}" class="approve-private-btn px-3 py-1 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition">Approva</button><button data-reqid="${escapeHtml(d.id)}" data-requser="${escapeHtml(username)}" class="deny-private-btn px-3 py-1 text-xs bg-red-500 hover:bg-red-400 text-white rounded-lg transition">Nega</button></div></div>`;
   });
   list.querySelectorAll('.approve-private-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -470,6 +476,16 @@ window.openPrivateRequestsModal = async function() {
       await db.collection('privateSpaceRequests').doc(btn.dataset.reqid).update({ approved: true });
       await db.collection('historyHub').add({ name: 'Spazio Privato', operation: 'Approvato spazio privato per ' + btn.dataset.requser, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
       showToast('Spazio privato approvato per ' + btn.dataset.requser, 'success');
+      window.openPrivateRequestsModal();
+    });
+  });
+  list.querySelectorAll('.deny-private-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (window.userRole !== 'owner') return;
+      if (!confirm('Negare la richiesta di spazio privato per ' + btn.dataset.requser + '?')) return;
+      await db.collection('privateSpaceRequests').doc(btn.dataset.reqid).delete();
+      await db.collection('historyHub').add({ name: 'Spazio Privato', operation: 'Negata richiesta spazio privato per ' + btn.dataset.requser, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+      showToast('Richiesta negata per ' + btn.dataset.requser, 'info');
       window.openPrivateRequestsModal();
     });
   });
