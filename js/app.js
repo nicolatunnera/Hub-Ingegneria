@@ -771,8 +771,11 @@ function combineAndRenderArchive() {
   if (sa) sa.checked = false;
   renderFolderIcons();
   const filterFolder = document.getElementById('folderFilter')?.value || '';
+  const typeFilter = document.getElementById('typeFilter')?.value || 'all';
   let items = [...allExcelFiles, ...allTextFiles].filter(f => {
     if (!isPrivateVisible(f)) return false;
+    if (typeFilter === 'excel' && !f.isExcel) return false;
+    if (typeFilter === 'doc' && f.isExcel) return false;
     if (!window.searchQuery) return true;
     const haystack = f.isExcel ? `${f.name || ''} ${f.branch || ''}` : `${f.title || ''} ${f.fileType || ''} ${f.extractedText ? f.extractedText.substring(0, 200) : ''}`;
     return haystack.toLowerCase().includes(window.searchQuery);
