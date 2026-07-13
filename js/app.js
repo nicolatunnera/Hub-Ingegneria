@@ -277,8 +277,9 @@ document.getElementById('btnSubscribeTelegram').onclick = async () => {
   const chatId = document.getElementById('telChatIdInput').value.trim();
   const name = document.getElementById('telNameInput').value.trim() || 'Membro Hub';
   const role = document.getElementById('telOwnerCheck')?.checked ? 'owner' : 'user';
+  const username = window.username || '';
   if (!chatId) return alert('Inserisci un Chat ID numerico!');
-  await db.collection('subscribers').add({ chatId, name, role, subscribedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  await db.collection('subscribers').add({ chatId, name, role, username, subscribedAt: firebase.firestore.FieldValue.serverTimestamp() });
   document.getElementById('telChatIdInput').value = '';
   document.getElementById('telNameInput').value = '';
 };
@@ -302,7 +303,7 @@ db.collection('subscribers').onSnapshot(snap => {
   if (snap.empty) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic">Nessun iscritto alle notifiche Telegram.</p>'; return; }
   container.innerHTML = '';
   snap.forEach(d => {
-    container.innerHTML += `<div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg border dark:border-slate-800 text-[11px]"><span class="w-5 h-5 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center text-[10px]">\u{1F464}</span><div><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(d.data().name || '')}</span><span class="text-gray-400 ml-1.5">\u00b7 ID ${escapeHtml(d.data().chatId || '')}</span></div></div>`;
+    container.innerHTML += `<div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg border dark:border-slate-800 text-[11px]"><span class="w-5 h-5 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center text-[10px]">\u{1F464}</span><div><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(d.data().name || '')}</span><span class="text-gray-400 ml-1.5">\u00b7 ${escapeHtml(d.data().username || '')}</span><span class="text-gray-400 ml-1.5">\u00b7 ID ${escapeHtml(d.data().chatId || '')}</span></div></div>`;
   });
 });
 
@@ -360,39 +361,6 @@ db.collection('teamHub').orderBy('joinedAt', 'desc').onSnapshot(snap => {
 window.unregisterMember = async id => {
   if (confirm('Rimuovere la tua registrazione dal team?')) await db.collection('teamHub').doc(id).delete();
 };
-
-// ─── USERS ────────────────────────────────────────────────────────────
-document.getElementById('btnAddUser').onclick = async () => {
-  const name = document.getElementById('userNameInput').value.trim();
-  const role = document.getElementById('userRoleInput').value.trim() || 'Membro';
-  const email = document.getElementById('userEmailInput').value.trim();
-  if (!name) return showToast('Inserisci almeno il nome.', 'error');
-  await db.collection('usersHub').add({ name, role, email, addedAt: firebase.firestore.FieldValue.serverTimestamp() });
-  document.getElementById('userNameInput').value = '';
-  document.getElementById('userRoleInput').value = '';
-  document.getElementById('userEmailInput').value = '';
-  showToast('Utente aggiunto!', 'success');
-};
-db.collection('usersHub').orderBy('addedAt', 'desc').onSnapshot(snap => {
-  const container = document.getElementById('usersContainer');
-  if (!container) return;
-  if (snap.empty) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic text-center py-4">Nessun utente registrato.</p>'; return; }
-  container.innerHTML = '';
-  snap.forEach(d => {
-    const { name, role, email } = d.data();
-    const isOwner = window.userRole === 'owner';
-    container.innerHTML += `<div class="flex items-center justify-between gap-1 bg-white dark:bg-slate-900 p-2 rounded-lg border dark:border-slate-700 text-xs"><div class="min-w-0 flex-1"><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(name || '')}</span><span class="text-[10px] text-gray-400 ml-1.5">${escapeHtml(role || '')}</span>${email ? '<span class="text-[10px] text-gray-400 ml-1.5">· ' + escapeHtml(email) + '</span>' : ''}</div>${isOwner ? `<button data-uid="${escapeHtml(d.id)}" class="delete-user-btn text-gray-400 hover:text-red-500 cursor-pointer text-xs p-0.5">✕</button>` : ''}</div>`;
-  });
-  container.querySelectorAll('.delete-user-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      if (window.userRole !== 'owner') { showToast('Non autorizzato.', 'error'); return; }
-      if (confirm('Rimuovere questo utente?')) {
-        await db.collection('usersHub').doc(btn.dataset.uid).delete();
-        showToast('Utente rimosso.', 'success');
-      }
-    });
-  });
-});
 
 // ─── ACCOUNTS (registered) ──────────────────────────────────────────────
 db.collection('accountsHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
