@@ -241,11 +241,14 @@ setupDropzone('dropzoneDoc', 'docFile', 'textDropDoc');
 
 // ─── TELEGRAM ─────────────────────────────────────────────────────────
 function escapeMarkdown(text) { return text.replace(/[_*`\[]/g, '\\$&'); }
+window.escapeMarkdown = escapeMarkdown;
 
-async function sendTelegramBroadcast(text) {
+async function sendTelegramBroadcast(text, targetRole) {
   if (!TELEGRAM_BOT_TOKEN) return;
   try {
-    const snap = await db.collection('subscribers').get();
+    let query = db.collection('subscribers');
+    if (targetRole) query = query.where('role', '==', targetRole);
+    const snap = await query.get();
     await Promise.all(snap.docs.map(uDoc => {
       if (!uDoc.data().chatId) return;
       return fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -273,8 +276,9 @@ window.testTelegramNotification = async () => {
 document.getElementById('btnSubscribeTelegram').onclick = async () => {
   const chatId = document.getElementById('telChatIdInput').value.trim();
   const name = document.getElementById('telNameInput').value.trim() || 'Membro Hub';
+  const role = document.getElementById('telOwnerCheck')?.checked ? 'owner' : 'user';
   if (!chatId) return alert('Inserisci un Chat ID numerico!');
-  await db.collection('subscribers').add({ chatId, name, subscribedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  await db.collection('subscribers').add({ chatId, name, role, subscribedAt: firebase.firestore.FieldValue.serverTimestamp() });
   document.getElementById('telChatIdInput').value = '';
   document.getElementById('telNameInput').value = '';
 };
@@ -453,6 +457,7 @@ window.requestPrivateSpace = async function() {
     return;
   }
   await db.collection('privateSpaceRequests').add({ username: user, name: fullName, approved: false, requestedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  sendTelegramBroadcast('\u{1F510} *Richiesta Spazio Privato*\nUtente: ' + escapeMarkdown(user) + '\nNome: ' + escapeMarkdown(fullName), 'owner');
   showToast('Richiesta inviata! Attendi approvazione dal proprietario.', 'success');
 };
 
