@@ -9,9 +9,6 @@ let db = null, auth = null;
 try {
   if (typeof firebase !== 'undefined' && firebase.initializeApp) {
     firebase.initializeApp(firebaseConfig);
-    if (window.reCaptchaSiteKey) {
-      firebase.appCheck().activate(window.reCaptchaSiteKey, true);
-    }
     db = firebase.firestore();
     auth = firebase.auth();
     auth.signInAnonymously().catch(function(e) { console.warn('Auth anonimo fallito:', e); });
