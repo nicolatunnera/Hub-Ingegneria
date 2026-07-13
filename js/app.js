@@ -617,8 +617,6 @@ db.collection('notesHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
     div.innerHTML = `<p class="break-words pr-2">${escapeHtml(d.data().content || '')}${label}</p>` + (canDelete ? `<button data-note-id="${escapeHtml(d.id)}" class="delete-note-btn text-gray-400 hover:text-red-600 cursor-pointer">\u2715</button>` : '');
     container.appendChild(div);
   });
-    container.appendChild(div);
-  });
   container.querySelectorAll('.delete-note-btn').forEach(btn => {
     btn.addEventListener('click', () => window.deleteNote(btn.dataset.noteId));
   });
