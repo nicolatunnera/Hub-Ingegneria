@@ -696,6 +696,8 @@ function renderFolderIcons() {
 }
 
 window.searchQuery = '';
+document.getElementById('typeFilter')?.addEventListener('change', combineAndRenderArchive);
+document.getElementById('folderFilter')?.addEventListener('change', combineAndRenderArchive);
 document.getElementById('searchCloud')?.addEventListener('input', e => {
   window.searchQuery = e.target.value.toLowerCase();
   const clearBtn = document.getElementById('clearSearch');
