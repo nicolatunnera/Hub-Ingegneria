@@ -114,8 +114,9 @@ window.openSidebar = () => document.getElementById('sidebar')?.classList.remove(
 window.closeSidebar = () => document.getElementById('sidebar')?.classList.add('hidden');
 window.toggleSidebar = () => document.getElementById('sidebar')?.classList.toggle('hidden');
 document.getElementById('sidebarContent')?.addEventListener('click', e => {
-  if (e.target.closest('.sidebar-btn') && window.innerWidth < 768) {
-    setTimeout(() => window.closeSidebar(), 100);
+  const btn = e.target.closest('.sidebar-btn');
+  if (btn) {
+    window.closeSidebar();
   }
 });
 window.toggleNewsSidebar = () => document.getElementById('newsModal')?.classList.toggle('hidden');
