@@ -210,7 +210,7 @@
   <div id="historyModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleHistoryModal()">
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl mx-4 max-h-[85vh] flex flex-col">
       <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 class="text-base font-bold"><i class="fas fa-history mr-2 text-cyan-500"></i><span data-i18n="historyModalTitle">Storico Chat</span></h2>
+        <h2 class="text-base font-bold"><i class="fas fa-clipboard-list mr-2 text-cyan-500"></i><span data-i18n="historyModalTitle">Registro Attività</span></h2>
         <button onclick="toggleHistoryModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
       </div>
       <div class="p-4 modal-scroll-body">
@@ -575,8 +575,8 @@
         <div class="dash-count" id="countArchive">0</div>
       </div>
       <div class="dash-card" onclick="toggleHistoryModal()">
-        <div class="dash-icon">💬</div>
-        <div class="dash-label" data-i18n="dashHistory">Storico Chat</div>
+        <div class="dash-icon">📋</div>
+        <div class="dash-label" data-i18n="dashHistory">Registro Attività</div>
         <div class="dash-count" id="countHistory">0</div>
       </div>
     </div>
