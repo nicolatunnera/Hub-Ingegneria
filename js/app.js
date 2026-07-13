@@ -130,10 +130,19 @@ window.toggleChatCollapse = () => {
   document.getElementById('chat-fab').classList.toggle('hidden', !isChatCollapsed);
 };
 
-window.toggleExcelModal = () => document.getElementById('excelModal')?.classList.toggle('hidden');
-window.toggleDocModal = () => document.getElementById('docModal')?.classList.toggle('hidden');
+window.toggleExcelModal = () => {
+  if (window.userRole === 'guest') { showToast('Accesso non consentito agli ospiti.', 'error'); return; }
+  document.getElementById('excelModal')?.classList.toggle('hidden');
+};
+window.toggleDocModal = () => {
+  if (window.userRole === 'guest') { showToast('Accesso non consentito agli ospiti.', 'error'); return; }
+  document.getElementById('docModal')?.classList.toggle('hidden');
+};
 window.toggleNotesModal = () => document.getElementById('notesModal')?.classList.toggle('hidden');
-window.toggleArchiveModal = () => { document.getElementById('archiveModal')?.classList.toggle('hidden'); combineAndRenderArchive(); };
+window.toggleArchiveModal = () => {
+  if (window.userRole === 'guest') { showToast('Archivio non disponibile per gli ospiti.', 'error'); return; }
+  document.getElementById('archiveModal')?.classList.toggle('hidden'); combineAndRenderArchive();
+};
 window.toggleHistoryModal = () => document.getElementById('historyModal')?.classList.toggle('hidden');
 
 // ─── HUB INFO ─────────────────────────────────────────────────────────
@@ -554,6 +563,7 @@ function readFileAsBase64(file) {
 
 // ─── UPLOAD EXCEL ─────────────────────────────────────────────────────
 document.getElementById('btnUploadExcel').onclick = async () => {
+  if (window.userRole === 'guest') { showToast('Accesso non consentito agli ospiti.', 'error'); return; }
   const branch = document.getElementById('excelBranch').value;
   const note = document.getElementById('excelNote').value.trim();
   if (!note) return;
@@ -574,6 +584,7 @@ document.getElementById('btnUploadExcel').onclick = async () => {
 
 // ─── UPLOAD DOC ───────────────────────────────────────────────────────
 document.getElementById('btnUploadDoc').onclick = async () => {
+  if (window.userRole === 'guest') { showToast('Accesso non consentito agli ospiti.', 'error'); return; }
   const title = document.getElementById('textTitle').value.trim();
   const bodyContent = document.getElementById('textContentBody').value.trim() || 'Nessun testo estratto inserito.';
   if (!title) return;
@@ -595,6 +606,7 @@ document.getElementById('btnUploadDoc').onclick = async () => {
 
 // ─── NOTES ────────────────────────────────────────────────────────────
 document.getElementById('btnUploadNote').onclick = async () => {
+  if (window.userRole === 'guest') { showToast('Accesso non consentito agli ospiti.', 'error'); return; }
   const content = document.getElementById('newNoteContent').value.trim();
   if (content) {
     const isPrivate = document.getElementById('notePrivate')?.checked || false;
