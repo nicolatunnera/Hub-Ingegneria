@@ -1,5 +1,7 @@
 @keyframes fadeScaleIn { from { opacity:0; transform:scale(0.92); } to { opacity:1; transform:scale(1); } }
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: background-color 0.3s, color 0.3s; }
+.logo-text, .hub-title-modal { font-family: 'Orbitron', sans-serif; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.logo-sub { font-family: 'Orbitron', sans-serif; font-weight: 500; letter-spacing: 0.1em; }
 html::-webkit-scrollbar { width: 6px; }
 html::-webkit-scrollbar-track { background: #0f172a; }
 html::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #3b82f6, #8b5cf6); border-radius: 9999px; border: 1px solid #1e293b; }
