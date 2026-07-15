@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' }</script>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -605,12 +605,14 @@
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-sm w-full mx-4 p-6 text-center space-y-4 border border-gray-200 dark:border-gray-700">
       <img src="icon-192.png" alt="" class="w-16 h-16 mx-auto rounded-2xl shadow-lg ring-2 ring-blue-500/20" onerror="this.remove()">
       <div>
-        <div class="text-lg font-bold text-gray-900 dark:text-white hub-title-modal">ENGINEERING CLOUD HUB</div>
+        <div class="text-lg font-bold text-gray-900 dark:text-white">Engineering Cloud Hub</div>
         <div class="text-xs text-blue-500 font-mono mt-1 tracking-wider">v3.3.0</div>
       </div>
       <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-3.5 shadow-md">
-        <div class="text-[10px] uppercase tracking-widest opacity-70 font-semibold mb-1 hub-title-modal" style="font-size:9px">DATA & ORA</div>
-        <div class="text-base font-bold tracking-wider hub-title-modal" id="hubInfoTimeDisplayModal" style="font-size:13px">--</div>
+        <div class="text-[9px] uppercase tracking-widest opacity-70 font-semibold mb-1">Data</div>
+        <div class="text-sm font-bold tracking-wide" id="hubInfoDateDisplay">--</div>
+        <div class="text-[9px] uppercase tracking-widest opacity-70 font-semibold mt-2 mb-1">Ora</div>
+        <div class="text-sm font-bold tracking-wide" id="hubInfoTimeDisplayModal">--</div>
       </div>
       <button onclick="window.toggleHubInfoModal()" class="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">Chiudi</button>
     </div>
@@ -755,9 +757,10 @@
       modal.classList.toggle('hidden');
       if (!modal.classList.contains('hidden')) {
         function update() {
-          const el = document.getElementById('hubInfoTimeDisplayModal');
+          const dateEl = document.getElementById('hubInfoDateDisplay');
+          const timeEl = document.getElementById('hubInfoTimeDisplayModal');
           const m = document.getElementById('hubInfoModal');
-          if (!el || !m || m.classList.contains('hidden')) return;
+          if (!m || m.classList.contains('hidden')) return;
           const now = new Date();
           const days = ['DOMENICA','LUNEDÌ','MARTEDÌ','MERCOLEDÌ','GIOVEDÌ','VENERDÌ','SABATO'];
           const months = ['GENNAIO','FEBBRAIO','MARZO','APRILE','MAGGIO','GIUGNO','LUGLIO','AGOSTO','SETTEMBRE','OTTOBRE','NOVEMBRE','DICEMBRE'];
@@ -768,7 +771,8 @@
           const h = String(now.getHours()).padStart(2,'0');
           const m2 = String(now.getMinutes()).padStart(2,'0');
           const s = String(now.getSeconds()).padStart(2,'0');
-          el.textContent = day + ' ' + date + ' ' + month + ' ' + year + ' — ' + h + ':' + m2 + ':' + s;
+          if (dateEl) dateEl.textContent = day + ' ' + date + ' ' + month + ' ' + year;
+          if (timeEl) timeEl.textContent = h + ':' + m2 + ':' + s;
           setTimeout(update, 1000);
         }
         update();
