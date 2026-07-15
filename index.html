@@ -543,7 +543,9 @@
         <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openNewsHistoryModal()"><i class="fas fa-history text-teal-500 w-4"></i><span data-i18n="newsHistory">Storico Notizie</span></button>
       </div>
       <div class="sidebar-section mb-4">
-        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openAccountModal()"><i class="fas fa-user-edit text-green-500 w-4"></i>Il Mio Account</button>
+        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-write" onclick="openAccountModal()"><i class="fas fa-user-edit text-green-500 w-4"></i>Il Mio Account</button>
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2 requires-guest" style="margin-top:0.5rem">Registrazione</p>
+        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-guest" onclick="document.getElementById('loginUser').value='';document.getElementById('loginPass').value='';window.toggleRegisterForm();closeSidebar()"><i class="fas fa-user-plus text-emerald-500 w-4"></i>Crea un Account</button>
         <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">Spazio Privato</p>
         <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-write" id="btnRequestPrivate" onclick="requestPrivateSpace()"><i class="fas fa-lock text-purple-500 w-4"></i><span>Richiedi Spazio Privato</span></button>
         <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-owner" onclick="openPrivateRequestsModal()"><i class="fas fa-inbox text-purple-500 w-4"></i><span id="privateRequestsBadge">Richieste Spazio Privato</span></button>
@@ -607,8 +609,8 @@
         <div class="text-xs text-blue-500 font-mono mt-1 tracking-wider">v3.3.0</div>
       </div>
       <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-3.5 shadow-md">
-        <div class="text-[10px] uppercase tracking-widest opacity-70 font-semibold mb-1">Data e Ora</div>
-        <div class="text-base font-mono font-bold tracking-wider" id="hubInfoTimeDisplayModal">--</div>
+        <div class="text-[10px] uppercase tracking-widest opacity-70 font-semibold mb-1 hub-title-modal" style="font-size:9px">DATA & ORA</div>
+        <div class="text-base font-bold tracking-wider hub-title-modal" id="hubInfoTimeDisplayModal" style="font-size:13px">--</div>
       </div>
       <button onclick="window.toggleHubInfoModal()" class="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">Chiudi</button>
     </div>
@@ -757,7 +759,16 @@
           const m = document.getElementById('hubInfoModal');
           if (!el || !m || m.classList.contains('hidden')) return;
           const now = new Date();
-          el.textContent = now.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ' — ' + now.toLocaleTimeString('it-IT');
+          const days = ['DOMENICA','LUNEDÌ','MARTEDÌ','MERCOLEDÌ','GIOVEDÌ','VENERDÌ','SABATO'];
+          const months = ['GENNAIO','FEBBRAIO','MARZO','APRILE','MAGGIO','GIUGNO','LUGLIO','AGOSTO','SETTEMBRE','OTTOBRE','NOVEMBRE','DICEMBRE'];
+          const day = days[now.getDay()];
+          const date = now.getDate();
+          const month = months[now.getMonth()];
+          const year = now.getFullYear();
+          const h = String(now.getHours()).padStart(2,'0');
+          const m2 = String(now.getMinutes()).padStart(2,'0');
+          const s = String(now.getSeconds()).padStart(2,'0');
+          el.textContent = day + ' ' + date + ' ' + month + ' ' + year + ' — ' + h + ':' + m2 + ':' + s;
           setTimeout(update, 1000);
         }
         update();
