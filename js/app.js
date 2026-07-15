@@ -22,6 +22,7 @@ try {
 function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
 
 // ─── LOGIN ────────────────────────────────────────────────────────────
+function DJB2(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; } return h.toString(36); }
 window.verifyHubLogin = () => {
   const btn = document.getElementById('loginBtn');
   const spinner = document.getElementById('loginSpinner');
@@ -48,8 +49,7 @@ window.verifyHubLogin = () => {
     db.collection('accountsHub').where('username', '==', u).get().then(snap => {
       if (!snap.empty) {
         const d = snap.docs[0].data();
-        let hash = 0; for (let i = 0; i < p.length; i++) { hash = ((hash << 5) - hash) + p.charCodeAt(i); hash |= 0; }
-        if (d.password === hash.toString(36)) { login(d.role || 'user'); return; }
+        if (d.password === DJB2(p)) { login(d.role || 'user'); return; }
       }
       fail();
     }).catch(() => {
@@ -102,9 +102,11 @@ window.openAccountModal = () => {
   document.getElementById('teamModal')?.classList.remove('hidden');
   const uInput = document.getElementById('myAccountUsername');
   const nInput = document.getElementById('myAccountName');
+  const pwdSection = document.getElementById('myAccountPwdSection');
   if (uInput) uInput.value = window.username || '';
   if (nInput) nInput.value = window.username || '';
-  if (window.username && db) {
+  if (pwdSection) pwdSection.classList.toggle('hidden', window.userRole === 'owner');
+  if (window.username && db && window.userRole !== 'owner') {
     db.collection('accountsHub').where('username', '==', window.username).get().then(snap => {
       if (!snap.empty && nInput) nInput.value = snap.docs[0].data().name || window.username;
     }).catch(() => {});
@@ -351,6 +353,13 @@ document.getElementById('btnSaveAccount').onclick = async () => {
   const newPwd = document.getElementById('myAccountNewPwd').value;
   const user = window.username;
   if (!user || !db) return showToast('Non disponibile.', 'error');
+  if (window.userRole === 'owner') {
+    if (curPwd || newPwd) return showToast('L\'account proprietario non supporta cambio password.', 'info');
+    showToast('Profilo aggiornato!', 'success');
+    document.getElementById('myAccountCurPwd').value = '';
+    document.getElementById('myAccountNewPwd').value = '';
+    return;
+  }
   const snap = await db.collection('accountsHub').where('username', '==', user).get();
   if (snap.empty) return showToast('Account non trovato.', 'error');
   const docRef = snap.docs[0].ref;
@@ -359,10 +368,9 @@ document.getElementById('btnSaveAccount').onclick = async () => {
     await docRef.update({ name });
   }
   if (curPwd && newPwd) {
-    let hash = 0; for (let i = 0; i < curPwd.length; i++) { hash = ((hash << 5) - hash) + curPwd.charCodeAt(i); hash |= 0; }
-    if (data.password !== hash.toString(36)) { showToast('Password attuale errata.', 'error'); return; }
-    hash = 0; for (let i = 0; i < newPwd.length; i++) { hash = ((hash << 5) - hash) + newPwd.charCodeAt(i); hash |= 0; }
-    await docRef.update({ password: hash.toString(36) });
+    const curHash = DJB2(curPwd);
+    if (data.password !== curHash) { showToast('Password attuale errata.', 'error'); return; }
+    await docRef.update({ password: DJB2(newPwd) });
   }
   document.getElementById('myAccountCurPwd').value = '';
   document.getElementById('myAccountNewPwd').value = '';
@@ -483,12 +491,11 @@ async function checkPrivateAccess() {
   const status = document.getElementById('privateStatus');
   const toggles = document.querySelectorAll('.private-toggle');
   const reqBtn = document.getElementById('btnRequestPrivate');
-  if (!db || !window.username || window.userRole === 'owner') {
-    if (window.userRole === 'owner') {
-      toggles.forEach(el => el.classList.remove('hidden'));
-      if (status) status.classList.remove('hidden');
-      if (reqBtn) reqBtn.classList.add('hidden');
-    }
+  if (!db || !window.username) return;
+  if (window.userRole === 'owner') {
+    toggles.forEach(el => el.classList.remove('hidden'));
+    if (status) status.classList.add('hidden');
+    if (reqBtn) reqBtn.classList.add('hidden');
     return;
   }
   const snap = await db.collection('privateSpaceRequests').where('username', '==', window.username).where('approved', '==', true).get();
