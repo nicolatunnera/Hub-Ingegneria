@@ -1,4 +1,5 @@
 @keyframes fadeScaleIn { from { opacity:0; transform:scale(0.92); } to { opacity:1; transform:scale(1); } }
+@keyframes splashFade { 0% { opacity:1; transform:scale(1); } 100% { opacity:0; transform:scale(1.05); } }
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: background-color 0.3s, color 0.3s; }
 .logo-text { font-weight: 700; letter-spacing: 0.02em; }
 .logo-sub { letter-spacing: 0.08em; font-weight: 500; }
@@ -49,6 +50,9 @@ button { cursor: pointer; touch-action: manipulation; }
 .sidebar-btn { cursor: pointer; touch-action: manipulation; }
 .dash-card { cursor: pointer; touch-action: manipulation; }
 
+/* Welcome splash */
+#welcomeSplash { transition: opacity 0.7s ease; }
+
 @media (max-width: 640px) {
   .p-5 { padding: 0.75rem !important; }
   .px-4 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
@@ -69,4 +73,8 @@ button { cursor: pointer; touch-action: manipulation; }
   .folder-icon .fi-emoji { font-size: 22px; }
   .folder-icon .fi-name { font-size: 7px; max-width: 56px; }
   #archiveModal > div { padding: 0.75rem !important; }
+  #excelModal > div, #docModal > div, #notesModal > div, #teamModal > div, #userModal > div, #mtbfModal > div, #statsModal > div { margin: 0.5rem !important; max-height: 90vh !important; }
+  #excelModal .modal-scroll-body, #docModal .modal-scroll-body { padding: 0.75rem !important; }
+  #dropzoneExcel, #dropzoneDoc { padding: 1rem !important; }
+  #dropzoneExcel .text-4xl, #dropzoneDoc .text-4xl { font-size: 1.75rem !important; }
 }

@@ -23,6 +23,17 @@ function escapeHtml(t) { const d = document.createElement("div"); d.textContent 
 
 // ─── LOGIN ────────────────────────────────────────────────────────────
 function DJB2(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; } return h.toString(36); }
+function showWelcomeSplash() {
+  const splash = document.getElementById('welcomeSplash');
+  if (!splash) return;
+  splash.style.opacity = '1';
+  splash.style.pointerEvents = 'auto';
+  setTimeout(() => {
+    splash.style.opacity = '0';
+    splash.style.pointerEvents = 'none';
+    setTimeout(() => splash.remove(), 700);
+  }, 2000);
+}
 window.verifyHubLogin = () => {
   const btn = document.getElementById('loginBtn');
   const spinner = document.getElementById('loginSpinner');
@@ -34,6 +45,7 @@ window.verifyHubLogin = () => {
     function fail() { const err = document.getElementById('loginError'); err.classList.remove('hidden'); setTimeout(() => err.classList.add('hidden'), 4000); btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Accedi'; }
     function login(role) {
       window.userRole = role; window.username = u;
+      showWelcomeSplash();
       if (document.getElementById('rememberMe')?.checked) {
         localStorage.setItem('hub-user', u);
         localStorage.setItem('hub-pass', role === 'owner' ? p : '__acct__');
@@ -64,6 +76,7 @@ window.verifyHubLogin = () => {
   if (u && p) {
     if (u === 'Ing' && p === 'Ing') {
       window.userRole = 'owner'; window.username = 'Ing';
+      showWelcomeSplash();
       const lb = document.getElementById('loginBlocker'); if (lb) lb.style.opacity = '0';
       setTimeout(() => { if (lb) lb.remove(); document.getElementById('hubMainContent').classList.remove('hidden'); document.getElementById('hubFooter')?.classList.remove('hidden'); setupPermissions(); }, 400);
     }
@@ -623,12 +636,14 @@ function renderFileList(containerId, files) {
     const f = files[i];
     const ext = f.name.split('.').pop();
     const icon = fileIcon(ext);
-    html += `<div class="flex items-start gap-3 p-3 bg-white dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-shadow text-xs" data-fi="${i}">
-      <div class="text-xl shrink-0 mt-0.5">${icon}</div>
+    html += `<div class="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-white dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-shadow text-xs" data-fi="${i}">
+      <div class="text-lg sm:text-xl shrink-0 mt-0.5">${icon}</div>
       <div class="flex-1 min-w-0">
-        <div class="text-[11px] text-gray-400 dark:text-gray-500 truncate mb-1.5 font-mono">${escapeHtml(f.name)}</div>
-        <input type="text" class="file-title-input w-full px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" value="${escapeHtml(fileNameNoExt(f.name))}" placeholder="Titolo..." />
-        <select class="file-cat-select w-full mt-1.5 px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition">${catOpts}</select>
+        <div class="text-[10px] sm:text-[11px] text-gray-400 dark:text-gray-500 truncate mb-1 font-mono">${escapeHtml(f.name)}</div>
+        <div class="text-[10px] text-gray-400 dark:text-gray-500 font-medium mb-0.5">Titolo</div>
+        <input type="text" class="file-title-input w-full px-2 sm:px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" value="${escapeHtml(fileNameNoExt(f.name))}" placeholder="Titolo..." />
+        <div class="text-[10px] text-gray-400 dark:text-gray-500 font-medium mt-1.5 mb-0.5">Categoria</div>
+        <select class="file-cat-select w-full px-2 sm:px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition">${catOpts}</select>
       </div>
       <button onclick="this.closest('div[data-fi]').remove(); var c=document.getElementById('${containerId}'); if(c&&!c.querySelector('div[data-fi]'))c.innerHTML='';" class="text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg p-1.5 shrink-0 self-start transition text-sm">✕</button>
     </div>`;
