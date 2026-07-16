@@ -1126,20 +1126,24 @@ window.askAI = async () => {
   container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">\u270D\uFE0F Sto pensando...</div>`;
   container.scrollTop = container.scrollHeight;
 
-  let contextText = 'ARCHIVIO FILE DISPONIBILI:\n';
-  allTextFiles.forEach(d => { contextText += `- ID:${d.id} | FILE: ${d.fileName || 'N/A'} | TITOLO: ${d.title} | CONTENUTO: ${(d.extractedText || 'Vuoto').substring(0, 300)}\n`; });
-  allExcelFiles.forEach(e => { contextText += `- ID:${e.id} | FILE: ${e.name} | CATEGORIA: ${e.category || 'nessuna'}\n`; });
+  let contextParts = [];
+  allTextFiles.forEach(d => { contextParts.push(`[${d.title}] Tipo: Documento | File: ${d.fileName || 'N/A'} | Contenuto: ${(d.extractedText || 'Vuoto').substring(0, 300)}`); });
+  allExcelFiles.forEach(e => { contextParts.push(`[${e.name}] Tipo: Excel | Categoria: ${e.category || 'Generale'}`); });
+  let contextText = contextParts.join('\n');
 
-   const systemInstruction = `Sei l'assistente di Engineering Cloud Hub v3.5. Risposte in italiano, molto concise, sempre con fonte.
+   const systemInstruction = `Sei un assistente AI tecnico-ingegneristico integrato in Engineering Cloud Hub v3.5. Rispondi in italiano tecnico, pulito, professionale.
 
-REGOLE:
-- Cita SEMPRE la fonte con [Fonte: TitoloFile] per ogni informazione.
-- Se usi piu file: [Fonte: File1] [Fonte: File2].
-- Se dai info non presenti nei file elencati, dichiara la fonte esterna.
-- Se non sai o non trovi l'informazione, dillo. Non inventare.
-- Per offrire download: [DOWNLOAD:ID].
+REGOLE FONDAMENTALI:
+- Scrivi risposte strutturate, ben formattate, senza esporre ID interni.
+- Per ogni informazione usa la fonte tra parentesi: (Fonte: Titolo).
+- Se usi più file: (Fonte: Titolo1, Titolo2).
+- Per offrire download usa: [SCARICA:ID].
+- Se un'informazione non è nei file, dichiara la fonte esterna.
+- Se non sai, dillo chiaramente. Non inventare.
+- Quando elenchi file, usa un elenco puntato pulito, senza codice o markup grezzo.
 
-File:\n${contextText}`;
+File disponibili:
+${contextText}`;
 
   const reqBase = { messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: queryText }] };
 
