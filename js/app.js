@@ -743,17 +743,50 @@ db.collection('notesHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
   container.innerHTML = '';
   visible.forEach(d => {
     const div = document.createElement('div');
-    div.className = 'bg-gray-50/80 dark:bg-slate-800/80 p-2 rounded border border-gray-200 dark:border-slate-700 flex justify-between items-start text-xs text-gray-700 dark:text-gray-300 shadow-2xs';
+    div.className = 'bg-gray-50/80 dark:bg-slate-800/80 p-2 rounded border border-gray-200 dark:border-slate-700 text-xs text-gray-700 dark:text-gray-300 shadow-2xs';
     const canDelete = window.userRole === 'owner' || d.data().createdBy === window.username;
     const label = d.data().private ? '<span class="text-[10px] text-purple-500 ml-1">\u{1F512}</span>' : '';
-    div.innerHTML = `<p class="break-words pr-2">${escapeHtml(d.data().content || '')}${label}</p>` + (canDelete ? `<button data-note-id="${escapeHtml(d.id)}" class="delete-note-btn text-gray-400 hover:text-red-600 cursor-pointer">\u2715</button>` : '');
+    div.innerHTML = `<div class="flex items-start gap-2"><input type="checkbox" class="note-checkbox mt-0.5" ${canDelete ? '' : 'disabled'} data-note-id="${escapeHtml(d.id)}"><p class="break-words flex-1">${escapeHtml(d.data().content || '')}${label}</p>${canDelete ? `<button data-note-id="${escapeHtml(d.id)}" class="delete-note-btn text-gray-400 hover:text-red-600 cursor-pointer">\u2715</button>` : ''}</div>`;
     container.appendChild(div);
   });
   container.querySelectorAll('.delete-note-btn').forEach(btn => {
     btn.addEventListener('click', () => window.deleteNote(btn.dataset.noteId));
   });
+  updateSelectAllNotes();
+  const ba = document.getElementById('noteBulkActions');
+  if (ba) ba.classList.toggle('hidden', container.querySelectorAll('.note-checkbox:checked').length === 0);
 });
-window.deleteNote = async id => { await db.collection('notesHub').doc(id).delete(); };
+window.deleteNote = async id => {
+  if (window.userRole !== 'owner' && !document.querySelector(`.delete-note-btn[data-note-id="${escapeHtml(id)}"]`)) return;
+  if (confirm('Rimuovere questa nota?')) await db.collection('notesHub').doc(id).delete();
+};
+function updateSelectAllNotes() {
+  const sa = document.getElementById('selectAllNotes');
+  const cbs = document.querySelectorAll('.note-checkbox:not([disabled])');
+  if (sa) sa.checked = cbs.length > 0 && document.querySelectorAll('.note-checkbox:checked').length === cbs.length;
+  const ba = document.getElementById('noteBulkActions');
+  if (ba) ba.classList.toggle('hidden', document.querySelectorAll('.note-checkbox:checked').length === 0);
+}
+document.getElementById('selectAllNotes')?.addEventListener('change', e => {
+  document.querySelectorAll('.note-checkbox:not([disabled])').forEach(cb => cb.checked = e.target.checked);
+  updateSelectAllNotes();
+});
+document.addEventListener('change', e => {
+  if (e.target.classList.contains('note-checkbox')) updateSelectAllNotes();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Delete' && document.querySelectorAll('.note-checkbox:checked').length > 0) {
+    const checked = document.querySelectorAll('.note-checkbox:checked');
+    if (checked[0]?.disabled) { showToast('Non hai permessi per eliminare queste note.', 'error'); return; }
+    if (confirm(`Rimuovere ${checked.length} nota/e?`)) checked.forEach(cb => db.collection('notesHub').doc(cb.dataset.noteId).delete());
+  }
+});
+document.getElementById('deleteSelectedNotes')?.addEventListener('click', () => {
+  const checked = document.querySelectorAll('.note-checkbox:checked');
+  if (!checked.length) return;
+  if (checked[0]?.disabled) { showToast('Non hai permessi per eliminare queste note.', 'error'); return; }
+  if (confirm(`Eliminare ${checked.length} nota/e?`)) checked.forEach(cb => db.collection('notesHub').doc(cb.dataset.noteId).delete());
+});
 
 function updateCountArchive() {
   const ca = document.getElementById('countArchive');
@@ -1067,9 +1100,17 @@ window.deleteHistoryItem = async id => {
 function updateSelectAllHistory() {
   const sa = document.getElementById('selectAllHistory');
   if (sa) sa.checked = document.querySelectorAll('.history-checkbox:checked').length === document.querySelectorAll('.history-checkbox').length && document.querySelectorAll('.history-checkbox').length > 0;
+  const dbh = document.getElementById('deleteSelectedHistory');
+  if (dbh) dbh.classList.toggle('hidden', document.querySelectorAll('.history-checkbox:checked').length === 0);
 }
 document.addEventListener('change', e => {
   if (e.target.classList.contains('history-checkbox')) updateSelectAllHistory();
+});
+document.getElementById('deleteSelectedHistory')?.addEventListener('click', () => {
+  const checked = document.querySelectorAll('.history-checkbox:checked');
+  if (!checked.length) return;
+  if (window.userRole !== 'owner') { showToast('Solo il proprietario pu\u00f2 eliminare log storici.', 'error'); return; }
+  if (confirm(`Eliminare ${checked.length} log storico/i?`)) checked.forEach(cb => db.collection('historyHub').doc(cb.dataset.hid).delete());
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Delete' && document.querySelectorAll('.history-checkbox:checked').length > 0) {
