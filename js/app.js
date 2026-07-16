@@ -758,7 +758,9 @@ function renderNotes(docs) {
   });
   updateSelectAllNotes();
   const ba = document.getElementById('noteBulkActions');
-  if (ba) ba.classList.toggle('hidden', document.querySelectorAll('.note-checkbox:checked').length === 0);
+  if (ba) ba.classList.remove('hidden');
+  const btn = document.getElementById('deleteSelectedNotes');
+  if (btn) btn.disabled = document.querySelectorAll('.note-checkbox:checked').length === 0;
 }
 function refreshNotesRender() { if (lastNoteDocs.length) renderNotes(lastNoteDocs); }
 db.collection('notesHub').orderBy('createdAt', 'desc').onSnapshot(snap => { lastNoteDocs = snap.docs; renderNotes(lastNoteDocs); });
@@ -1107,7 +1109,7 @@ function updateSelectAllHistory() {
   const sa = document.getElementById('selectAllHistory');
   if (sa) sa.checked = document.querySelectorAll('.history-checkbox:checked').length === document.querySelectorAll('.history-checkbox').length && document.querySelectorAll('.history-checkbox').length > 0;
   const dbh = document.getElementById('deleteSelectedHistory');
-  if (dbh) dbh.classList.toggle('hidden', document.querySelectorAll('.history-checkbox:checked').length === 0);
+  if (dbh) dbh.disabled = document.querySelectorAll('.history-checkbox:checked').length === 0;
 }
 document.addEventListener('change', e => {
   if (e.target.classList.contains('history-checkbox')) updateSelectAllHistory();
