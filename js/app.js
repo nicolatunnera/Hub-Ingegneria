@@ -850,12 +850,30 @@ function renderFolderIcons() {
   const filterFolder = document.getElementById('folderFilter')?.value || '';
   const allFiles = [...allExcelFiles, ...allTextFiles].filter(f => isPrivateVisible(f));
   const totalCount = allFiles.length;
+  const canEdit = id => { const f = allFolders.find(x => x.id === id); return window.userRole === 'owner' || (f && f.createdBy === window.username); };
   let html = '<div class="folder-icon' + (!filterFolder ? ' active' : '') + '" style="color:#2563eb" data-folder-id=""><span class="fi-emoji">\u{1F4C1}</span><span class="fi-name">Tutte</span><span class="fi-count">' + totalCount + '</span></div>';
   allFolders.forEach(f => {
     const cnt = allFiles.filter(x => x.folderId === f.id).length;
-    html += '<div class="folder-icon' + (filterFolder === f.id ? ' active' : '') + '" style="color:' + escapeHtml(f.color) + '" data-folder-id="' + f.id + '"><span class="fi-emoji">\u{1F4C1}</span><span class="fi-name">' + escapeHtml(f.name) + '</span><span class="fi-count">' + cnt + '</span></div>';
+    html += '<div class="folder-icon' + (filterFolder === f.id ? ' active' : '') + '" style="color:' + escapeHtml(f.color) + '" data-folder-id="' + f.id + '" data-folder-name="' + escapeHtml(f.name) + '"><span class="fi-emoji">\u{1F4C1}</span><span class="fi-name">' + escapeHtml(f.name) + '</span><span class="fi-count">' + cnt + '</span></div>';
   });
   bar.innerHTML = html;
+  // add context menu on right-click
+  bar.querySelectorAll('.folder-icon[data-folder-id]').forEach(el => {
+    const fid = el.dataset.folderId;
+    if (!fid) return;
+    el.title = 'Click: filtra | Tasto destro: modifica/elimina';
+    el.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      const f = allFolders.find(x => x.id === fid);
+      if (!f) return;
+      if (window.userRole !== 'owner' && (!f.createdBy || f.createdBy !== window.username)) { showToast('Solo il proprietario o chi l\'ha creata può modificare.', 'error'); return; }
+      const name = prompt('Modifica nome cartella:', f.name);
+      if (name && name.trim()) {
+        db.collection('archiveFolders').doc(fid).update({ name: name.trim() });
+        showToast('Cartella rinominata.', 'success');
+      }
+    });
+  });
 }
 
 window.searchQuery = '';

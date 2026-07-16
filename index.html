@@ -218,11 +218,14 @@
             <button id="deleteSelectedArchive" class="px-2 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded transition shadow-sm"><i class="fas fa-trash-alt mr-1"></i><span data-i18n="deleteSelected">Elimina selezionati</span></button>
           </div>
         </div>
-        <div class="flex flex-wrap gap-2 mb-3" id="folderIconsBar"></div>
-        <label class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2 cursor-pointer requires-write">
-          <input type="checkbox" id="selectAllArchive" class="rounded border-gray-300 dark:border-gray-600" />
-          <span data-i18n="selectAll">Seleziona tutti</span>
-        </label>
+        <div class="flex flex-wrap items-center gap-2 mb-3" id="folderIconsBar"></div>
+        <div class="flex items-center gap-2 mb-2">
+          <button onclick="toggleFolderManager()" class="text-[11px] text-gray-400 hover:text-blue-500 transition flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"><i class="fas fa-cog text-xs"></i> Gestisci cartelle</button>
+          <label class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 cursor-pointer requires-write">
+            <input type="checkbox" id="selectAllArchive" class="rounded border-gray-300 dark:border-gray-600" />
+            <span data-i18n="selectAll">Seleziona tutti</span>
+          </label>
+        </div>
         <div class="archivio-scroll-container border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
           <table class="w-full text-xs">
             <thead class="bg-gray-50 dark:bg-gray-700/50 sticky top-0">
