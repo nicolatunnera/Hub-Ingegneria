@@ -306,7 +306,7 @@ document.getElementById('btnUnsubscribeTelegram').onclick = async () => {
   document.getElementById('telChatIdInput').value = '';
 };
 
-let allExcelFiles = [], allTextFiles = [], allFolders = [];
+let allExcelFiles = [], allTextFiles = [], allFolders = [], allCategories = [];
 if (!db) { console.warn('Firestore non disponibile — snapshot non registrati'); const fbBanner = document.getElementById('fbOfflineBanner'); if (fbBanner) fbBanner.classList.remove('hidden'); } else {
 db.collection('subscribers').onSnapshot(snap => {
   const topTel = document.getElementById('topStatTelegram');
@@ -558,6 +558,41 @@ window.deleteFolder = async id => {
   await db.collection('archiveFolders').doc(id).delete();
 };
 
+// ─── CATEGORY MANAGER ────────────────────────────────────────────────
+window.toggleCategoryManager = () => {
+  const m = document.getElementById('categoryManagerModal');
+  m?.classList.toggle('hidden');
+  if (!m?.classList.contains('hidden')) renderCategoryList();
+};
+window.addNewCategory = async () => {
+  const name = document.getElementById('newCategoryName').value.trim();
+  const emoji = document.getElementById('newCategoryEmoji').value;
+  if (!name) return;
+  await db.collection('categoriesHub').add({ name, emoji, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+  document.getElementById('newCategoryName').value = '';
+  renderCategoryList();
+};
+window.deleteCategory = async id => {
+  if (window.userRole !== 'owner') { showToast('Solo il proprietario può eliminare categorie.', 'error'); return; }
+  const cat = allCategories.find(c => c.id === id);
+  if (!cat) return;
+  const used = [...allExcelFiles].filter(f => f.category === cat.name);
+  if (used.length) return showToast(`Impossibile eliminare: ${used.length} file Excel nella categoria "${cat.name}".`, 'error');
+  if (!confirm(`Eliminare la categoria "${cat.name}"?`)) return;
+  await db.collection('categoriesHub').doc(id).delete();
+};
+function renderCategoryList() {
+  const el = document.getElementById('categoryList');
+  if (!el) return;
+  if (!allCategories.length) { el.innerHTML = '<p class="text-xs text-gray-400 italic text-center py-4">Nessuna categoria. Creane una.</p>'; return; }
+  el.innerHTML = allCategories.map(c => {
+    const used = allExcelFiles.filter(f => f.category === c.name).length;
+    const canDel = window.userRole === 'owner' && used === 0;
+    return `<div class="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-lg border dark:border-slate-700 text-xs"><div class="flex items-center gap-2"><span class="text-sm">${c.emoji || '📁'}</span><span class="font-medium text-gray-700 dark:text-gray-200">${c.name}</span><span class="text-[10px] text-gray-400">${used} file</span></div>${canDel ? `<button onclick="deleteCategory('${c.id}')" class="text-gray-400 hover:text-red-500 cursor-pointer text-xs">✕</button>` : ''}</div>`;
+  }).join('');
+}
+setTimeout(() => { if (typeof renderCategoryList === 'function') renderCategoryList(); }, 1000);
+
 // ─── FILE READ ────────────────────────────────────────────────────────
 function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
@@ -571,7 +606,7 @@ function readFileAsBase64(file) {
 // ─── UPLOAD EXCEL ─────────────────────────────────────────────────────
 document.getElementById('btnUploadExcel').onclick = async () => {
   if (window.userRole === 'guest') { showToast('Accesso non consentito agli ospiti.', 'error'); return; }
-  const branch = document.getElementById('excelBranch').value;
+  const category = document.getElementById('excelCategory').value;
   const note = document.getElementById('excelNote').value.trim();
   if (!note) return;
   const sel = document.getElementById('excelFolder');
@@ -581,12 +616,12 @@ document.getElementById('btnUploadExcel').onclick = async () => {
   let fileData = '', fileName = '', fileMime = '';
   if (file) { fileData = await readFileAsBase64(file); fileName = file.name; fileMime = file.type; }
   const isPrivate = document.getElementById('excelPrivate')?.checked || false;
-  await db.collection('excelHub').add({ name: note, branch, folderId: folderId || '', fileData, fileName, fileMime, uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
-  await db.collection('historyHub').add({ name: note, operation: `Caricato Excel (${branch})`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+  await db.collection('excelHub').add({ name: note, category, folderId: folderId || '', fileData, fileName, fileMime, uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  await db.collection('historyHub').add({ name: note, operation: `Caricato Excel (${category || 'nessuna categoria'})`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
   document.getElementById('excelNote').value = '';
   if (fileInput) fileInput.value = '';
   document.getElementById('textDropExcel').textContent = 'Trascina qui il file Excel o clicca';
-  await sendTelegramBroadcast(`\u2699\uFE0F *Nuovo File Excel:* ${escapeMarkdown(note)}\nRamo: ${escapeMarkdown(branch)}`);
+  await sendTelegramBroadcast(`\u2699\uFE0F *Nuovo File Excel:* ${escapeMarkdown(note)}\nCategoria: ${escapeMarkdown(category || 'nessuna')}`);
 };
 
 // ─── UPLOAD DOC ───────────────────────────────────────────────────────
@@ -678,6 +713,39 @@ function populateFolderSelects() {
   }
   renderFolderIcons();
 }
+
+db.collection('categoriesHub').orderBy('createdAt', 'asc').onSnapshot(s => {
+  allCategories = [];
+  s.forEach(d => allCategories.push({ id: d.id, ...d.data() }));
+  populateCategorySelects();
+  combineAndRenderArchive();
+});
+
+function populateCategorySelects() {
+  const html = '<option value="">— Nessuna —</option>' + allCategories.map(c => `<option value="${c.name}">${c.emoji || '📁'} ${c.name}</option>`).join('');
+  ['excelCategory'].forEach(id => { const el = document.getElementById(id); if (el) { const v = el.value; el.innerHTML = html; el.value = v; } });
+}
+
+window.toggleNewCategoryForm = (select, formId) => {
+  const form = document.getElementById(formId);
+  if (form) form.classList.toggle('hidden', select.value !== '__new__');
+};
+
+document.getElementById('excelCategory')?.addEventListener('change', function() {
+  const form = document.getElementById('excelNewCategoryForm');
+  if (form) form.classList.toggle('hidden', this.value !== '__new__');
+});
+
+document.getElementById('excelCreateCategory')?.addEventListener('click', async () => {
+  const name = document.getElementById('excelNewCategoryName').value.trim();
+  const emoji = document.getElementById('excelNewCategoryEmoji').value;
+  if (!name) return;
+  await db.collection('categoriesHub').add({ name, emoji, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+  document.getElementById('excelNewCategoryName').value = '';
+  document.getElementById('excelNewCategoryForm').classList.add('hidden');
+  const sel = document.getElementById('excelCategory');
+  sel.value = name;
+});
 
 function renderFolderList() {
   const el = document.getElementById('folderList');
@@ -798,7 +866,7 @@ function combineAndRenderArchive() {
     if (typeFilter === 'excel' && !f.isExcel) return false;
     if (typeFilter === 'doc' && f.isExcel) return false;
     if (!window.searchQuery) return true;
-    const haystack = f.isExcel ? `${f.name || ''} ${f.branch || ''}` : `${f.title || ''} ${f.fileType || ''} ${f.extractedText ? f.extractedText.substring(0, 200) : ''}`;
+    const haystack = f.isExcel ? `${f.name || ''} ${f.category || ''}` : `${f.title || ''} ${f.fileType || ''} ${f.extractedText ? f.extractedText.substring(0, 200) : ''}`;
     return haystack.toLowerCase().includes(window.searchQuery);
   });
   if (filterFolder) items = items.filter(f => f.folderId === filterFolder);
@@ -821,7 +889,9 @@ function combineAndRenderArchive() {
     const checkbox = isGuest ? '' : `<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}"></td>`;
     const actionsCell = isGuest ? '<td class="p-3"></td>' : `<td class="p-3 text-center whitespace-nowrap"><button data-id="${escapeHtml(f.id)}" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">\u{1F4E5}</button>${canDel ? `<button data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}" data-name="${escapeHtml(f.name || f.title || 'File')}" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">\u{1F5D1}\uFE0F</button>` : ''}</td>`;
     if (f.isExcel) {
-      tr.innerHTML = `${checkbox}<td class="p-3 font-medium text-xs">${f.private ? '<span class="text-purple-500 mr-0.5">\u{1F512}</span>' : ''}${escapeHtml(f.name || 'File Excel')}</td><td class="p-3"><span class="px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 rounded font-bold text-[9px]">EXCEL</span></td>${folderCell}<td class="p-3 text-gray-500 italic text-[10px] truncate max-w-[80px] sm:max-w-none">${escapeHtml(f.branch || '')}</td>${actionsCell}`;
+      const catObj = allCategories.find(c => c.name === f.category);
+      const catDisplay = catObj ? `${catObj.emoji || '📁'} ${catObj.name}` : (f.category || '');
+      tr.innerHTML = `${checkbox}<td class="p-3 font-medium text-xs">${f.private ? '<span class="text-purple-500 mr-0.5">\u{1F512}</span>' : ''}${escapeHtml(f.name || 'File Excel')}</td><td class="p-3"><span class="px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 rounded font-bold text-[9px]">EXCEL</span></td>${folderCell}<td class="p-3 text-gray-500 text-[10px] truncate max-w-[80px] sm:max-w-none">${escapeHtml(catDisplay)}</td>${actionsCell}`;
     } else {
       tr.innerHTML = `${checkbox}<td class="p-3 font-medium text-xs">${f.private ? '<span class="text-purple-500 mr-0.5">\u{1F512}</span>' : ''}${escapeHtml(f.title || 'Documento')}</td><td class="p-3"><span class="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 rounded font-bold text-[9px]">${escapeHtml(f.fileType || '')}</span></td>${folderCell}<td class="p-3 text-gray-400 font-mono text-[10px] truncate max-w-[80px] sm:max-w-none">${escapeHtml(f.extractedText ? f.extractedText.substring(0, 30) + '...' : (f.fileName || ''))}</td>${actionsCell}`;
     }
@@ -847,7 +917,7 @@ window.downloadDocument = function(id) {
     link.download = file.fileName || (file.title || file.name || 'documento');
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
   } else if (file.isExcel) {
-    const content = `File Excel: ${file.name}\nRamo: ${file.branch}\nCaricato il: ${file.uploadedAt ? new Date(file.uploadedAt.seconds * 1000).toLocaleString('it-IT') : 'N/D'}`;
+    const content = `File Excel: ${file.name}\nCategoria: ${file.category || 'nessuna'}\nCaricato il: ${file.uploadedAt ? new Date(file.uploadedAt.seconds * 1000).toLocaleString('it-IT') : 'N/D'}`;
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = (file.name || 'excel') + '.txt';
@@ -964,7 +1034,7 @@ window.askAI = async () => {
 
   let contextText = 'ARCHIVIO FILE DISPONIBILI:\n';
   allTextFiles.forEach(d => { contextText += `- ID:${d.id} | FILE: ${d.fileName || 'N/A'} | TITOLO: ${d.title} | CONTENUTO: ${(d.extractedText || 'Vuoto').substring(0, 300)}\n`; });
-  allExcelFiles.forEach(e => { contextText += `- ID:${e.id} | FILE: ${e.name} | RAMO: ${e.branch}\n`; });
+  allExcelFiles.forEach(e => { contextText += `- ID:${e.id} | FILE: ${e.name} | CATEGORIA: ${e.category || 'nessuna'}\n`; });
 
   const systemInstruction = `Sei l'assistente di Engineering Cloud Hub v3.0. Risposte in italiano, molto concise, sempre con fonte.
 

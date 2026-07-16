@@ -82,7 +82,7 @@
         <img src="icon-192.png" alt="" class="w-7 h-7 rounded-lg" onerror="this.style.display='none'">
         <span class="text-sm font-medium tracking-tight whitespace-nowrap hidden sm:block">
           <span class="logo-text" data-i18n="hubName">Engineering Cloud Hub</span>
-          <span class="text-xs text-gray-400 dark:text-gray-500 ml-2 logo-sub">v3.3.0</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500 ml-2 logo-sub">v3.4.0</span>
         </span>
       </div>
       <div class="flex items-center gap-1 sm:gap-2">
@@ -108,13 +108,20 @@
       <div class="p-4 modal-scroll-body">
         <div class="grid md:grid-cols-2 gap-4 mb-4">
           <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="excelFolderLabel">Cartella</label><select id="excelFolder" onchange="toggleNewFolderForm(this,'excelNewFolderForm')" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="" data-i18n="selectFolder">Seleziona cartella</option></select></div>
-          <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="branchLabel">Branch / Commessa</label><select id="excelBranch" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="" data-i18n="selectBranch">Seleziona branch</option><option value="Meccanica">⚙️ Meccanica</option><option value="Termodinamica">🔥 Termodinamica</option><option value="Idraulica">💧 Idraulica</option></select></div>
+          <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">Categoria</label><select id="excelCategory" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="">— Nessuna —</option></select></div>
         </div>
         <div id="excelNewFolderForm" class="hidden mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
           <div class="grid md:grid-cols-3 gap-3 items-end">
             <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="newFolderName">Nome nuova cartella</label><input type="text" id="excelNewFolderName" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" /></div>
             <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="folderColor">Colore</label><input type="color" id="excelNewFolderColor" class="w-full h-[38px] border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-white dark:bg-gray-700" value="#3b82f6" /></div>
             <button id="excelCreateFolder" class="px-3 py-2 text-xs bg-green-500 hover:bg-green-600 text-white rounded-lg transition shadow-sm" data-i18n="createFolder">Crea</button>
+          </div>
+        </div>
+        <div id="excelNewCategoryForm" class="hidden mb-4 p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-900/50">
+          <div class="grid md:grid-cols-3 gap-3 items-end">
+            <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">Nome categoria</label><input type="text" id="excelNewCategoryName" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" /></div>
+            <div><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">Emoji</label><select id="excelNewCategoryEmoji" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="📁">📁</option><option value="⚙️">⚙️</option><option value="🔥">🔥</option><option value="💧">💧</option><option value="🔧">🔧</option><option value="📊">📊</option><option value="📐">📐</option><option value="🔬">🔬</option><option value="⚡">⚡</option><option value="🏗️">🏗️</option><option value="🚧">🚧</option><option value="📦">📦</option><option value="🛠️">🛠️</option><option value="💡">💡</option><option value="🧪">🧪</option></select></div>
+            <button id="excelCreateCategory" class="px-3 py-2 text-xs bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition shadow-sm">Crea</button>
           </div>
         </div>
         <div class="mb-3"><label class="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="excelNoteLabel">Nota (opzionale)</label><input type="text" id="excelNote" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" /></div>
@@ -502,12 +509,28 @@
     </div>
   </div>
 
-  <!-- ===== FLOATING CHAT ===== -->
+  <!-- CATEGORY MANAGER MODAL -->
+  <div id="categoryManagerModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleCategoryManager()">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm mx-4 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-base font-bold"><i class="fas fa-tags mr-2 text-purple-500"></i> Gestione Categorie</h2>
+        <button onclick="toggleCategoryManager()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-4 modal-scroll-body space-y-4">
+        <div class="flex gap-2">
+          <input type="text" id="newCategoryName" placeholder="Nome categoria..." class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" />
+          <select id="newCategoryEmoji" class="px-2 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="📁">📁</option><option value="⚙️">⚙️</option><option value="🔥">🔥</option><option value="💧">💧</option><option value="🔧">🔧</option><option value="📊">📊</option><option value="📐">📐</option><option value="🔬">🔬</option><option value="⚡">⚡</option><option value="🏗️">🏗️</option><option value="🚧">🚧</option><option value="📦">📦</option><option value="🛠️">🛠️</option><option value="💡">💡</option><option value="🧪">🧪</option></select>
+          <button onclick="addNewCategory()" class="px-3 py-2 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition shadow-sm font-medium">+</button>
+        </div>
+        <div id="categoryList" class="space-y-2 max-h-60 overflow-y-auto"></div>
+      </div>
+    </div>
+  </div>
   <div id="chat-expanded" class="fixed bottom-20 right-4 w-80 sm:w-96 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col z-40 hidden transition-all duration-300">
     <div onclick="toggleChatCollapse()" class="bg-gradient-to-r from-blue-600 to-blue-800 p-3 flex justify-between items-center cursor-pointer border-b border-blue-700 select-none">
       <div class="flex items-center gap-2">
         <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-        <span class="font-bold text-xs tracking-wide text-white">Assistente IA <span class="text-[10px] text-blue-200 font-mono">v3.3</span></span>
+        <span class="font-bold text-xs tracking-wide text-white">Assistente IA <span class="text-[10px] text-blue-200 font-mono">v3.4</span></span>
       </div>
       <span class="text-white/70 hover:text-white font-bold text-xs cursor-pointer">_</span>
     </div>
@@ -538,6 +561,7 @@
       <div class="sidebar-section mb-4 requires-owner">
         <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2"><span data-i18n="management">Gestione</span></p>
         <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-owner" onclick="openUserModal()"><i class="fas fa-user-circle text-blue-500 w-4"></i><span data-i18n="manageUsers">Gestione Utenti</span></button>
+        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="toggleCategoryManager()"><i class="fas fa-tags text-purple-500 w-4"></i>Gestione Categorie</button>
         <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openMtbfModal()"><i class="fas fa-chart-line text-orange-500 w-4"></i><span>MTBF</span></button>
         <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openSubscribersModal()"><i class="fas fa-users text-indigo-500 w-4"></i><span data-i18n="newsletterSubscribers">Iscritti Newsletter</span></button>
         <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openNewsHistoryModal()"><i class="fas fa-history text-teal-500 w-4"></i><span data-i18n="newsHistory">Storico Notizie</span></button>
@@ -558,7 +582,7 @@
         <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openStatsModal()"><i class="fas fa-chart-bar text-purple-500 w-4"></i><span data-i18n="cloudStats">Statistiche Cloud</span></button>
         <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="hubInfoToggle" onclick="toggleHubInfo()"><i class="fas fa-info-circle text-cyan-500 w-4"></i><span data-i18n="hubInfo">Info Hub</span></button>
         <div id="hubInfoPanel" class="hidden mt-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-xs space-y-2">
-          <p><span class="font-medium" data-i18n="version">Versione:</span> <span id="hubInfoVersion">3.3.0</span></p>
+          <p><span class="font-medium" data-i18n="version">Versione:</span> <span id="hubInfoVersion">3.4.0</span></p>
           <p><span class="font-medium" data-i18n="uptime">Attivo da:</span> <span id="hubInfoUptime">--</span></p>
           <p><span class="font-medium" data-i18n="lastUpdate">Ultimo aggiornamento:</span> <span id="hubInfoUpdate">--</span></p>
           <p><span class="font-medium" data-i18n="localTime">Ora locale:</span> <span id="hubInfoTimeDisplay">--</span></p>
@@ -608,7 +632,7 @@
       <img src="icon-192.png" alt="" class="w-16 h-16 mx-auto rounded-2xl shadow-lg ring-2 ring-blue-500/20" onerror="this.remove()">
       <div>
         <div class="text-lg font-bold text-gray-900 dark:text-white">Engineering Cloud Hub</div>
-        <div class="text-xs text-blue-500 font-mono mt-1 tracking-wider">v3.3.0</div>
+        <div class="text-xs text-blue-500 font-mono mt-1 tracking-wider">v3.4.0</div>
       </div>
       <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-3.5 shadow-md">
         <div class="text-[9px] uppercase tracking-widest opacity-70 font-semibold mb-1">Data</div>
