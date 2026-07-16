@@ -102,6 +102,8 @@ function setupPermissions() {
   }
   setTimeout(checkPrivateAccess, 500);
   refreshNotesRender();
+  refreshAccountsRender();
+  refreshSubscribersRender();
 }
 
 // ─── TOGGLE UTILITY ───────────────────────────────────────────────────
@@ -324,18 +326,32 @@ document.getElementById('btnUnsubscribeTelegram').onclick = async () => {
 };
 
 let allExcelFiles = [], allTextFiles = [], allFolders = [], allCategories = [];
-if (!db) { console.warn('Firestore non disponibile — snapshot non registrati'); const fbBanner = document.getElementById('fbOfflineBanner'); if (fbBanner) fbBanner.classList.remove('hidden'); } else {
-db.collection('subscribers').onSnapshot(snap => {
+let lastSubscriberDocs = [];
+function renderSubscribers(docs) {
   const topTel = document.getElementById('topStatTelegram');
-  if (topTel) topTel.textContent = snap.size;
+  if (topTel) topTel.textContent = docs.length;
   const container = document.getElementById('subscribersContainer');
   if (!container) return;
-  if (snap.empty) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic">Nessun iscritto alle notifiche Telegram.</p>'; return; }
-  container.innerHTML = '';
-  snap.forEach(d => {
-    container.innerHTML += `<div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg border dark:border-slate-800 text-[11px]"><span class="w-5 h-5 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center text-[10px]">\u{1F464}</span><div><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(d.data().name || '')}</span><span class="text-gray-400 ml-1.5">\u00b7 ${escapeHtml(d.data().username || '')}</span><span class="text-gray-400 ml-1.5">\u00b7 ID ${escapeHtml(d.data().chatId || '')}</span></div></div>`;
+  if (!docs.length) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic">Nessun iscritto alle notifiche Telegram.</p>'; return; }
+  const isOwner = window.userRole === 'owner';
+  container.innerHTML = docs.map(d => {
+    const data = d.data();
+    return `<div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-lg border dark:border-slate-800 text-[11px]"><span class="w-5 h-5 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center text-[10px]">\u{1F464}</span><div class="flex-1"><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(data.name || '')}</span><span class="text-gray-400 ml-1.5">\u00b7 ${escapeHtml(data.username || '')}</span><span class="text-gray-400 ml-1.5">\u00b7 ID ${escapeHtml(data.chatId || '')}</span></div>${isOwner ? `<button data-subid="${escapeHtml(d.id)}" class="delete-sub-btn text-gray-400 hover:text-red-500 cursor-pointer text-xs p-0.5 ml-1">\u2715</button>` : ''}</div>`;
+  }).join('');
+  container.querySelectorAll('.delete-sub-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (window.userRole !== 'owner') { showToast('Non autorizzato.', 'error'); return; }
+      if (confirm('Rimuovere questo iscritto Telegram?')) {
+        await db.collection('subscribers').doc(btn.dataset.subid).delete();
+        showToast('Iscritto rimosso.', 'success');
+      }
+    });
   });
-});
+}
+function refreshSubscribersRender() { if (lastSubscriberDocs.length) renderSubscribers(lastSubscriberDocs); }
+if (!db) { console.warn('Firestore non disponibile — snapshot non registrati'); const fbBanner = document.getElementById('fbOfflineBanner'); if (fbBanner) fbBanner.classList.remove('hidden'); } else {
+db.collection('subscribers').onSnapshot(snap => { lastSubscriberDocs = snap.docs; renderSubscribers(lastSubscriberDocs); });
+}
 
 // ─── NEWS ─────────────────────────────────────────────────────────────
 document.getElementById('btnSendNews').onclick = async () => {
@@ -395,18 +411,20 @@ document.getElementById('btnSaveAccount').onclick = async () => {
 };
 
 // ─── ACCOUNTS (registered) ──────────────────────────────────────────────
-db.collection('accountsHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
+let lastAccountDocs = [];
+function renderAccounts(docs) {
   const container = document.getElementById('accountsContainer');
   if (!container) return;
-  if (snap.empty) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic text-center py-4">Nessun account registrato.</p>'; return; }
-  let html = `<p class="text-[10px] text-gray-500 dark:text-gray-400 font-medium mb-2">Totale: <span class="text-gray-700 dark:text-gray-200">${snap.size}</span></p>`;
-  snap.forEach(d => {
-    const { username, name, role } = d.data();
+  if (!docs.length) { container.innerHTML = '<p class="text-[10px] text-gray-400 italic text-center py-4">Nessun account registrato.</p>'; return; }
+  const role = window.userRole;
+  let html = `<p class="text-[10px] text-gray-500 dark:text-gray-400 font-medium mb-2">Totale: <span class="text-gray-700 dark:text-gray-200">${docs.length}</span></p>`;
+  docs.forEach(d => {
+    const { username, name, role: r } = d.data();
     const ts = d.data().createdAt;
     const dateStr = ts && ts.seconds ? new Date(ts.seconds * 1000).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric' }) : '—';
-    const isOwner = window.userRole === 'owner';
-    const roleLabel = role === 'owner' ? 'Proprietario' : role === 'user' ? 'Utente' : role || 'Utente';
-    html += `<div class="flex items-center justify-between bg-white dark:bg-slate-900 p-2.5 rounded-lg border dark:border-slate-700"><div class="min-w-0 flex-1"><div class="flex items-center gap-2"><span class="font-semibold text-xs text-gray-800 dark:text-gray-100">${escapeHtml(username || '')}</span><span class="text-[10px] px-1.5 py-0.5 rounded-full ${role === 'owner' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300'}">${roleLabel}</span></div><div class="flex items-center gap-2 mt-1"><span class="text-[10px] text-gray-400">${escapeHtml(name || '—')}</span><span class="text-[9px] text-gray-300 dark:text-gray-600">·</span><span class="text-[9px] text-gray-400">${dateStr}</span></div></div>${isOwner ? `<button data-accid="${escapeHtml(d.id)}" class="delete-acc-btn text-gray-400 hover:text-red-500 cursor-pointer text-xs p-0.5 ml-2">✕</button>` : ''}</div>`;
+    const isOwner = role === 'owner';
+    const roleLabel = r === 'owner' ? 'Proprietario' : r === 'user' ? 'Utente' : r || 'Utente';
+    html += `<div class="flex items-center justify-between bg-white dark:bg-slate-900 p-2.5 rounded-lg border dark:border-slate-700"><div class="min-w-0 flex-1"><div class="flex items-center gap-2"><span class="font-semibold text-xs text-gray-800 dark:text-gray-100">${escapeHtml(username || '')}</span><span class="text-[10px] px-1.5 py-0.5 rounded-full ${r === 'owner' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300'}">${roleLabel}</span></div><div class="flex items-center gap-2 mt-1"><span class="text-[10px] text-gray-400">${escapeHtml(name || '—')}</span><span class="text-[9px] text-gray-300 dark:text-gray-600">·</span><span class="text-[9px] text-gray-400">${dateStr}</span></div></div>${isOwner ? `<button data-accid="${escapeHtml(d.id)}" class="delete-acc-btn text-gray-400 hover:text-red-500 cursor-pointer text-xs p-0.5 ml-2">✕</button>` : ''}</div>`;
   });
   container.innerHTML = html;
   container.querySelectorAll('.delete-acc-btn').forEach(btn => {
@@ -418,7 +436,9 @@ db.collection('accountsHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
       }
     });
   });
-});
+}
+function refreshAccountsRender() { if (lastAccountDocs.length) renderAccounts(lastAccountDocs); }
+db.collection('accountsHub').orderBy('createdAt', 'desc').onSnapshot(snap => { lastAccountDocs = snap.docs; renderAccounts(lastAccountDocs); });
 
 // ─── PRIVATE SPACE ────────────────────────────────────────────────────────
 function cleanupExpiredPrivate() {
