@@ -544,7 +544,7 @@ window.quickCreateFolder = async (selectId, nameId, colorId) => {
   const name = document.getElementById(nameId).value.trim();
   const color = document.getElementById(colorId).value;
   if (!name) return;
-  const ref = await db.collection('archiveFolders').add({ name, color, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+  const ref = await db.collection('archiveFolders').add({ name, color, createdBy: window.username || 'unknown', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
   document.getElementById(nameId).value = '';
   const sel = document.getElementById(selectId);
   sel.value = ref.id;
@@ -559,16 +559,27 @@ window.addNewFolder = async () => {
   const name = document.getElementById('newFolderName').value.trim();
   const color = document.getElementById('newFolderColor').value;
   if (!name) return;
-  await db.collection('archiveFolders').add({ name, color, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+  await db.collection('archiveFolders').add({ name, color, createdBy: window.username || 'unknown', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
   document.getElementById('newFolderName').value = '';
   renderFolderList();
 };
+window.saveFolder = async (id, nameEl, colorEl) => {
+  const name = nameEl.value.trim();
+  if (!name) return;
+  await db.collection('archiveFolders').doc(id).update({ name, color: colorEl.value });
+  showToast('Cartella aggiornata.', 'success');
+};
 window.deleteFolder = async id => {
-  if (window.userRole !== 'owner') { showToast('Solo il proprietario può eliminare cartelle.', 'error'); return; }
-  const used = [...allExcelFiles, ...allTextFiles].filter(f => f.folderId === id);
+  const f = allFolders.find(x => x.id === id);
+  if (!f) return;
+  const isOwner = window.userRole === 'owner';
+  const isCreator = f.createdBy && f.createdBy === window.username;
+  if (!isOwner && !isCreator) { showToast('Solo il proprietario o chi l\'ha creata può eliminare.', 'error'); return; }
+  const used = [...allExcelFiles, ...allTextFiles].filter(x => x.folderId === id);
   if (used.length) return showToast(`Impossibile eliminare: ${used.length} file presenti in questa cartella.`, 'error');
-  if (!confirm('Eliminare questa cartella?')) return;
+  if (!confirm(`Eliminare la cartella "${f.name}"?`)) return;
   await db.collection('archiveFolders').doc(id).delete();
+  showToast('Cartella eliminata.', 'success');
 };
 
 // ─── CATEGORY MANAGER ────────────────────────────────────────────────
@@ -814,13 +825,13 @@ function renderFolderList() {
   const el = document.getElementById('folderList');
   if (!el) return;
   if (!allFolders.length) { el.innerHTML = '<p class="text-xs text-gray-400 italic text-center py-4">Nessuna cartella. Creane una sopra.</p>'; return; }
+  const canEdit = id => { const f = allFolders.find(x => x.id === id); return window.userRole === 'owner' || (f && f.createdBy === window.username); };
   el.innerHTML = allFolders.map(f => `
-    <div class="flex items-center justify-between gap-2 bg-gray-50 dark:bg-slate-800 p-2 rounded-lg border dark:border-slate-700">
-      <div class="flex items-center gap-2">
-        <span class="w-5 h-5 rounded" style="background:${f.color}"></span>
-        <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(f.name)}</span>
-      </div>
-      <button onclick="deleteFolder('${f.id}')" class="text-gray-400 hover:text-red-500 cursor-pointer text-xs" title="Elimina cartella">\u2715</button>
+    <div class="flex items-center gap-2 bg-gray-50 dark:bg-slate-800 p-2 rounded-lg border dark:border-slate-700">
+      <input type="color" id="fc_${f.id}" value="${f.color}" class="w-7 h-7 rounded cursor-pointer border border-gray-300 dark:border-gray-600 p-0.5 bg-white dark:bg-gray-700 shrink-0"${canEdit(f.id) ? '' : ' disabled'} />
+      <input type="text" id="fn_${f.id}" value="${escapeHtml(f.name)}" class="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 outline-none focus:ring-1 focus:ring-blue-400 dark:text-white"${canEdit(f.id) ? '' : ' readonly'} />
+      <span class="text-[10px] text-gray-400 hidden sm:block shrink-0">${escapeHtml(f.createdBy || '—')}</span>
+      ${canEdit(f.id) ? `<button onclick="saveFolder('${f.id}',document.getElementById('fn_${f.id}'),document.getElementById('fc_${f.id}'))" class="text-green-500 hover:text-green-400 text-xs p-1 shrink-0" title="Salva"><i class="fas fa-check"></i></button><button onclick="deleteFolder('${f.id}')" class="text-gray-400 hover:text-red-500 text-xs p-1 shrink-0" title="Elimina"><i class="fas fa-trash-alt"></i></button>` : ''}
     </div>
   `).join('');
 }

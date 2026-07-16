@@ -127,7 +127,7 @@
           <div class="grid md:grid-cols-3 gap-3 items-end">
             <div><label class="text-[11px] font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="newFolderName">Nome</label><input type="text" id="excelNewFolderName" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" /></div>
             <div><label class="text-[11px] font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="folderColor">Colore</label><input type="color" id="excelNewFolderColor" class="w-full h-[38px] border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-white dark:bg-gray-700" value="#3b82f6" /></div>
-            <button id="excelCreateFolder" class="px-3 py-2 text-xs bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-lg transition shadow-sm font-medium" data-i18n="createFolder"><i class="fas fa-check mr-1"></i>Crea</button>
+            <button id="excelCreateFolder" onclick="quickCreateFolder('excelFolder','excelNewFolderName','excelNewFolderColor')" class="px-3 py-2 text-xs bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-lg transition shadow-sm font-medium" data-i18n="createFolder"><i class="fas fa-check mr-1"></i>Crea</button>
           </div>
         </div>
         <div id="dropzoneExcel" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-all bg-gray-50/50 dark:bg-gray-700/30 group">
@@ -165,7 +165,7 @@
           <div class="grid md:grid-cols-3 gap-3 items-end">
             <div><label class="text-[11px] font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="newFolderName">Nome</label><input type="text" id="docNewFolderName" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" /></div>
             <div><label class="text-[11px] font-medium text-gray-500 dark:text-gray-400 block mb-1" data-i18n="folderColor">Colore</label><input type="color" id="docNewFolderColor" class="w-full h-[38px] border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-white dark:bg-gray-700" value="#3b82f6" /></div>
-            <button id="docCreateFolder" class="px-3 py-2 text-xs bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-lg transition shadow-sm font-medium" data-i18n="createFolder"><i class="fas fa-check mr-1"></i>Crea</button>
+            <button id="docCreateFolder" onclick="quickCreateFolder('docFolder','docNewFolderName','docNewFolderColor')" class="px-3 py-2 text-xs bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-lg transition shadow-sm font-medium" data-i18n="createFolder"><i class="fas fa-check mr-1"></i>Crea</button>
           </div>
         </div>
         <div id="dropzoneDoc" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-all bg-gray-50/50 dark:bg-gray-700/30 group">
