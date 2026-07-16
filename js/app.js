@@ -26,13 +26,15 @@ function DJB2(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = ((h << 5)
 function showWelcomeSplash() {
   const splash = document.getElementById('welcomeSplash');
   if (!splash) return;
+  const greeting = document.getElementById('welcomeGreeting');
+  if (greeting) greeting.textContent = window.username && window.username !== 'Ing' ? `Benvenuto, ${window.username}` : 'Benvenuto';
   splash.style.opacity = '1';
   splash.style.pointerEvents = 'auto';
-  setTimeout(() => {
+  splash.onclick = () => {
     splash.style.opacity = '0';
     splash.style.pointerEvents = 'none';
     setTimeout(() => splash.remove(), 700);
-  }, 2000);
+  };
 }
 window.verifyHubLogin = () => {
   const btn = document.getElementById('loginBtn');
@@ -141,7 +143,7 @@ window.closeSidebar = () => document.getElementById('sidebar')?.classList.add('h
 window.toggleSidebar = () => document.getElementById('sidebar')?.classList.toggle('hidden');
 document.getElementById('sidebarContent')?.addEventListener('click', e => {
   const btn = e.target.closest('.sidebar-btn');
-  if (btn) {
+  if (btn && btn.id !== 'hubInfoToggle') {
     window.closeSidebar();
   }
 });
