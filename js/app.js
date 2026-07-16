@@ -181,7 +181,7 @@ window.toggleHistoryModal = () => document.getElementById('historyModal')?.class
   const ver = document.getElementById('hubInfoVersion');
   if (uptime) uptime.textContent = '01/02/2025';
   if (update) update.textContent = new Date().toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-  if (ver) ver.textContent = '3.3.0';
+  if (ver) ver.textContent = '3.5.0';
 })();
 
 // ─── HUB INFO CLOCK ──────────────────────────────────────────────────
