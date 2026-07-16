@@ -1,5 +1,6 @@
 // ─── GLOBAL ERROR HANDLER ────────────────────────────────────────────
 window.onerror = function(msg, url, line) { try { if (window.showToast) window.showToast('JS: ' + msg + ' (riga ' + line + ')', 'error'); } catch(e) {} console.error(msg, url, line); };
+console.log('Engineering Cloud Hub v3.5.0');
 
 // ─── TOAST (override) ────────────────────────────────────────────────
 window.alert = window.showToast || function(msg) { console.warn('[Alert fallback]', msg); };

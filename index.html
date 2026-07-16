@@ -709,6 +709,7 @@
       window.username = 'Ospite';
       enterApp();
       if (typeof setupPermissions !== 'undefined') setupPermissions();
+      if (typeof showWelcomeSplash === 'function') showWelcomeSplash();
       showToast('Accesso come Ospite — solo visualizzazione', 'info');
     };
     window.toggleLoginPass = function() {
