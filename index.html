@@ -82,17 +82,19 @@
   <div id="fbOfflineBanner" class="hidden bg-red-500/90 text-white text-[10px] text-center py-1 px-2 font-medium">Firebase non disponibile — dati non caricati. Verifica la connessione.</div>
   <!-- NAVBAR -->
   <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-2 sm:px-4 py-2 flex items-center justify-between gap-2">
-      <div class="flex items-center gap-1 sm:gap-2 min-w-0">
+    <div class="max-w-7xl mx-auto px-2 sm:px-4 py-2 grid grid-cols-3 items-center">
+      <div class="flex items-center gap-1 sm:gap-2">
         <button onclick="openSidebar()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400 flex-shrink-0" title="Menu"><i class="fas fa-bars text-sm"></i></button>
       </div>
-      <div class="flex items-center gap-2 cursor-pointer select-none shrink-0" id="hubTitleBtn" onclick="toggleHubInfoModal()">
-        <img src="icon-192.png" alt="" class="w-7 h-7 rounded-lg" onerror="this.style.display='none'">
-        <span class="text-sm font-medium tracking-tight whitespace-nowrap hidden sm:block">
-          <span class="logo-text" data-i18n="hubName">Engineering Cloud Hub</span>
-        </span>
+      <div class="flex justify-center">
+        <div class="flex items-center gap-2 cursor-pointer select-none shrink-0" id="hubTitleBtn" onclick="toggleHubInfoModal()">
+          <img src="icon-192.png" alt="" class="w-7 h-7 rounded-lg" onerror="this.style.display='none'">
+          <span class="text-sm font-medium tracking-tight whitespace-nowrap hidden sm:block">
+            <span class="logo-text" data-i18n="hubName">Engineering Cloud Hub</span>
+          </span>
+        </div>
       </div>
-      <div class="flex items-center gap-1 sm:gap-2">
+      <div class="flex items-center justify-end gap-1 sm:gap-2">
         <button id="toggleCalc" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="Calcolatrice"><i class="fas fa-calculator text-sm"></i></button>
         <button id="newsBtn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="Notizie"><i class="fas fa-newspaper text-sm"></i></button>
         <button id="lang-it" onclick="changeLanguage('it')" class="px-2 py-1 rounded-md bg-blue-600 text-white transition-all text-xs font-bold">IT</button>
@@ -651,6 +653,7 @@
       <img src="icon-192.png" alt="" class="w-16 h-16 mx-auto rounded-2xl shadow-lg ring-2 ring-blue-500/20" onerror="this.remove()">
       <div>
         <div class="text-lg font-bold text-gray-900 dark:text-white">Engineering Cloud Hub</div>
+        <div class="text-[10px] text-blue-500 dark:text-blue-400 font-mono mt-0.5">v3.5.0</div>
       </div>
       <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-3.5 shadow-md">
         <div class="text-[9px] uppercase tracking-widest opacity-70 font-semibold mb-1">Data</div>
