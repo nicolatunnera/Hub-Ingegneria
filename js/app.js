@@ -101,6 +101,7 @@ function setupPermissions() {
     document.querySelectorAll('#btnSendNews, #btnUploadExcel, #btnUploadDoc, #btnSubscribeTelegram, #btnUnsubscribeTelegram, #testTelegramNotification').forEach(el => el.disabled = true);
   }
   setTimeout(checkPrivateAccess, 500);
+  refreshNotesRender();
 }
 
 // ─── TOGGLE UTILITY ───────────────────────────────────────────────────
@@ -735,16 +736,19 @@ document.getElementById('btnUploadNote').onclick = async () => {
     await sendTelegramBroadcast(`\u{1F4CC} *Nuova Nota:* ${escapeMarkdown(content)}`);
   }
 };
-db.collection('notesHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
-  const visible = snap.docs.filter(d => isPrivateVisible({ private: d.data().private, uploadedBy: d.data().createdBy }));
+let lastNoteDocs = [];
+function renderNotes(docs) {
+  const visible = docs.filter(d => isPrivateVisible({ private: d.data().private, uploadedBy: d.data().createdBy }));
   const cn = document.getElementById('countNotes'); if (cn) cn.textContent = visible.length;
   const container = document.getElementById('notesContainer');
   if (!container) return;
   container.innerHTML = '';
+  const role = window.userRole;
+  const user = window.username;
   visible.forEach(d => {
     const div = document.createElement('div');
     div.className = 'bg-gray-50/80 dark:bg-slate-800/80 p-2 rounded border border-gray-200 dark:border-slate-700 text-xs text-gray-700 dark:text-gray-300 shadow-2xs';
-    const canDelete = window.userRole === 'owner' || d.data().createdBy === window.username;
+    const canDelete = role === 'owner' || d.data().createdBy === user;
     const label = d.data().private ? '<span class="text-[10px] text-purple-500 ml-1">\u{1F512}</span>' : '';
     div.innerHTML = `<div class="flex items-start gap-2"><input type="checkbox" class="note-checkbox mt-0.5" ${canDelete ? '' : 'disabled'} data-note-id="${escapeHtml(d.id)}"><p class="break-words flex-1">${escapeHtml(d.data().content || '')}${label}</p>${canDelete ? `<button data-note-id="${escapeHtml(d.id)}" class="delete-note-btn text-gray-400 hover:text-red-600 cursor-pointer">\u2715</button>` : ''}</div>`;
     container.appendChild(div);
@@ -754,8 +758,10 @@ db.collection('notesHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
   });
   updateSelectAllNotes();
   const ba = document.getElementById('noteBulkActions');
-  if (ba) ba.classList.toggle('hidden', container.querySelectorAll('.note-checkbox:checked').length === 0);
-});
+  if (ba) ba.classList.toggle('hidden', document.querySelectorAll('.note-checkbox:checked').length === 0);
+}
+function refreshNotesRender() { if (lastNoteDocs.length) renderNotes(lastNoteDocs); }
+db.collection('notesHub').orderBy('createdAt', 'desc').onSnapshot(snap => { lastNoteDocs = snap.docs; renderNotes(lastNoteDocs); });
 window.deleteNote = async id => {
   if (window.userRole !== 'owner' && !document.querySelector(`.delete-note-btn[data-note-id="${escapeHtml(id)}"]`)) return;
   if (confirm('Rimuovere questa nota?')) await db.collection('notesHub').doc(id).delete();
@@ -775,7 +781,7 @@ document.addEventListener('change', e => {
   if (e.target.classList.contains('note-checkbox')) updateSelectAllNotes();
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Delete' && document.querySelectorAll('.note-checkbox:checked').length > 0) {
+  if (e.key === 'Delete' && !document.getElementById('notesModal')?.classList.contains('hidden') && document.querySelectorAll('.note-checkbox:checked').length > 0) {
     const checked = document.querySelectorAll('.note-checkbox:checked');
     if (checked[0]?.disabled) { showToast('Non hai permessi per eliminare queste note.', 'error'); return; }
     if (confirm(`Rimuovere ${checked.length} nota/e?`)) checked.forEach(cb => db.collection('notesHub').doc(cb.dataset.noteId).delete());
@@ -1113,7 +1119,7 @@ document.getElementById('deleteSelectedHistory')?.addEventListener('click', () =
   if (confirm(`Eliminare ${checked.length} log storico/i?`)) checked.forEach(cb => db.collection('historyHub').doc(cb.dataset.hid).delete());
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Delete' && document.querySelectorAll('.history-checkbox:checked').length > 0) {
+  if (e.key === 'Delete' && !document.getElementById('historyModal')?.classList.contains('hidden') && document.querySelectorAll('.history-checkbox:checked').length > 0) {
     if (window.userRole !== 'owner') { showToast('Solo il proprietario.', 'error'); return; }
     const checked = document.querySelectorAll('.history-checkbox:checked');
     if (confirm(`Rimuovere ${checked.length} log storico/i?`)) checked.forEach(cb => db.collection('historyHub').doc(cb.dataset.hid).delete());
