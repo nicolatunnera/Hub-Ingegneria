@@ -96,6 +96,7 @@
       </div>
       <div class="flex items-center justify-end gap-1 sm:gap-2">
         <button id="toggleCalc" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="Calcolatrice"><i class="fas fa-calculator text-sm"></i></button>
+        <button id="toggleMtbf" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="MTBF"><i class="fas fa-chart-line text-sm"></i></button>
         <button id="newsBtn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="Notizie"><i class="fas fa-newspaper text-sm"></i></button>
         <button id="lang-it" onclick="changeLanguage('it')" class="px-2 py-1 rounded-md bg-blue-600 text-white transition-all text-xs font-bold">IT</button>
         <button id="lang-en" onclick="changeLanguage('en')" class="px-2 py-1 rounded-md text-gray-400 hover:text-white transition-all text-xs font-bold">EN</button>
@@ -653,14 +654,7 @@
         <div class="dash-label" data-i18n="dashHistory">Registro Attività</div>
         <div class="dash-count" id="countHistory">0</div>
       </div>
-      <div class="dash-card" onclick="toggleCalcModal()">
-        <div class="dash-icon">🧮</div>
-        <div class="dash-label">Calcolatore</div>
-      </div>
-      <div class="dash-card" onclick="openMtbfModal()">
-        <div class="dash-icon">📈</div>
-        <div class="dash-label">MTBF</div>
-      </div>
+
     </div>
   </main>
 

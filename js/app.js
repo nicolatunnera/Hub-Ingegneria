@@ -138,6 +138,7 @@ window.openNewsHistoryModal = () => document.getElementById('newsHistoryModal')?
 window.openStatsModal = () => document.getElementById('statsModal')?.classList.remove('hidden');
 window.toggleCalcModal = () => document.getElementById('calcModal')?.classList.toggle('hidden');
 document.getElementById('toggleCalc')?.addEventListener('click', () => window.toggleCalcModal());
+document.getElementById('toggleMtbf')?.addEventListener('click', () => window.openMtbfModal());
 window.toggleHubInfo = () => {
   const p = document.getElementById('hubInfoPanel');
   p?.classList.toggle('hidden');
