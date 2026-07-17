@@ -41,7 +41,22 @@ window.i18n = {
     footerCopyright:"\u00a9 2025 Engineering Cloud Hub", footerRights:"Tutti i diritti riservati.",
     openPanel:"Apri Pannello", assistant:"Assistente",
     loginUser:"Nome Utente", loginPass:"Password", rememberMe:"Ricordami", loginBtn:"Accedi",
-    loginError:"\u26a0\ufe0f Credenziali errate. Riprova.", loginSubtitle:"Accedi per continuare"
+    loginError:"\u26a0\ufe0f Credenziali errate. Riprova.", loginSubtitle:"Accedi per continuare",
+    calcMat:"Materiale", calcShape:"Geometria Sezione", calcLen:"Lunghezza Barra (mm)", calcBtn:"Esegui Calcolo", calcRes:"Massa Totale:",
+    newsPlaceholder:"Scrivi un update logistico o di bacheca...", newsBtn:"Invia News",
+    sidebarSubscribe:"Attiva", sidebarUnsubscribe:"Disattiva",
+    manageCategories:"Gestione Categorie", myAccount:"Il Mio Account", registration:"Registrazione", createAccount:"Crea un Account",
+    privateSpace:"Spazio Privato", requestPrivateSpace:"Richiedi Spazio Privato", privateRequests:"Richieste Spazio Privato", privateActive:"Spazio privato attivo",
+    deleteMyAccount:"Elimina il mio account",
+    titleCalc:"Calcolatrice", titleMtbf:"MTBF", titleNews:"Notizie", titleTheme:"Tema",
+    calcMtbfBtn2:"Calcola MTBF",
+    mtbfResultLabel:"MTBF", mtbfUnit:"ore tra un guasto e l'altro",
+    lambdaLabel:"\u03bb (Failure Rate)", lambdaUnit:"guasti/ora",
+    mtbfYearsUnit:"su 8760 h/anno",
+    reliabilityTitle:"Affidabilit\u00e0 R(t) = e\u207b\u03bb\u1d57",
+    after24h:"Dopo 24h:", after168h:"Dopo 168h (1 sett.):", after720h:"Dopo 720h (1 mese):", after8760h:"Dopo 8760h (1 anno):",
+    showTechDetails:"Mostra dettagli tecnici",
+    calcDimLabel:"Diametro (mm)", calcDim2Label:"Altezza (mm)"
   },
   en: {
     hubName:"Engineering Cloud Hub", search:"Search", calcTitle:"Calculator", newsTitle:"News",
@@ -73,6 +88,21 @@ window.i18n = {
     footerCopyright:"\u00a9 2025 Engineering Cloud Hub", footerRights:"All rights reserved.",
     openPanel:"Open Panel", assistant:"Assistant",
     loginUser:"Username", loginPass:"Password", rememberMe:"Remember me", loginBtn:"Sign In",
-    loginError:"\u26a0\ufe0f Invalid credentials. Try again.", loginSubtitle:"Sign in to continue"
+    loginError:"\u26a0\ufe0f Invalid credentials. Try again.", loginSubtitle:"Sign in to continue",
+    calcMat:"Material", calcShape:"Section Geometry", calcLen:"Bar Length (mm)", calcBtn:"Calculate", calcRes:"Total Mass:",
+    newsPlaceholder:"Write a logistic or board update...", newsBtn:"Send News",
+    sidebarSubscribe:"Subscribe", sidebarUnsubscribe:"Unsubscribe",
+    manageCategories:"Category Management", myAccount:"My Account", registration:"Registration", createAccount:"Create an Account",
+    privateSpace:"Private Space", requestPrivateSpace:"Request Private Space", privateRequests:"Private Space Requests", privateActive:"Private space active",
+    deleteMyAccount:"Delete my account",
+    titleCalc:"Calculator", titleMtbf:"MTBF", titleNews:"News", titleTheme:"Theme",
+    calcMtbfBtn2:"Calculate MTBF",
+    mtbfResultLabel:"MTBF", mtbfUnit:"hours between failures",
+    lambdaLabel:"\u03bb (Failure Rate)", lambdaUnit:"failures/hour",
+    mtbfYearsUnit:"per 8760 h/year",
+    reliabilityTitle:"Reliability R(t) = e\u207b\u03bb\u1d57",
+    after24h:"After 24h:", after168h:"After 168h (1 week):", after720h:"After 720h (1 month):", after8760h:"After 8760h (1 year):",
+    showTechDetails:"Show technical details",
+    calcDimLabel:"Diameter (mm)", calcDim2Label:"Height (mm)"
   }
 };

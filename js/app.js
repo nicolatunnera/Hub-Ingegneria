@@ -247,12 +247,13 @@ window.changeLanguage = (lang) => {
     const key = el.getAttribute('data-i18n');
     if (i18n[lang][key]) {
       if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = i18n[lang][key];
+      else if (el.hasAttribute('title')) el.title = i18n[lang][key];
       else el.textContent = i18n[lang][key];
     }
   });
   const li = document.getElementById('lang-it'); const le = document.getElementById('lang-en');
-  if (li) li.className = lang === 'it' ? 'px-2 py-1 rounded-md bg-blue-600 text-white transition-all' : 'px-2 py-1 rounded-md text-gray-400 hover:text-white transition-all';
-  if (le) le.className = lang === 'en' ? 'px-2 py-1 rounded-md bg-blue-600 text-white transition-all' : 'px-2 py-1 rounded-md text-gray-400 hover:text-white transition-all';
+  if (li) li.className = lang === 'it' ? 'px-2.5 py-1 text-xs font-bold bg-blue-600 text-white transition-all' : 'px-2.5 py-1 text-xs font-bold text-gray-400 hover:text-white transition-all';
+  if (le) le.className = lang === 'en' ? 'px-2.5 py-1 text-xs font-bold bg-blue-600 text-white transition-all' : 'px-2.5 py-1 text-xs font-bold text-gray-400 hover:text-white transition-all';
 };
 
 // ─── DRAG & DROP ──────────────────────────────────────────────────────

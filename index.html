@@ -95,12 +95,14 @@
         </div>
       </div>
       <div class="flex items-center justify-end gap-1 sm:gap-2">
-        <button id="toggleCalc" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="Calcolatrice"><i class="fas fa-calculator text-sm"></i></button>
-        <button id="toggleMtbf" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="MTBF"><i class="fas fa-chart-line text-sm"></i></button>
-        <button id="newsBtn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="Notizie"><i class="fas fa-newspaper text-sm"></i></button>
-        <button id="lang-it" onclick="changeLanguage('it')" class="px-2 py-1 rounded-md bg-blue-600 text-white transition-all text-xs font-bold">IT</button>
-        <button id="lang-en" onclick="changeLanguage('en')" class="px-2 py-1 rounded-md text-gray-400 hover:text-white transition-all text-xs font-bold">EN</button>
-        <button id="themeToggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" title="Tema"><i class="fas fa-moon text-sm"></i></button>
+        <button id="toggleCalc" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" data-i18n="titleCalc" title="Calcolatrice"><i class="fas fa-calculator text-sm"></i></button>
+        <button id="toggleMtbf" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" data-i18n="titleMtbf" title="MTBF"><i class="fas fa-chart-line text-sm"></i></button>
+        <button id="newsBtn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" data-i18n="titleNews" title="Notizie"><i class="fas fa-newspaper text-sm"></i></button>
+        <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+          <button id="lang-it" onclick="changeLanguage('it')" class="px-2.5 py-1 text-xs font-bold bg-blue-600 text-white transition-all">IT</button>
+          <button id="lang-en" onclick="changeLanguage('en')" class="px-2.5 py-1 text-xs font-bold text-gray-400 hover:text-white transition-all">EN</button>
+        </div>
+        <button id="themeToggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" data-i18n="titleTheme" title="Tema"><i class="fas fa-moon text-sm"></i></button>
         <span id="userGreeting" class="text-xs text-gray-400 dark:text-gray-500 hidden md:block px-2"></span>
       </div>
     </div>
@@ -302,11 +304,11 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label id="labelDim1" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Diametro (mm)</label>
+            <label id="labelDim1" class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-i18n="calcDimLabel">Diametro (mm)</label>
             <input type="number" id="calcDim1" value="20" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" />
           </div>
           <div id="divDim2" class="hidden">
-            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Altezza (mm)</label>
+            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-i18n="calcDim2Label">Altezza (mm)</label>
             <input type="number" id="calcDim2" value="10" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" />
           </div>
         </div>
@@ -332,7 +334,7 @@
       </div>
       <div class="p-4 modal-scroll-body space-y-4">
         <div class="p-3 bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/50 rounded-xl">
-          <textarea id="newsContent" rows="3" data-i18n="newsPlaceholder" placeholder="Scrivi un update logistico o di bacheca..." class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-purple-400 dark:text-white transition resize-none"></textarea>
+          <textarea id="newsContent" rows="3" placeholder="Scrivi un update logistico o di bacheca..." class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-purple-400 dark:text-white transition resize-none" data-i18n="newsPlaceholder"></textarea>
           <button id="btnSendNews" class="mt-2 w-full py-2 text-sm bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg transition shadow font-medium"><i class="fas fa-paper-plane mr-1"></i> <span data-i18n="newsBtn">Invia News</span></button>
         </div>
         <div id="newsHistoryContainer" class="space-y-2"></div>
@@ -404,7 +406,7 @@
             <input type="number" id="mtbfFailures" value="5" min="1" class="w-full bg-gray-50 dark:bg-slate-950 border border-gray-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-orange-500">
           </div>
         </div>
-        <button onclick="calcMtbf()" class="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-400 hover:to-amber-500 text-white font-bold py-2 rounded-lg text-xs tracking-wider uppercase transition-all cursor-pointer shadow-lg shadow-orange-500/20">Calcola MTBF</button>
+        <button onclick="calcMtbf()" class="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-400 hover:to-amber-500 text-white font-bold py-2 rounded-lg text-xs tracking-wider uppercase transition-all cursor-pointer shadow-lg shadow-orange-500/20" data-i18n="calcMtbfBtn2">Calcola MTBF</button>
 
         <!-- RESULT PANEL -->
         <div id="mtbfResult" class="hidden space-y-3">
@@ -593,19 +595,19 @@
       <div class="sidebar-section mb-3 requires-owner">
         <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5"><span data-i18n="management">Gestione</span></p>
         <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-owner" onclick="openUserModal()"><i class="fas fa-user-circle text-blue-500 w-4"></i><span data-i18n="manageUsers">Gestione Utenti</span></button>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="toggleCategoryManager()"><i class="fas fa-tags text-purple-500 w-4"></i>Gestione Categorie</button>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="toggleCategoryManager()"><i class="fas fa-tags text-purple-500 w-4"></i><span data-i18n="manageCategories">Gestione Categorie</span></button>
         <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openSubscribersModal()"><i class="fas fa-users text-indigo-500 w-4"></i><span data-i18n="newsletterSubscribers">Iscritti Newsletter</span></button>
         <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openNewsHistoryModal()"><i class="fas fa-history text-teal-500 w-4"></i><span data-i18n="newsHistory">Storico Notizie</span></button>
       </div>
       <div class="sidebar-section mb-3">
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-write" onclick="openAccountModal()"><i class="fas fa-user-edit text-green-500 w-4"></i>Il Mio Account</button>
-        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5 requires-guest" style="margin-top:0.5rem">Registrazione</p>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-guest" onclick="var u=document.getElementById('loginUser');var p=document.getElementById('loginPass');if(u)u.value='';if(p)p.value='';window.toggleRegisterForm();closeSidebar()"><i class="fas fa-user-plus text-emerald-500 w-4"></i>Crea un Account</button>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-write" onclick="openAccountModal()"><i class="fas fa-user-edit text-green-500 w-4"></i><span data-i18n="myAccount">Il Mio Account</span></button>
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5 requires-guest" style="margin-top:0.5rem" data-i18n="registration">Registrazione</p>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-guest" onclick="var u=document.getElementById('loginUser');var p=document.getElementById('loginPass');if(u)u.value='';if(p)p.value='';window.toggleRegisterForm();closeSidebar()"><i class="fas fa-user-plus text-emerald-500 w-4"></i><span data-i18n="createAccount">Crea un Account</span></button>
         <div class="requires-write">
-        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5">Spazio Privato</p>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="btnRequestPrivate" onclick="requestPrivateSpace()"><i class="fas fa-lock text-purple-500 w-4"></i><span>Richiedi Spazio Privato</span></button>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-owner" onclick="openPrivateRequestsModal()"><i class="fas fa-inbox text-purple-500 w-4"></i><span id="privateRequestsBadge">Richieste Spazio Privato</span></button>
-        <div id="privateStatus" class="hidden mt-1 px-2.5 py-1 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-2"><i class="fas fa-check-circle"></i> Spazio privato attivo</div>
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5" data-i18n="privateSpace">Spazio Privato</p>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="btnRequestPrivate" onclick="requestPrivateSpace()"><i class="fas fa-lock text-purple-500 w-4"></i><span data-i18n="requestPrivateSpace">Richiedi Spazio Privato</span></button>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-owner" onclick="openPrivateRequestsModal()"><i class="fas fa-inbox text-purple-500 w-4"></i><span id="privateRequestsBadge" data-i18n="privateRequests">Richieste Spazio Privato</span></button>
+        <div id="privateStatus" class="hidden mt-1 px-2.5 py-1 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-2"><i class="fas fa-check-circle"></i> <span data-i18n="privateActive">Spazio privato attivo</span></div>
         </div>
       </div>
       <div class="sidebar-section mb-3">
@@ -620,7 +622,7 @@
         </div>
       </div>
       <hr class="my-3 border-gray-200 dark:border-gray-700" />
-      <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition flex items-center gap-2 text-red-500 requires-write" onclick="if(confirm('Eliminare definitivamente il tuo account? I tuoi dati rimarranno. Questa azione è irreversibile.'))deleteMyAccount()"><i class="fas fa-trash-alt w-4"></i><span>Elimina il mio account</span></button>
+      <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition flex items-center gap-2 text-red-500 requires-write" onclick="if(confirm('Eliminare definitivamente il tuo account? I tuoi dati rimarranno. Questa azione è irreversibile.'))deleteMyAccount()"><i class="fas fa-trash-alt w-4"></i><span data-i18n="deleteMyAccount">Elimina il mio account</span></button>
     </div>
   </aside>
 
