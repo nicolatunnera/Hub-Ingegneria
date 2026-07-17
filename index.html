@@ -388,11 +388,11 @@
   <div id="mtbfModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeMtbfModal()">
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm mx-4 flex flex-col">
       <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 class="text-base font-bold"><i class="fas fa-chart-line mr-2 text-orange-500"></i>MTBF</h2>
+        <h2 class="text-base font-bold"><i class="fas fa-chart-line mr-2 text-orange-500"></i><span data-i18n="titleMtbf">MTBF</span></h2>
         <button onclick="closeMtbfModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
       </div>
       <div class="p-4 space-y-4 modal-scroll-body" style="max-height:60vh">
-        <div class="bg-amber-50/80 dark:bg-amber-950/20 p-2.5 rounded-lg border border-amber-200 dark:border-amber-800/40 text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed">
+        <div class="bg-amber-50/80 dark:bg-amber-950/20 p-2.5 rounded-lg border border-amber-200 dark:border-amber-800/40 text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed" data-i18n="mtbfDesc" data-i18n-html>
           <span class="font-bold text-amber-700 dark:text-amber-400">MTBF</span> (Mean Time Between Failures) &egrave; l'intervallo medio tra due guasti consecutivi. Si calcola come:<br>
           <span class="font-mono font-bold text-amber-600 dark:text-amber-300">MTBF = Ore totali / Numero Guasti</span>
         </div>
@@ -411,36 +411,36 @@
         <!-- RESULT PANEL -->
         <div id="mtbfResult" class="hidden space-y-3">
           <div class="text-center p-4 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/20 border border-amber-200 dark:border-amber-800/40">
-            <p class="text-[10px] uppercase tracking-widest text-amber-600 dark:text-amber-400 font-semibold">MTBF</p>
+            <p class="text-[10px] uppercase tracking-widest text-amber-600 dark:text-amber-400 font-semibold" data-i18n="mtbfResultLabel">MTBF</p>
             <p class="text-3xl font-bold text-amber-700 dark:text-amber-300" id="mtbfValue">--</p>
-            <p class="text-[10px] text-amber-500 dark:text-amber-400 mt-0.5">ore tra un guasto e l'altro</p>
+            <p class="text-[10px] text-amber-500 dark:text-amber-400 mt-0.5" data-i18n="mtbfUnit">ore tra un guasto e l'altro</p>
           </div>
 
           <div class="grid grid-cols-2 gap-2">
             <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-center">
-              <p class="text-[9px] uppercase tracking-wider text-gray-400 font-semibold">&lambda; (Failure Rate)</p>
+              <p class="text-[9px] uppercase tracking-wider text-gray-400 font-semibold" data-i18n="lambdaLabel">&lambda; (Failure Rate)</p>
               <p class="text-sm font-bold text-gray-700 dark:text-gray-200" id="mtbfLambda">--</p>
-              <p class="text-[9px] text-gray-400">guasti/ora</p>
+              <p class="text-[9px] text-gray-400" data-i18n="lambdaUnit">guasti/ora</p>
             </div>
             <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-center">
-              <p class="text-[9px] uppercase tracking-wider text-gray-400 font-semibold">MTBF (anni)</p>
+              <p class="text-[9px] uppercase tracking-wider text-gray-400 font-semibold" data-i18n="mtbfYearsLabel">MTBF (anni)</p>
               <p class="text-sm font-bold text-gray-700 dark:text-gray-200" id="mtbfYears">--</p>
-              <p class="text-[9px] text-gray-400">su 8760 h/anno</p>
+              <p class="text-[9px] text-gray-400" data-i18n="mtbfYearsUnit">su 8760 h/anno</p>
             </div>
           </div>
 
           <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700">
-            <p class="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-1.5">Affidabilit&agrave; R(t) = e<sup>-&lambda;t</sup></p>
+            <p class="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-1.5" data-i18n="reliabilityTitle" data-i18n-html>Affidabilit&agrave; R(t) = e<sup>-&lambda;t</sup></p>
             <div class="grid grid-cols-2 gap-2 text-[11px]">
-              <div><span class="text-gray-400">Dopo 24h:</span> <span class="font-bold text-emerald-600 dark:text-emerald-400" id="mtbfR24">--</span></div>
-              <div><span class="text-gray-400">Dopo 168h (1 sett.):</span> <span class="font-bold text-emerald-600 dark:text-emerald-400" id="mtbfR168">--</span></div>
-              <div><span class="text-gray-400">Dopo 720h (1 mese):</span> <span class="font-bold text-emerald-600 dark:text-emerald-400" id="mtbfR720">--</span></div>
-              <div><span class="text-gray-400">Dopo 8760h (1 anno):</span> <span class="font-bold text-emerald-600 dark:text-emerald-400" id="mtbfR8760">--</span></div>
+              <div><span class="text-gray-400" data-i18n="after24h">Dopo 24h:</span> <span class="font-bold text-emerald-600 dark:text-emerald-400" id="mtbfR24">--</span></div>
+              <div><span class="text-gray-400" data-i18n="after168h">Dopo 168h (1 sett.):</span> <span class="font-bold text-emerald-600 dark:text-emerald-400" id="mtbfR168">--</span></div>
+              <div><span class="text-gray-400" data-i18n="after720h">Dopo 720h (1 mese):</span> <span class="font-bold text-emerald-600 dark:text-emerald-400" id="mtbfR720">--</span></div>
+              <div><span class="text-gray-400" data-i18n="after8760h">Dopo 8760h (1 anno):</span> <span class="font-bold text-emerald-600 dark:text-emerald-400" id="mtbfR8760">--</span></div>
             </div>
           </div>
 
-          <button onclick="toggleMtbfDetails()" class="w-full py-1.5 text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition cursor-pointer bg-transparent border border-gray-200 dark:border-slate-700 rounded-lg">Mostra dettagli tecnici</button>
-          <div id="mtbfDetails" class="hidden p-2.5 rounded-lg bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed space-y-1">
+          <button onclick="toggleMtbfDetails()" class="w-full py-1.5 text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition cursor-pointer bg-transparent border border-gray-200 dark:border-slate-700 rounded-lg" data-i18n="showTechDetails">Mostra dettagli tecnici</button>
+          <div id="mtbfDetails" class="hidden p-2.5 rounded-lg bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed space-y-1" data-i18n="mtbfDetails" data-i18n-html>
             <p><b>MTBF</b> = T / n = ore totali / guasti</p>
             <p><b>&lambda;</b> (Failure Rate) = 1 / MTBF = n / T</p>
             <p><b>R(t)</b> = e<sup>-&lambda;t</sup> (affidabilit&agrave; esponenziale)</p>

@@ -29,7 +29,7 @@ window.i18n = {
     excelNoteLabel:"Nota (opzionale)", dropExcel:"Trascina qui il file Excel o clicca per selezionare", uploadExcel:"Carica Excel",
     docModalTitle:"Carica Documento", docFolderLabel:"Cartella", docTitleLabel:"Titolo documento",
     docContentLabel:"Contenuto (opzionale)", dropDoc:"Trascina qui il file o clicca per selezionare (PDF, DOC, TXT, DWG, DXF)", uploadDoc:"Carica Documento",
-    notesModalTitle:"Note Rapide", newNoteLabel:"Nuova nota", addNote:"Aggiungi Nota",
+    notesModalTitle:"Note Rapide", newNoteLabel:"Nuova nota", addNote:"Aggiungi Nota", sidebarExcelStat:"Excel", sidebarDocStat:"Docs", sidebarNotesStat:"Note",
     archiveModalTitle:"Archivio", allFolders:"Tutte le cartelle",
     downloadSelected:"Scarica selezionati", deleteSelected:"Elimina selezionati",
     selectAll:"Seleziona tutti", fileName:"Nome File", fileSize:"Dimensione", uploadDate:"Data", uploadedBy:"Caricato da",
@@ -56,7 +56,10 @@ window.i18n = {
     reliabilityTitle:"Affidabilit\u00e0 R(t) = e\u207b\u03bb\u1d57",
     after24h:"Dopo 24h:", after168h:"Dopo 168h (1 sett.):", after720h:"Dopo 720h (1 mese):", after8760h:"Dopo 8760h (1 anno):",
     showTechDetails:"Mostra dettagli tecnici",
-    calcDimLabel:"Diametro (mm)", calcDim2Label:"Altezza (mm)"
+    calcDimLabel:"Diametro (mm)", calcDim2Label:"Altezza (mm)",
+    mtbfDesc:"<b>MTBF</b> (Mean Time Between Failures) &egrave; l'intervallo medio tra due guasti consecutivi. Si calcola come:<br><b>MTBF = Ore totali / Numero Guasti</b>",
+    mtbfYearsLabel:"MTBF (anni)",
+    mtbfDetails:"<p><b>MTBF</b> = T / n = ore totali / guasti</p><p><b>&lambda;</b> (Failure Rate) = 1 / MTBF = n / T</p><p><b>R(t)</b> = e<sup>-&lambda;t</sup> (affidabilit&agrave; esponenziale)</p><p><b>MTTR</b> = Tempo medio di riparazione (da inserire separatamente)</p><p><b>Disponibilit&agrave;</b> A = MTBF / (MTBF + MTTR)</p><p class='text-gray-400 italic mt-1'>I valori sono indicativi e presuppongono una distribuzione esponenziale dei guasti (modello &agrave; tasso costante).</p>"
   },
   en: {
     hubName:"Engineering Cloud Hub", search:"Search", calcTitle:"Calculator", newsTitle:"News",
@@ -76,7 +79,7 @@ window.i18n = {
     excelNoteLabel:"Note (optional)", dropExcel:"Drag Excel file here or click to select", uploadExcel:"Upload Excel",
     docModalTitle:"Upload Document", docFolderLabel:"Folder", docTitleLabel:"Document title",
     docContentLabel:"Content (optional)", dropDoc:"Drag file here or click to select (PDF, DOC, TXT, DWG, DXF)", uploadDoc:"Upload Document",
-    notesModalTitle:"Quick Notes", newNoteLabel:"New note", addNote:"Add Note",
+    notesModalTitle:"Quick Notes", newNoteLabel:"New note", addNote:"Add Note", sidebarExcelStat:"Excel", sidebarDocStat:"Docs", sidebarNotesStat:"Notes",
     archiveModalTitle:"Archive", allFolders:"All folders",
     downloadSelected:"Download selected", deleteSelected:"Delete selected",
     selectAll:"Select all", fileName:"File Name", fileSize:"Size", uploadDate:"Date", uploadedBy:"Uploaded by",
@@ -103,6 +106,9 @@ window.i18n = {
     reliabilityTitle:"Reliability R(t) = e\u207b\u03bb\u1d57",
     after24h:"After 24h:", after168h:"After 168h (1 week):", after720h:"After 720h (1 month):", after8760h:"After 8760h (1 year):",
     showTechDetails:"Show technical details",
-    calcDimLabel:"Diameter (mm)", calcDim2Label:"Height (mm)"
+    calcDimLabel:"Diameter (mm)", calcDim2Label:"Height (mm)",
+    mtbfDesc:"<b>MTBF</b> (Mean Time Between Failures) is the average time between two consecutive failures. Calculated as:<br><b>MTBF = Total hours / Number of Failures</b>",
+    mtbfYearsLabel:"MTBF (years)",
+    mtbfDetails:"<p><b>MTBF</b> = T / n = total hours / failures</p><p><b>&lambda;</b> (Failure Rate) = 1 / MTBF = n / T</p><p><b>R(t)</b> = e<sup>-&lambda;t</sup> (exponential reliability)</p><p><b>MTTR</b> = Mean Time To Repair (insert separately)</p><p><b>Availability</b> A = MTBF / (MTBF + MTTR)</p><p class='text-gray-400 italic mt-1'>Values are indicative and assume an exponential failure distribution (constant rate model).</p>"
   }
 };
