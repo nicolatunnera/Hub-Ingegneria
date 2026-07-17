@@ -21,6 +21,8 @@ try {
 }
 
 function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
+window.currentLang = 'it';
+function locale() { return window.currentLang === 'en' ? 'en-US' : 'it-IT'; }
 
 // ─── LOGIN ────────────────────────────────────────────────────────────
 function DJB2(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; } return h.toString(36); }
@@ -185,7 +187,7 @@ window.toggleHistoryModal = () => document.getElementById('historyModal')?.class
   const update = document.getElementById('hubInfoUpdate');
   const ver = document.getElementById('hubInfoVersion');
   if (uptime) uptime.textContent = '01/02/2025';
-  if (update) update.textContent = new Date().toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  if (update) update.textContent = new Date().toLocaleDateString(locale(), { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
   if (ver) ver.textContent = '3.5.0';
 })();
 
@@ -195,7 +197,7 @@ function updateHubInfoClock() {
   const panel = document.getElementById('hubInfoPanel');
   if (!el || !panel || panel.classList.contains('hidden')) return;
   const now = new Date();
-  el.textContent = `${now.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} — ${now.toLocaleTimeString('it-IT')}`;
+  el.textContent = `${now.toLocaleDateString(locale(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} — ${now.toLocaleTimeString(locale())}`;
   setTimeout(updateHubInfoClock, 1000);
 }
 
@@ -204,9 +206,10 @@ window.updateCalcFields = () => {
   const shape = document.getElementById('calcShape').value;
   const labelDim1 = document.getElementById('labelDim1');
   const divDim2 = document.getElementById('divDim2');
-  if (shape === 'tondo') { labelDim1.textContent = 'Diametro (mm)'; divDim2.classList.add('hidden'); }
-  else if (shape === 'quadro') { labelDim1.textContent = 'Lato (mm)'; divDim2.classList.add('hidden'); }
-  else if (shape === 'piatto') { labelDim1.textContent = 'Base (mm)'; divDim2.classList.remove('hidden'); }
+  const lang = window.currentLang || 'it';
+  if (shape === 'tondo') { labelDim1.textContent = lang === 'en' ? 'Diameter (mm)' : 'Diametro (mm)'; divDim2.classList.add('hidden'); }
+  else if (shape === 'quadro') { labelDim1.textContent = lang === 'en' ? 'Side (mm)' : 'Lato (mm)'; divDim2.classList.add('hidden'); }
+  else if (shape === 'piatto') { labelDim1.textContent = lang === 'en' ? 'Width (mm)' : 'Base (mm)'; divDim2.classList.remove('hidden'); }
 };
 window.calculateWeight = () => {
   const d = parseFloat(document.getElementById('calcMaterial').value);
@@ -229,9 +232,9 @@ window.calcMtbf = () => {
   if (h <= 0 || f <= 0) { result?.classList.add('hidden'); return; }
   const mtbf = h / f;
   const lambda = 1 / mtbf;
-  document.getElementById('mtbfValue').textContent = mtbf.toLocaleString('it-IT', { maximumFractionDigits: 1 }) + ' h';
+  document.getElementById('mtbfValue').textContent = mtbf.toLocaleString(locale(), { maximumFractionDigits: 1 }) + ' h';
   document.getElementById('mtbfLambda').textContent = lambda.toExponential(4);
-  document.getElementById('mtbfYears').textContent = (mtbf / 8760).toLocaleString('it-IT', { maximumFractionDigits: 1 });
+  document.getElementById('mtbfYears').textContent = (mtbf / 8760).toLocaleString(locale(), { maximumFractionDigits: 1 });
   const R = t => Math.exp(-lambda * t);
   document.getElementById('mtbfR24').textContent = (R(24) * 100).toFixed(2) + '%';
   document.getElementById('mtbfR168').textContent = (R(168) * 100).toFixed(2) + '%';
@@ -243,6 +246,7 @@ window.toggleMtbfDetails = () => document.getElementById('mtbfDetails')?.classLi
 
 // ─── I18N ─────────────────────────────────────────────────────────────
 window.changeLanguage = (lang) => {
+  window.currentLang = lang;
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     if (i18n[lang][key]) {
@@ -255,7 +259,19 @@ window.changeLanguage = (lang) => {
   const li = document.getElementById('lang-it'); const le = document.getElementById('lang-en');
   if (li) li.className = lang === 'it' ? 'px-2.5 py-1 text-xs font-bold bg-blue-600 text-white transition-all' : 'px-2.5 py-1 text-xs font-bold text-gray-400 hover:text-white transition-all';
   if (le) le.className = lang === 'en' ? 'px-2.5 py-1 text-xs font-bold bg-blue-600 text-white transition-all' : 'px-2.5 py-1 text-xs font-bold text-gray-400 hover:text-white transition-all';
+  refreshDynamicContent();
 };
+function refreshDynamicContent() {
+  const now = new Date();
+  const el = document.getElementById('hubInfoTimeDisplay');
+  if (el) el.textContent = `${now.toLocaleDateString(locale(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} — ${now.toLocaleTimeString(locale())}`;
+  const update = document.getElementById('hubInfoUpdate');
+  if (update) update.textContent = now.toLocaleDateString(locale(), { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  const modalDate = document.getElementById('hubInfoDateDisplay');
+  if (modalDate) modalDate.textContent = now.toLocaleDateString(locale(), { day:'2-digit', month:'short', year:'numeric' });
+  const modalTime = document.getElementById('hubInfoTimeDisplayModal');
+  if (modalTime) modalTime.textContent = now.toLocaleTimeString(locale(), { hour:'2-digit', minute:'2-digit' });
+}
 
 // ─── DRAG & DROP ──────────────────────────────────────────────────────
 function setupDropzone(zoneId, inputId, textId) {
@@ -376,7 +392,7 @@ function renderNews(docs) {
     } else {
       container.innerHTML = docs.map((d, i) => {
         const ts = d.data().createdAt;
-        const dateStr = ts && ts.seconds ? new Date(ts.seconds * 1000).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+        const dateStr = ts && ts.seconds ? new Date(ts.seconds * 1000).toLocaleDateString(locale(), { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
         return `<div class="p-2.5 rounded-lg border text-xs font-medium break-words ${i === 0 ? 'bg-purple-50/80 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900/50 text-gray-800 dark:text-gray-200' : 'bg-gray-50/50 dark:bg-gray-800/30 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400'}">${dateStr ? '<span class="text-[10px] opacity-60 block mb-0.5">' + dateStr + '</span>' : ''}${escapeHtml(d.data().content || '')}</div>`;
       }).join('');
     }
@@ -388,7 +404,7 @@ function renderNews(docs) {
     } else {
       let itemsHtml = docs.map((d, i) => {
         const ts = d.data().createdAt;
-        const dateStr = ts && ts.seconds ? new Date(ts.seconds * 1000).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+        const dateStr = ts && ts.seconds ? new Date(ts.seconds * 1000).toLocaleDateString(locale(), { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
         return `<div class="flex items-start gap-2 p-2.5 rounded-lg border text-xs font-medium break-words ${i === 0 ? 'bg-purple-50/80 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900/50 text-gray-800 dark:text-gray-200' : 'bg-gray-50/50 dark:bg-gray-800/30 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400'}"><input type="checkbox" class="news-checkbox mt-0.5" data-newsid="${escapeHtml(d.id)}"><div class="flex-1">${dateStr ? '<span class="text-[10px] opacity-60 block mb-0.5">' + dateStr + '</span>' : ''}${escapeHtml(d.data().content || '')}</div>${isOwner ? `<button data-newsid="${escapeHtml(d.id)}" class="delete-news-btn text-gray-400 hover:text-red-500 cursor-pointer text-xs p-0.5 ml-1 shrink-0">\u2715</button>` : ''}</div>`;
       }).join('');
       list.innerHTML = `<div class="flex items-center justify-between mb-2 ${isOwner ? '' : 'hidden'}"><label class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 cursor-pointer"><input type="checkbox" id="selectAllNews" class="rounded border-gray-300 dark:border-gray-600" /> Seleziona tutte</label><button id="deleteSelectedNews" class="px-2 py-1 text-xs bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded transition shadow-sm" disabled><i class="fas fa-trash-alt mr-1"></i>Elimina selezionate</button></div>` + itemsHtml;
@@ -466,7 +482,7 @@ function renderAccounts(docs) {
   docs.forEach(d => {
     const { username, name, role: r } = d.data();
     const ts = d.data().createdAt;
-    const dateStr = ts && ts.seconds ? new Date(ts.seconds * 1000).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+    const dateStr = ts && ts.seconds ? new Date(ts.seconds * 1000).toLocaleDateString(locale(), { day:'2-digit', month:'short', year:'numeric' }) : '—';
     const isOwner = role === 'owner';
     const roleLabel = r === 'owner' ? 'Proprietario' : r === 'user' ? 'Utente' : r || 'Utente';
     html += `<div class="flex items-center justify-between bg-white dark:bg-slate-900 p-2.5 rounded-lg border dark:border-slate-700"><div class="min-w-0 flex-1"><div class="flex items-center gap-2"><span class="font-semibold text-xs text-gray-800 dark:text-gray-100">${escapeHtml(username || '')}</span><span class="text-[10px] px-1.5 py-0.5 rounded-full ${r === 'owner' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300'}">${roleLabel}</span></div><div class="flex items-center gap-2 mt-1"><span class="text-[10px] text-gray-400">${escapeHtml(name || '—')}</span><span class="text-[9px] text-gray-300 dark:text-gray-600">·</span><span class="text-[9px] text-gray-400">${dateStr}</span></div></div>${isOwner ? `<button data-accid="${escapeHtml(d.id)}" class="delete-acc-btn text-gray-400 hover:text-red-500 cursor-pointer text-xs p-0.5 ml-2">✕</button>` : ''}</div>`;
@@ -541,7 +557,7 @@ window.openPrivateRequestsModal = async function() {
   list.innerHTML = '';
   snap.forEach(d => {
     const { username, name, requestedAt } = d.data();
-    const dateStr = requestedAt && requestedAt.seconds ? new Date(requestedAt.seconds * 1000).toLocaleString('it-IT') : 'N/D';
+    const dateStr = requestedAt && requestedAt.seconds ? new Date(requestedAt.seconds * 1000).toLocaleString(locale()) : 'N/D';
     list.innerHTML += `<div class="flex items-center justify-between gap-2 bg-white dark:bg-slate-900 p-3 rounded-lg border dark:border-slate-700 text-xs"><div><span class="font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(username || '')}</span><span class="text-gray-400 ml-1">${escapeHtml(name || '')}</span><div class="text-[10px] text-gray-400 mt-0.5">${dateStr}</div></div><div class="flex gap-1"><button data-reqid="${escapeHtml(d.id)}" data-requser="${escapeHtml(username)}" class="approve-private-btn px-3 py-1 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition">Approva</button><button data-reqid="${escapeHtml(d.id)}" data-requser="${escapeHtml(username)}" class="deny-private-btn px-3 py-1 text-xs bg-red-500 hover:bg-red-400 text-white rounded-lg transition">Nega</button></div></div>`;
   });
   list.querySelectorAll('.approve-private-btn').forEach(btn => {
@@ -1117,7 +1133,7 @@ window.downloadDocument = function(id) {
     link.download = file.fileName || (file.title || file.name || 'documento');
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
   } else if (file.isExcel) {
-    const content = `File Excel: ${file.name}\nCategoria: ${file.category || 'nessuna'}\nCaricato il: ${file.uploadedAt ? new Date(file.uploadedAt.seconds * 1000).toLocaleString('it-IT') : 'N/D'}`;
+    const content = `File Excel: ${file.name}\nCategoria: ${file.category || 'nessuna'}\nCaricato il: ${file.uploadedAt ? new Date(file.uploadedAt.seconds * 1000).toLocaleString(locale()) : 'N/D'}`;
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = (file.name || 'excel') + '.txt';
@@ -1152,7 +1168,7 @@ if (!db) { console.warn('Firestore non disponibile — history snapshot non regi
   b.innerHTML = '';
   snap.forEach(d => {
     const data = d.data();
-    const dStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('it-IT') : 'In sincro...';
+    const dStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString(locale()) : 'In sincro...';
     const nameObj = escapeHtml(data.name || 'Elemento indefinito');
     const opObj = data.operation ? escapeHtml(data.operation) : (data.name ? 'Azione su: ' + escapeHtml(data.name) : 'Registrazione del ' + dStr);
     b.innerHTML += `<tr class="border-b dark:border-slate-800"><td class="p-2.5 text-center"><input type="checkbox" class="history-checkbox cursor-pointer" data-hid="${escapeHtml(d.id)}"></td><td class="p-2.5 font-mono text-[11px] text-purple-600 dark:text-purple-400">${dStr}</td><td class="p-2.5 font-medium">${nameObj}</td><td class="p-2.5 text-gray-500">${opObj}</td><td class="p-2.5 text-center"><button data-hid="${escapeHtml(d.id)}" class="delete-history-btn text-gray-400 hover:text-red-500 cursor-pointer">\u2715</button></td></tr>`;

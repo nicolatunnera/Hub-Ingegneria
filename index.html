@@ -564,20 +564,20 @@
     <div onclick="toggleChatCollapse()" class="bg-gradient-to-r from-blue-600 to-blue-800 p-3 flex justify-between items-center cursor-pointer border-b border-blue-700 select-none">
       <div class="flex items-center gap-2">
         <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-        <span class="font-bold text-xs tracking-wide text-white">Assistente IA</span>
+        <span class="font-bold text-xs tracking-wide text-white" data-i18n="chatTitle">Assistente IA</span>
       </div>
       <span class="text-white/70 hover:text-white font-bold text-xs cursor-pointer">_</span>
     </div>
     <div class="flex flex-col flex-grow">
       <div id="chat-container" class="h-[260px] overflow-y-auto flex flex-col p-4 bg-gray-50 dark:bg-gray-900 gap-3 text-xs leading-relaxed chat-scroll-container">
         <div class="bg-white dark:bg-gray-800 p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 shadow-sm">
-          Ciao! Sono il tuo assistente. Chiedimi documenti, file Excel, note o altro.
+          <span data-i18n="chatWelcome">Ciao! Sono il tuo assistente. Chiedimi documenti, file Excel, note o altro.</span>
         </div>
       </div>
       <div class="border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800">
         <div class="flex gap-2">
-          <input type="text" id="aiInput" placeholder="Interroga l'archivio dei file..." class="flex-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition placeholder-gray-400" />
-          <button id="aiSendBtn" onclick="window.askAI()" class="px-3 py-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg transition shadow font-medium"><i class="fas fa-paper-plane mr-1"></i> Invia</button>
+          <input type="text" id="aiInput" placeholder="Interroga l'archivio dei file..." class="flex-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition placeholder-gray-400" data-i18n="aiPlaceholder" />
+          <button id="aiSendBtn" onclick="window.askAI()" class="px-3 py-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg transition shadow font-medium"><i class="fas fa-paper-plane mr-1"></i> <span data-i18n="send">Invia</span></button>
         </div>
       </div>
     </div>
@@ -669,12 +669,12 @@
         <div class="text-[10px] text-blue-500 dark:text-blue-400 font-mono mt-0.5">v3.5.0</div>
       </div>
       <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-3.5 shadow-md">
-        <div class="text-[9px] uppercase tracking-widest opacity-70 font-semibold mb-1">Data</div>
+        <div class="text-[9px] uppercase tracking-widest opacity-70 font-semibold mb-1" data-i18n="dateLabel">Data</div>
         <div class="text-sm font-bold tracking-wide" id="hubInfoDateDisplay">--</div>
-        <div class="text-[9px] uppercase tracking-widest opacity-70 font-semibold mt-2 mb-1">Ora</div>
+        <div class="text-[9px] uppercase tracking-widest opacity-70 font-semibold mt-2 mb-1" data-i18n="timeLabel">Ora</div>
         <div class="text-sm font-bold tracking-wide" id="hubInfoTimeDisplayModal">--</div>
       </div>
-      <button onclick="window.toggleHubInfoModal()" class="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">Chiudi</button>
+      <button onclick="window.toggleHubInfoModal()" class="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition" data-i18n="close">Chiudi</button>
     </div>
   </div>
 
@@ -823,17 +823,9 @@
           const m = document.getElementById('hubInfoModal');
           if (!m || m.classList.contains('hidden')) return;
           const now = new Date();
-          const days = ['DOMENICA','LUNEDÌ','MARTEDÌ','MERCOLEDÌ','GIOVEDÌ','VENERDÌ','SABATO'];
-          const months = ['GENNAIO','FEBBRAIO','MARZO','APRILE','MAGGIO','GIUGNO','LUGLIO','AGOSTO','SETTEMBRE','OTTOBRE','NOVEMBRE','DICEMBRE'];
-          const day = days[now.getDay()];
-          const date = now.getDate();
-          const month = months[now.getMonth()];
-          const year = now.getFullYear();
-          const h = String(now.getHours()).padStart(2,'0');
-          const m2 = String(now.getMinutes()).padStart(2,'0');
-          const s = String(now.getSeconds()).padStart(2,'0');
-          if (dateEl) dateEl.textContent = day + ' ' + date + ' ' + month + ' ' + year;
-          if (timeEl) timeEl.textContent = h + ':' + m2 + ':' + s;
+          const loc = window.currentLang === 'en' ? 'en-US' : 'it-IT';
+          if (dateEl) dateEl.textContent = now.toLocaleDateString(loc, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+          if (timeEl) timeEl.textContent = now.toLocaleTimeString(loc);
           setTimeout(update, 1000);
         }
         update();
