@@ -104,6 +104,7 @@ function setupPermissions() {
   refreshNotesRender();
   refreshAccountsRender();
   refreshSubscribersRender();
+  refreshNewsRender();
 }
 
 // ─── TOGGLE UTILITY ───────────────────────────────────────────────────
@@ -362,22 +363,63 @@ document.getElementById('btnSendNews').onclick = async () => {
     await sendTelegramBroadcast(`\u{1F4E2} *Nuova comunicazione in Bacheca Hub:*\n\n${escapeMarkdown(content)}`);
   }
 };
-db.collection('newsHub').orderBy('createdAt', 'desc').onSnapshot(snap => {
+let lastNewsDocs = [];
+function renderNews(docs) {
   const container = document.getElementById('newsHistoryContainer');
   const list = document.getElementById('newsHistoryList');
-  let html = '';
-  if (snap.empty) {
-    html = '<p class="text-[10px] text-gray-400 italic text-center py-4">Nessuna notizia pubblicata.</p>';
-  } else {
-    snap.forEach((d, i) => {
-      const ts = d.data().createdAt;
-      const dateStr = ts && ts.seconds ? new Date(ts.seconds * 1000).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
-      html += `<div class="p-2.5 rounded-lg border text-xs font-medium break-words ${i === 0 ? 'bg-purple-50/80 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900/50 text-gray-800 dark:text-gray-200' : 'bg-gray-50/50 dark:bg-gray-800/30 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400'}">${dateStr ? '<span class="text-[10px] opacity-60 block mb-0.5">' + dateStr + '</span>' : ''}${escapeHtml(d.data().content || '')}</div>`;
-    });
+  if (container) {
+    if (!docs.length) {
+      container.innerHTML = '<p class="text-[10px] text-gray-400 italic text-center py-4">Nessuna notizia pubblicata.</p>';
+    } else {
+      container.innerHTML = docs.map((d, i) => {
+        const ts = d.data().createdAt;
+        const dateStr = ts && ts.seconds ? new Date(ts.seconds * 1000).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+        return `<div class="p-2.5 rounded-lg border text-xs font-medium break-words ${i === 0 ? 'bg-purple-50/80 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900/50 text-gray-800 dark:text-gray-200' : 'bg-gray-50/50 dark:bg-gray-800/30 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400'}">${dateStr ? '<span class="text-[10px] opacity-60 block mb-0.5">' + dateStr + '</span>' : ''}${escapeHtml(d.data().content || '')}</div>`;
+      }).join('');
+    }
   }
-  if (container) container.innerHTML = html;
-  if (list) list.innerHTML = html;
+  if (list) {
+    const isOwner = window.userRole === 'owner';
+    if (!docs.length) {
+      list.innerHTML = '<p class="text-[10px] text-gray-400 italic text-center py-4">Nessuna notizia pubblicata.</p>';
+    } else {
+      let itemsHtml = docs.map((d, i) => {
+        const ts = d.data().createdAt;
+        const dateStr = ts && ts.seconds ? new Date(ts.seconds * 1000).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+        return `<div class="flex items-start gap-2 p-2.5 rounded-lg border text-xs font-medium break-words ${i === 0 ? 'bg-purple-50/80 dark:bg-purple-950/20 border-purple-200 dark:border-purple-900/50 text-gray-800 dark:text-gray-200' : 'bg-gray-50/50 dark:bg-gray-800/30 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400'}"><input type="checkbox" class="news-checkbox mt-0.5" data-newsid="${escapeHtml(d.id)}"><div class="flex-1">${dateStr ? '<span class="text-[10px] opacity-60 block mb-0.5">' + dateStr + '</span>' : ''}${escapeHtml(d.data().content || '')}</div>${isOwner ? `<button data-newsid="${escapeHtml(d.id)}" class="delete-news-btn text-gray-400 hover:text-red-500 cursor-pointer text-xs p-0.5 ml-1 shrink-0">\u2715</button>` : ''}</div>`;
+      }).join('');
+      list.innerHTML = `<div class="flex items-center justify-between mb-2 ${isOwner ? '' : 'hidden'}"><label class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 cursor-pointer"><input type="checkbox" id="selectAllNews" class="rounded border-gray-300 dark:border-gray-600" /> Seleziona tutte</label><button id="deleteSelectedNews" class="px-2 py-1 text-xs bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded transition shadow-sm" disabled><i class="fas fa-trash-alt mr-1"></i>Elimina selezionate</button></div>` + itemsHtml;
+      list.querySelectorAll('.delete-news-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (window.userRole !== 'owner') return;
+          if (confirm('Rimuovere questa notizia?')) await db.collection('newsHub').doc(btn.dataset.newsid).delete();
+        });
+      });
+      document.getElementById('selectAllNews')?.addEventListener('change', e => {
+        list.querySelectorAll('.news-checkbox').forEach(cb => cb.checked = e.target.checked);
+        updateSelectAllNews();
+      });
+      document.getElementById('deleteSelectedNews')?.addEventListener('click', () => {
+        const checked = list.querySelectorAll('.news-checkbox:checked');
+        if (!checked.length) return;
+        if (window.userRole !== 'owner') { showToast('Solo il proprietario.', 'error'); return; }
+        if (confirm(`Eliminare ${checked.length} notizia/e?`)) checked.forEach(cb => db.collection('newsHub').doc(cb.dataset.newsid).delete());
+      });
+    }
+  }
+}
+function updateSelectAllNews() {
+  const sa = document.getElementById('selectAllNews');
+  const cbs = document.querySelectorAll('.news-checkbox');
+  if (sa) sa.checked = cbs.length > 0 && document.querySelectorAll('.news-checkbox:checked').length === cbs.length;
+  const btn = document.getElementById('deleteSelectedNews');
+  if (btn) btn.disabled = document.querySelectorAll('.news-checkbox:checked').length === 0;
+}
+document.addEventListener('change', e => {
+  if (e.target.classList.contains('news-checkbox')) updateSelectAllNews();
 });
+function refreshNewsRender() { if (lastNewsDocs.length) renderNews(lastNewsDocs); }
+db.collection('newsHub').orderBy('createdAt', 'desc').onSnapshot(snap => { lastNewsDocs = snap.docs; renderNews(lastNewsDocs); });
 
 // ─── MY ACCOUNT ─────────────────────────────────────────────────────────
 document.getElementById('btnSaveAccount').onclick = async () => {

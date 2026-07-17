@@ -584,43 +584,42 @@
 
   <!-- SIDEBAR -->
   <aside id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl z-40 hidden overflow-y-auto transition-transform">
-    <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 flex items-center justify-between z-10">
+    <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 py-2.5 flex items-center justify-between z-10">
       <h2 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400"><i class="fas fa-cog mr-2"></i><span data-i18n="sidebarTitle">Pannello Cloud</span></h2>
       <button onclick="closeSidebar()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
     </div>
-    <div class="p-3 space-y-1" id="sidebarContent">
-      <div class="sidebar-section mb-4 requires-owner">
-        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2"><span data-i18n="management">Gestione</span></p>
-        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-owner" onclick="openUserModal()"><i class="fas fa-user-circle text-blue-500 w-4"></i><span data-i18n="manageUsers">Gestione Utenti</span></button>
-        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="toggleCategoryManager()"><i class="fas fa-tags text-purple-500 w-4"></i>Gestione Categorie</button>
-        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openMtbfModal()"><i class="fas fa-chart-line text-orange-500 w-4"></i><span>MTBF</span></button>
-        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openSubscribersModal()"><i class="fas fa-users text-indigo-500 w-4"></i><span data-i18n="newsletterSubscribers">Iscritti Newsletter</span></button>
-        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openNewsHistoryModal()"><i class="fas fa-history text-teal-500 w-4"></i><span data-i18n="newsHistory">Storico Notizie</span></button>
+    <div class="p-2.5 space-y-0.5" id="sidebarContent">
+      <div class="sidebar-section mb-3 requires-owner">
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5"><span data-i18n="management">Gestione</span></p>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-owner" onclick="openUserModal()"><i class="fas fa-user-circle text-blue-500 w-4"></i><span data-i18n="manageUsers">Gestione Utenti</span></button>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="toggleCategoryManager()"><i class="fas fa-tags text-purple-500 w-4"></i>Gestione Categorie</button>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openSubscribersModal()"><i class="fas fa-users text-indigo-500 w-4"></i><span data-i18n="newsletterSubscribers">Iscritti Newsletter</span></button>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openNewsHistoryModal()"><i class="fas fa-history text-teal-500 w-4"></i><span data-i18n="newsHistory">Storico Notizie</span></button>
       </div>
-      <div class="sidebar-section mb-4">
-        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-write" onclick="openAccountModal()"><i class="fas fa-user-edit text-green-500 w-4"></i>Il Mio Account</button>
-        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2 requires-guest" style="margin-top:0.5rem">Registrazione</p>
-        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-guest" onclick="var u=document.getElementById('loginUser');var p=document.getElementById('loginPass');if(u)u.value='';if(p)p.value='';window.toggleRegisterForm();closeSidebar()"><i class="fas fa-user-plus text-emerald-500 w-4"></i>Crea un Account</button>
+      <div class="sidebar-section mb-3">
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-write" onclick="openAccountModal()"><i class="fas fa-user-edit text-green-500 w-4"></i>Il Mio Account</button>
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5 requires-guest" style="margin-top:0.5rem">Registrazione</p>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-guest" onclick="var u=document.getElementById('loginUser');var p=document.getElementById('loginPass');if(u)u.value='';if(p)p.value='';window.toggleRegisterForm();closeSidebar()"><i class="fas fa-user-plus text-emerald-500 w-4"></i>Crea un Account</button>
         <div class="requires-write">
-        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">Spazio Privato</p>
-        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="btnRequestPrivate" onclick="requestPrivateSpace()"><i class="fas fa-lock text-purple-500 w-4"></i><span>Richiedi Spazio Privato</span></button>
-        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-owner" onclick="openPrivateRequestsModal()"><i class="fas fa-inbox text-purple-500 w-4"></i><span id="privateRequestsBadge">Richieste Spazio Privato</span></button>
-        <div id="privateStatus" class="hidden mt-1 px-3 py-1.5 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-2"><i class="fas fa-check-circle"></i> Spazio privato attivo</div>
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5">Spazio Privato</p>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="btnRequestPrivate" onclick="requestPrivateSpace()"><i class="fas fa-lock text-purple-500 w-4"></i><span>Richiedi Spazio Privato</span></button>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-owner" onclick="openPrivateRequestsModal()"><i class="fas fa-inbox text-purple-500 w-4"></i><span id="privateRequestsBadge">Richieste Spazio Privato</span></button>
+        <div id="privateStatus" class="hidden mt-1 px-2.5 py-1 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-2"><i class="fas fa-check-circle"></i> Spazio privato attivo</div>
         </div>
       </div>
-      <div class="sidebar-section mb-4">
-        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2"><span data-i18n="info">Informazioni</span></p>
-        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openStatsModal()"><i class="fas fa-chart-bar text-purple-500 w-4"></i><span data-i18n="cloudStats">Statistiche Cloud</span></button>
-        <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="hubInfoToggle" onclick="toggleHubInfo()"><i class="fas fa-info-circle text-cyan-500 w-4"></i><span data-i18n="hubInfo">Info Hub</span></button>
-        <div id="hubInfoPanel" class="hidden mt-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-xs space-y-2">
+      <div class="sidebar-section mb-3">
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5"><span data-i18n="info">Informazioni</span></p>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openStatsModal()"><i class="fas fa-chart-bar text-purple-500 w-4"></i><span data-i18n="cloudStats">Statistiche Cloud</span></button>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="hubInfoToggle" onclick="toggleHubInfo()"><i class="fas fa-info-circle text-cyan-500 w-4"></i><span data-i18n="hubInfo">Info Hub</span></button>
+        <div id="hubInfoPanel" class="hidden mt-1.5 p-2.5 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-xs space-y-1.5">
            <p><span class="font-medium" data-i18n="version">Versione:</span> <span id="hubInfoVersion">v3.5.0</span></p>
           <p><span class="font-medium" data-i18n="uptime">Attivo da:</span> <span id="hubInfoUptime">--</span></p>
           <p><span class="font-medium" data-i18n="lastUpdate">Ultimo aggiornamento:</span> <span id="hubInfoUpdate">--</span></p>
           <p><span class="font-medium" data-i18n="localTime">Ora locale:</span> <span id="hubInfoTimeDisplay">--</span></p>
         </div>
       </div>
-      <hr class="my-4 border-gray-200 dark:border-gray-700" />
-      <button class="sidebar-btn w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition flex items-center gap-2 text-red-500 requires-write" onclick="if(confirm('Eliminare definitivamente il tuo account? I tuoi dati rimarranno. Questa azione è irreversibile.'))deleteMyAccount()"><i class="fas fa-trash-alt w-4"></i><span>Elimina il mio account</span></button>
+      <hr class="my-3 border-gray-200 dark:border-gray-700" />
+      <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition flex items-center gap-2 text-red-500 requires-write" onclick="if(confirm('Eliminare definitivamente il tuo account? I tuoi dati rimarranno. Questa azione è irreversibile.'))deleteMyAccount()"><i class="fas fa-trash-alt w-4"></i><span>Elimina il mio account</span></button>
     </div>
   </aside>
 
@@ -653,6 +652,14 @@
         <div class="dash-icon">📋</div>
         <div class="dash-label" data-i18n="dashHistory">Registro Attività</div>
         <div class="dash-count" id="countHistory">0</div>
+      </div>
+      <div class="dash-card" onclick="toggleCalcModal()">
+        <div class="dash-icon">🧮</div>
+        <div class="dash-label">Calcolatore</div>
+      </div>
+      <div class="dash-card" onclick="openMtbfModal()">
+        <div class="dash-icon">📈</div>
+        <div class="dash-label">MTBF</div>
       </div>
     </div>
   </main>
