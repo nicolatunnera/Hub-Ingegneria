@@ -306,6 +306,7 @@ window.testTelegramNotification = async () => {
 };
 
 document.getElementById('btnSubscribeTelegram').onclick = async () => {
+  if (!db) return alert('Backend non disponibile.');
   const chatId = document.getElementById('telChatIdInput').value.trim();
   const name = document.getElementById('telNameInput').value.trim() || 'Membro Hub';
   const role = document.getElementById('telOwnerCheck')?.checked ? 'owner' : 'user';
@@ -316,6 +317,7 @@ document.getElementById('btnSubscribeTelegram').onclick = async () => {
   document.getElementById('telNameInput').value = '';
 };
 document.getElementById('btnUnsubscribeTelegram').onclick = async () => {
+  if (!db) return alert('Backend non disponibile.');
   const chatId = document.getElementById('telChatIdInput').value.trim();
   if (!chatId) return alert('Inserisci il Chat ID per disattivare.');
   const snap = await db.collection('subscribers').get();
@@ -351,8 +353,6 @@ function renderSubscribers(docs) {
 function refreshSubscribersRender() { if (lastSubscriberDocs.length) renderSubscribers(lastSubscriberDocs); }
 if (!db) { console.warn('Firestore non disponibile — snapshot non registrati'); const fbBanner = document.getElementById('fbOfflineBanner'); if (fbBanner) fbBanner.classList.remove('hidden'); } else {
 db.collection('subscribers').onSnapshot(snap => { lastSubscriberDocs = snap.docs; renderSubscribers(lastSubscriberDocs); });
-}
-
 // ─── NEWS ─────────────────────────────────────────────────────────────
 document.getElementById('btnSendNews').onclick = async () => {
   const content = document.getElementById('newsContent').value.trim();
@@ -792,8 +792,8 @@ function updateSelectAllNotes() {
   const sa = document.getElementById('selectAllNotes');
   const cbs = document.querySelectorAll('.note-checkbox:not([disabled])');
   if (sa) sa.checked = cbs.length > 0 && document.querySelectorAll('.note-checkbox:checked').length === cbs.length;
-  const ba = document.getElementById('noteBulkActions');
-  if (ba) ba.classList.toggle('hidden', document.querySelectorAll('.note-checkbox:checked').length === 0);
+  const btn = document.getElementById('deleteSelectedNotes');
+  if (btn) btn.disabled = document.querySelectorAll('.note-checkbox:checked').length === 0;
 }
 document.getElementById('selectAllNotes')?.addEventListener('change', e => {
   document.querySelectorAll('.note-checkbox:not([disabled])').forEach(cb => cb.checked = e.target.checked);
@@ -838,6 +838,12 @@ db.collection('archiveFolders').orderBy('createdAt', 'asc').onSnapshot(s => {
   populateFolderSelects();
   combineAndRenderArchive();
 });
+db.collection('categoriesHub').orderBy('createdAt', 'asc').onSnapshot(s => {
+  allCategories = [];
+  s.forEach(d => allCategories.push({ id: d.id, ...d.data() }));
+  populateCategorySelects();
+  combineAndRenderArchive();
+});
 }
 
 function populateFolderSelects() {
@@ -851,13 +857,6 @@ function populateFolderSelects() {
   }
   renderFolderIcons();
 }
-
-db.collection('categoriesHub').orderBy('createdAt', 'asc').onSnapshot(s => {
-  allCategories = [];
-  s.forEach(d => allCategories.push({ id: d.id, ...d.data() }));
-  populateCategorySelects();
-  combineAndRenderArchive();
-});
 
 function populateCategorySelects() {
   const html = '<option value="">— Nessuna —</option>' + allCategories.map(c => `<option value="${c.name}">${c.emoji || '📁'} ${c.name}</option>`).join('');
