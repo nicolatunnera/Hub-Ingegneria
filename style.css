@@ -59,7 +59,8 @@ button { cursor: pointer; touch-action: manipulation; }
   .py-6 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
   .gap-6 { gap: 0.75rem !important; }
   .max-w-7xl { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
-  #chat-expanded { width: calc(100vw - 1rem) !important; right: 0.5rem !important; }
+  #chat-expanded { width: calc(100vw - 1rem) !important; right: 0.5rem !important; bottom: 5rem !important; max-height: 70vh !important; }
+  #chat-fab { bottom: 5.5rem !important; width: 3rem !important; height: 3rem !important; font-size: 1.25rem !important; }
   #sidebar { width: 100vw !important; }
   #statsBarTop { display: none !important; }
   nav .w-2\/4 .text-sm { font-size: 0.75rem !important; }
@@ -67,14 +68,51 @@ button { cursor: pointer; touch-action: manipulation; }
   #calcModal > div { max-width: calc(100vw - 2rem) !important; margin: 0 1rem; }
   .dash-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
   .dash-card { padding: 1rem 0.75rem; }
-  #archiveTableBody td { padding: 0.5rem 0.4rem !important; font-size: 0.65rem !important; }
-  #archiveTableBody th { padding: 0.5rem 0.4rem !important; font-size: 0.6rem !important; }
+#archiveTableBody td { padding: 0.5rem 0.4rem !important; font-size: 0.65rem !important; }
+#archiveTableBody th { padding: 0.5rem 0.4rem !important; font-size: 0.6rem !important; }
+#archiveModal .overflow-x-auto, #historyModal .overflow-x-auto { max-width: 100% !important; }
+#archiveModal table, #historyModal table { min-width: 500px !important; }
   .folder-icon { width: 60px; height: 64px; }
   .folder-icon .fi-emoji { font-size: 22px; }
   .folder-icon .fi-name { font-size: 7px; max-width: 56px; }
   #archiveModal > div { padding: 0.75rem !important; }
-  #excelModal > div, #docModal > div, #notesModal > div, #teamModal > div, #userModal > div, #mtbfModal > div, #statsModal > div { margin: 0.5rem !important; max-height: 90vh !important; }
-  #excelModal .modal-scroll-body, #docModal .modal-scroll-body { padding: 0.75rem !important; }
+  #excelModal > div, #docModal > div, #notesModal > div, #teamModal > div, #userModal > div, #mtbfModal > div, #statsModal > div, #newsModal > div, #newsHistoryModal > div, #calcModal > div, #historyModal > div, #subscribersModal > div { margin: 0.5rem !important; max-height: 90vh !important; }
+  #excelModal .modal-scroll-body, #docModal .modal-scroll-body, #notesModal .modal-scroll-body, #newsModal .modal-scroll-body, #newsHistoryModal .modal-scroll-body { padding: 0.75rem !important; }
   #dropzoneExcel, #dropzoneDoc { padding: 1rem !important; }
   #dropzoneExcel .text-4xl, #dropzoneDoc .text-4xl { font-size: 1.75rem !important; }
+  #newsModal .grid, #historyModal .grid { grid-template-columns: 1fr !important; }
+  .archivio-scroll-container, .storico-scroll-container { max-height: 280px !important; }
+  #folderIconsBar { display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important; gap: 0.5rem !important; padding-bottom: 0.5rem !important; -webkit-overflow-scrolling: touch; }
+  #folderIconsBar .folder-icon { flex-shrink: 0 !important; }
+  #mtbfModal > div { max-width: calc(100vw - 1rem) !important; }
+  #mtbfResult .grid-cols-2 { grid-template-columns: 1fr !important; }
+  #hubInfoModal > div { margin: 0.5rem !important; padding: 1rem !important; }
+  #newsHistoryList .flex.items-start { flex-wrap: wrap !important; }
+  #newsHistoryList .flex.items-start .flex-1 { width: 100% !important; margin-top: 0.25rem !important; }
+  #userModal .grid-cols-3, #userModal .grid-cols-2 { grid-template-columns: 1fr !important; }
+  #subscribersModal .grid-cols-2 { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 400px) {
+  .dash-grid { grid-template-columns: repeat(1, 1fr) !important; }
+  .dash-card { padding: 0.75rem 0.5rem !important; flex-direction: row !important; gap: 0.75rem !important; }
+  .dash-card .dash-icon { font-size: 1.5rem !important; }
+  #hubTitleBtn .hidden { display: none !important; }
+  nav .gap-1 { gap: 0.25rem !important; }
+  nav .px-2 { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
+  nav button[id^="toggle"], nav #newsBtn, nav #themeToggle { padding: 0.25rem !important; }
+  nav button[id^="toggle"] i, nav #newsBtn i, nav #themeToggle i { font-size: 0.7rem !important; }
+  #hubFooter { padding: 0.375rem 0.5rem !important; gap: 0.5rem !important; }
+  #hubFooter #chatBtn { padding: 0.375rem 0.5rem !important; font-size: 0.65rem !important; }
+  #hubFooter #chatBtn i { font-size: 0.6rem !important; }
+  #loginBlocker > div { margin: 0.5rem !important; padding: 1rem !important; }
+  #sidebar .p-2\\.5 { padding: 0.5rem !important; }
+  #sidebarContent .sidebar-btn { padding: 0.5rem 0.5rem !important; font-size: 0.65rem !important; }
+  #sidebarContent .sidebar-section { margin-bottom: 0.5rem !important; }
+  .modal-scroll-body { padding: 0.5rem !important; }
+  #foldersPanel > div { padding: 0.75rem !important; }
+  #archiveModal .flex.items-center.justify-between, #historyModal .flex.items-center.justify-between { flex-wrap: wrap !important; gap: 0.5rem !important; }
+  #archiveModal .flex.items-center.gap-2.mb-2 { flex-wrap: wrap !important; }
+  #teamModal > div, #userModal > div, #accountModal > div { margin: 0.5rem !important; max-height: 90vh !important; }
+  #foldersPanel .grid-cols-2 { grid-template-columns: 1fr !important; }
 }
