@@ -23,7 +23,7 @@ try {
 function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
 window.currentLang = 'it';
 function locale() { return window.currentLang === 'en' ? 'en-US' : 'it-IT'; }
-function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function cap(s) { return s.replace(/(^|\s)([a-z])/g, function(m){ return m.toUpperCase(); }); }
 
 // ─── LOGIN ────────────────────────────────────────────────────────────
 function DJB2(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; } return h.toString(36); }

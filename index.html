@@ -826,7 +826,7 @@
           if (!m || m.classList.contains('hidden')) return;
           const now = new Date();
           const loc = window.currentLang === 'en' ? 'en-US' : 'it-IT';
-          if (dateEl) dateEl.textContent = now.toLocaleDateString(loc, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).replace(/^\w/, function(c){ return c.toUpperCase(); });
+          if (dateEl) dateEl.textContent = now.toLocaleDateString(loc, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).replace(/(^|\s)([a-z])/g, function(m){ return m.toUpperCase(); });
           if (timeEl) timeEl.textContent = now.toLocaleTimeString(loc);
           setTimeout(update, 1000);
         }
