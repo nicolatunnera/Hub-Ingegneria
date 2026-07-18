@@ -103,7 +103,7 @@ button { cursor: pointer; touch-action: manipulation; }
   nav button[id^="toggle"], nav #newsBtn, nav #themeToggle { padding: 0.25rem !important; }
   nav button[id^="toggle"] i, nav #newsBtn i, nav #themeToggle i { font-size: 0.7rem !important; }
   #hubFooter { padding: 0.375rem 0.5rem !important; gap: 0.375rem !important; flex-wrap: wrap !important; justify-content: center !important; }
-  #hubFooter #chatBtn, #hubFooter button[onclick*="openAccountModal"] { padding: 0.375rem 0.5rem !important; font-size: 0.6rem !important; white-space: nowrap !important; }
+  #hubFooter #chatBtn,   #hubFooter #chatBtn, #hubFooter button[onclick*="openAccountModal"] { padding: 0.375rem 0.5rem !important; font-size: 0.6rem !important; white-space: nowrap !important; }
   #hubFooter #chatBtn i, #hubFooter button[onclick*="openAccountModal"] i { font-size: 0.55rem !important; }
   #hubFooter span.text-xs { font-size: 0.55rem !important; margin-left: 0 !important; }
   #loginBlocker > div { margin: 0.5rem !important; padding: 1rem !important; }
