@@ -23,6 +23,7 @@ try {
 function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
 window.currentLang = 'it';
 function locale() { return window.currentLang === 'en' ? 'en-US' : 'it-IT'; }
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
 // ─── LOGIN ────────────────────────────────────────────────────────────
 function DJB2(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; } return h.toString(36); }
@@ -195,7 +196,7 @@ function updateHubInfoClock() {
   const panel = document.getElementById('hubInfoPanel');
   if (!el || !panel || panel.classList.contains('hidden')) return;
   const now = new Date();
-  el.textContent = `${now.toLocaleDateString(locale(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} — ${now.toLocaleTimeString(locale())}`;
+  el.textContent = `${cap(now.toLocaleDateString(locale(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }))} — ${now.toLocaleTimeString(locale())}`;
   setTimeout(updateHubInfoClock, 1000);
 }
 
@@ -262,7 +263,7 @@ window.changeLanguage = (lang) => {
 function refreshDynamicContent() {
   const now = new Date();
   const el = document.getElementById('hubInfoTimeDisplay');
-  if (el) el.textContent = `${now.toLocaleDateString(locale(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} — ${now.toLocaleTimeString(locale())}`;
+  if (el) el.textContent = `${cap(now.toLocaleDateString(locale(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }))} — ${now.toLocaleTimeString(locale())}`;
   const update = document.getElementById('hubInfoUpdate');
   if (update) update.textContent = now.toLocaleDateString(locale(), { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
   const modalDate = document.getElementById('hubInfoDateDisplay');
