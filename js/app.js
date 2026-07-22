@@ -1103,12 +1103,14 @@ function combineAndRenderArchive() {
     const canDel = !isGuest && (window.userRole === 'owner' || f.uploadedBy === window.username);
     const checkbox = isGuest ? '' : `<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}"></td>`;
     const actionsCell = isGuest ? '<td class="p-3"></td>' : `<td class="p-3 text-center whitespace-nowrap"><button data-id="${escapeHtml(f.id)}" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">\u{1F4E5}</button>${canDel ? `<button data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}" data-name="${escapeHtml(f.name || f.title || 'File')}" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">\u{1F5D1}\uFE0F</button>` : ''}</td>`;
+    const catOptsHtml = '<option value="">—</option>' + allCategories.map(c => `<option value="${escapeHtml(c.name)}" ${f.category === c.name ? 'selected' : ''}>${escapeHtml(c.emoji || '📁')} ${escapeHtml(c.name)}</option>`).join('');
+    const catSelectHtml = isGuest
+      ? `<td class="p-3 text-gray-500 text-[10px] truncate max-w-[80px] sm:max-w-none">${escapeHtml(f.category || '—')}</td>`
+      : `<td class="p-3"><select data-file-id="${escapeHtml(f.id)}" data-is-excel="${f.isExcel}" class="cat-edit-select bg-transparent border border-gray-200 dark:border-gray-600 rounded px-1 py-0.5 text-[10px] text-gray-600 dark:text-gray-400 outline-none focus:border-blue-400 cursor-pointer max-w-[120px]">${catOptsHtml}</select></td>`;
     if (f.isExcel) {
-      const catObj = allCategories.find(c => c.name === f.category);
-      const catDisplay = catObj ? `${catObj.emoji || '📁'} ${catObj.name}` : (f.category || '');
-      tr.innerHTML = `${checkbox}<td class="p-3 font-medium text-xs">${f.private ? '<span class="text-purple-500 mr-0.5">\u{1F512}</span>' : ''}${escapeHtml(f.name || 'File Excel')}</td><td class="p-3"><span class="px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 rounded font-bold text-[9px]">EXCEL</span></td>${folderCell}<td class="p-3 text-gray-500 text-[10px] truncate max-w-[80px] sm:max-w-none">${escapeHtml(catDisplay)}</td>${actionsCell}`;
+      tr.innerHTML = `${checkbox}<td class="p-3 font-medium text-xs">${f.private ? '<span class="text-purple-500 mr-0.5">\u{1F512}</span>' : ''}${escapeHtml(f.name || 'File Excel')}</td><td class="p-3"><span class="px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 rounded font-bold text-[9px]">EXCEL</span></td>${folderCell}${catSelectHtml}${actionsCell}`;
     } else {
-      tr.innerHTML = `${checkbox}<td class="p-3 font-medium text-xs">${f.private ? '<span class="text-purple-500 mr-0.5">\u{1F512}</span>' : ''}${escapeHtml(f.title || 'Documento')}</td><td class="p-3"><span class="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 rounded font-bold text-[9px]">${escapeHtml(f.fileType || '')}</span></td>${folderCell}<td class="p-3 text-gray-400 font-mono text-[10px] truncate max-w-[80px] sm:max-w-none">${escapeHtml(f.extractedText ? f.extractedText.substring(0, 30) + '...' : (f.fileName || ''))}</td>${actionsCell}`;
+      tr.innerHTML = `${checkbox}<td class="p-3 font-medium text-xs">${f.private ? '<span class="text-purple-500 mr-0.5">\u{1F512}</span>' : ''}${escapeHtml(f.title || 'Documento')}</td><td class="p-3"><span class="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 rounded font-bold text-[9px]">${escapeHtml(f.fileType || '')}</span></td>${folderCell}${catSelectHtml}${actionsCell}`;
     }
     body.appendChild(tr);
   });
@@ -1117,6 +1119,22 @@ function combineAndRenderArchive() {
   });
   body.querySelectorAll('.download-doc-btn').forEach(btn => {
     btn.addEventListener('click', () => window.downloadDocument(btn.dataset.id));
+  });
+  body.querySelectorAll('.cat-edit-select').forEach(sel => {
+    sel.addEventListener('change', async () => {
+      const file = sel.dataset.isExcel === 'true'
+        ? allExcelFiles.find(e => e.id === sel.dataset.fileId)
+        : allTextFiles.find(t => t.id === sel.dataset.fileId);
+      if (!file) return;
+      const coll = file.isExcel ? 'excelHub' : 'textHub';
+      try {
+        await db.collection(coll).doc(sel.dataset.fileId).update({ category: sel.value });
+        file.category = sel.value;
+        showToast(window.currentLang === 'en' ? 'Category updated' : 'Categoria aggiornata', 'success');
+      } catch (e) {
+        showToast('Errore: ' + e.message, 'error');
+      }
+    });
   });
   updateBulkActions();
 }
@@ -1311,11 +1329,11 @@ ${contextText}`;
 
   let replyText = '';
   try {
-    replyText = await aiFetch('https://text.pollinations.ai/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(reqBase) });
+    replyText = await aiFetch('https://text.pollinations.ai/openai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...reqBase, model: 'openai' }) });
   } catch {
     try {
       replyText = await aiFetch('https://gen.pollinations.ai/v1/chat/completions', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AI_KEY },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...reqBase, model: 'openai' })
       });
     } catch (err2) {
