@@ -1115,7 +1115,7 @@ function combineAndRenderArchive() {
     const checkbox = isGuest ? '' : `<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}"></td>`;
     const actionsCell = isGuest ? '<td class="p-3"></td>' : `<td class="p-3 text-center whitespace-nowrap"><button data-id="${escapeHtml(f.id)}" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">\u{1F4E5}</button>${canDel ? `<button data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}" data-name="${escapeHtml(f.name || f.title || 'File')}" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">\u{1F5D1}\uFE0F</button>` : ''}</td>`;
     const catOptsHtml = '<option value="">—</option>' + allCategories.map(c => `<option value="${escapeHtml(c.name)}" ${f.category === c.name ? 'selected' : ''}>${escapeHtml(c.emoji || '📁')} ${escapeHtml(c.name)}</option>`).join('');
-    const catSelectHtml = isGuest
+    const catSelectHtml = isGuest || !canDel
       ? `<td class="p-3 text-gray-500 text-[10px] truncate max-w-[80px] sm:max-w-none">${escapeHtml(f.category || '—')}</td>`
       : `<td class="p-3"><select data-file-id="${escapeHtml(f.id)}" data-is-excel="${f.isExcel}" class="cat-edit-select bg-transparent border border-gray-200 dark:border-gray-600 rounded px-1 py-0.5 text-[10px] text-gray-600 dark:text-gray-400 outline-none focus:border-blue-400 cursor-pointer max-w-[120px]">${catOptsHtml}</select></td>`;
     if (f.isExcel) {
@@ -1133,13 +1133,14 @@ function combineAndRenderArchive() {
   });
   body.querySelectorAll('.cat-edit-select').forEach(sel => {
     sel.addEventListener('change', async () => {
-      const file = sel.dataset.isExcel === 'true'
-        ? allExcelFiles.find(e => e.id === sel.dataset.fileId)
-        : allTextFiles.find(t => t.id === sel.dataset.fileId);
+      const fileId = sel.dataset.fileId;
+      const isExcel = sel.dataset.isExcel === 'true';
+      const file = isExcel ? allExcelFiles.find(e => e.id === fileId) : allTextFiles.find(t => t.id === fileId);
       if (!file) return;
-      const coll = file.isExcel ? 'excelHub' : 'textHub';
+      if (window.userRole !== 'owner' && file.uploadedBy !== window.username) { showToast(window.currentLang === 'en' ? 'Not authorized.' : 'Non autorizzato.', 'error'); return; }
+      const coll = isExcel ? 'excelHub' : 'textHub';
       try {
-        await db.collection(coll).doc(sel.dataset.fileId).update({ category: sel.value });
+        await db.collection(coll).doc(fileId).update({ category: sel.value });
         file.category = sel.value;
         showToast(window.currentLang === 'en' ? 'Category updated' : 'Categoria aggiornata', 'success');
       } catch (e) {
