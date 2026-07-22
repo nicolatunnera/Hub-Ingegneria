@@ -931,6 +931,14 @@ db.collection('textHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
   s.forEach(d => allTextFiles.push({ id: d.id, ...d.data(), isExcel: false }));
   updateCountArchive();
   combineAndRenderArchive();
+  s.forEach(d => {
+    const data = d.data();
+    if (!data.extractedText && data.fileData) {
+      extractTextFromBase64(data.fileData, data.fileType).then(txt => {
+        if (txt) db.collection('textHub').doc(d.id).update({ extractedText: txt });
+      }).catch(() => {});
+    }
+  });
 });
 db.collection('archiveFolders').orderBy('createdAt', 'asc').onSnapshot(s => {
   allFolders = [];
@@ -1338,11 +1346,13 @@ window.askAI = async () => {
   let contextParts = [];
   for (const d of allTextFiles) {
     let txt = d.extractedText || '';
-    if (!txt && d.fileData) { txt = await extractTextFromBase64(d.fileData, d.fileType); }
-    if (!txt) txt = '(contenuto non disponibile)';
-    contextParts.push(`[DOC: ${d.title}] File: ${d.fileName || 'N/A'} | Cartella: ${d.folderId || 'Nessuna'} | Contenuto:\n${txt.substring(0, 3000)}`);
+    if (!txt && d.fileData) {
+      try { txt = await extractTextFromBase64(d.fileData, d.fileType); } catch(e) { console.warn('Estrazione fallita per', d.title, e); }
+    }
+    if (!txt) txt = '(testo non estratto — file troppo grande o formato non supportato)';
+    contextParts.push(`[DOC: ${d.title}] File: ${d.fileName || 'N/A'} | Tipo: ${d.fileType || 'N/A'} | Contenuto:\n${txt.substring(0, 3000)}`);
   }
-  allExcelFiles.forEach(e => { contextParts.push(`[EXCEL: ${e.name}] Categoria: ${e.category || 'Generale'} | Cartella: ${e.folderId || 'Nessuna'} | Caricato da: ${e.uploadedBy || 'N/A'}`); });
+  allExcelFiles.forEach(e => { contextParts.push(`[EXCEL: ${e.name}] Categoria: ${e.category || 'Generale'} | Caricato da: ${e.uploadedBy || 'N/A'}`); });
   let contextText = contextParts.join('\n\n');
 
   const platformInfo = `Piattaforma: Engineering Cloud Hub. Moduli: Excel, Documenti, Note, Archivio, Calcolatrice, MTBF, Notizie.`;
