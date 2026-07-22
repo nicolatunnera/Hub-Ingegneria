@@ -1,5 +1,6 @@
 window.TELEGRAM_BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
-window.AI_KEY = "sk-UHO9awELiLVfpplF65MFeMa4ylD0bOYw";
+window.AI_KEY = "";
+window.GROQ_API_KEY = "";
 
 window.firebaseConfig = {
   apiKey: "AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM",

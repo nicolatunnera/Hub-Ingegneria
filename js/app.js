@@ -1328,19 +1328,34 @@ ${contextText}`;
   }
 
   let replyText = '';
-  try {
-    const shortMsg = systemInstruction.length > 1500 ? systemInstruction.substring(0, 1500) + '\n\nFile:\n' + contextText.substring(0, 2000) + '\n\nDomanda: ' + queryText : systemInstruction + '\n\nDomanda: ' + queryText;
-    replyText = await aiFetch('https://text.pollinations.ai/', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: shortMsg }] })
-    });
-  } catch {
+  const groqKey = window.GROQ_API_KEY || '';
+  if (groqKey) {
+    try {
+      replyText = await aiFetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + groqKey },
+        body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: reqBase.messages, max_tokens: 1024 })
+      });
+    } catch {}
+  }
+  if (!replyText) {
+    try {
+      replyText = await aiFetch('https://text.pollinations.ai/', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [{ role: 'user', content: systemInstruction.substring(0, 2000) + '\n\nDomanda: ' + queryText }] })
+      });
+    } catch {}
+  }
+  if (!replyText) {
     try {
       const urlPrompt = encodeURIComponent(systemInstruction.substring(0, 1500) + '\n\nDomanda: ' + queryText).substring(0, 4000);
       replyText = await aiFetch('https://text.pollinations.ai/' + urlPrompt + '?model=openai-fast', { method: 'GET' });
-    } catch {
-      replyText = '\u26A0\uFE0F AI non disponibile al momento. Il servizio è temporaneamente sovraccarico. Riprova tra 15-20 secondi.';
-    }
+    } catch {}
+  }
+  if (!replyText) {
+    replyText = groqKey
+      ? '\u26A0\uFE0F AI non disponibile al momento. Riprova tra qualche secondo.'
+      : '\u26A0\uFE0F AI non configurata. Per attivarla, inserisci una API key gratuita di Groq in config.js (GROQ_API_KEY).';
   }
 
   document.getElementById(loadingId)?.remove();
