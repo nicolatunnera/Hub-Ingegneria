@@ -25,6 +25,33 @@ window.currentLang = 'it';
 function locale() { return window.currentLang === 'en' ? 'en-US' : 'it-IT'; }
 function cap(s) { return s.replace(/(^|\s)([a-z])/g, function(m){ return m.toUpperCase(); }); }
 
+async function extractTextFromBase64(base64Data, fileType) {
+  if (!base64Data) return '';
+  const upper = (fileType || '').toUpperCase();
+  try {
+    if (upper === 'PDF' && typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const bin = atob(base64Data.split(',')[1] || base64Data);
+      const arr = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      const pdf = await pdfjsLib.getDocument({ data: arr }).promise;
+      let txt = '';
+      for (let i = 1; i <= Math.min(pdf.numPages, 50); i++) { const page = await pdf.getPage(i); const content = await page.getTextContent(); txt += content.items.map(it => it.str).join(' ') + '\n'; }
+      return txt.substring(0, 8000);
+    }
+    if ((upper === 'DOCX' || upper === 'DOC') && typeof mammoth !== 'undefined') {
+      const bin = atob(base64Data.split(',')[1] || base64Data);
+      const arr = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      const result = await mammoth.extractRawText({ arrayBuffer: arr.buffer });
+      return (result.value || '').substring(0, 8000);
+    }
+    if (upper === 'TXT') {
+      const bin = atob(base64Data.split(',')[1] || base64Data);
+      return decodeURIComponent(escape(bin)).substring(0, 8000);
+    }
+  } catch (e) { console.warn('Estrazione testo fallita:', e); }
+  return '';
+}
+
 // ─── LOGIN ────────────────────────────────────────────────────────────
 function DJB2(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; } return h.toString(36); }
 function showWelcomeSplash() {
@@ -804,7 +831,9 @@ document.getElementById('btnUploadDoc').onclick = async () => {
     const category = row.querySelector('.file-cat-select')?.value || '';
     const fileData = await readFileAsBase64(file);
     const fileType = file.name.split('.').pop().toUpperCase();
-    await db.collection('textHub').add({ title, category, fileName: file.name, fileType, fileMime: file.type, fileData: fileData || '', extractedText: '', folderId: folderId || '', uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    let extractedText = '';
+    try { extractedText = await extractTextFromBase64(fileData, fileType); } catch(e) {}
+    await db.collection('textHub').add({ title, category, fileName: file.name, fileType, fileMime: file.type, fileData: fileData || '', extractedText: extractedText || '', folderId: folderId || '', uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
     await db.collection('historyHub').add({ name: title, operation: `Caricato Documento (${category || 'nessuna'})`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
     count++;
   }
@@ -1307,7 +1336,12 @@ window.askAI = async () => {
   container.scrollTop = container.scrollHeight;
 
   let contextParts = [];
-  allTextFiles.forEach(d => { contextParts.push(`[DOC: ${d.title}] File: ${d.fileName || 'N/A'} | Cartella: ${d.folderId || 'Nessuna'} | Contenuto:\n${(d.extractedText || 'Vuoto').substring(0, 1500)}`); });
+  for (const d of allTextFiles) {
+    let txt = d.extractedText || '';
+    if (!txt && d.fileData) { txt = await extractTextFromBase64(d.fileData, d.fileType); }
+    if (!txt) txt = '(contenuto non disponibile)';
+    contextParts.push(`[DOC: ${d.title}] File: ${d.fileName || 'N/A'} | Cartella: ${d.folderId || 'Nessuna'} | Contenuto:\n${txt.substring(0, 3000)}`);
+  }
   allExcelFiles.forEach(e => { contextParts.push(`[EXCEL: ${e.name}] Categoria: ${e.category || 'Generale'} | Cartella: ${e.folderId || 'Nessuna'} | Caricato da: ${e.uploadedBy || 'N/A'}`); });
   let contextText = contextParts.join('\n\n');
 
