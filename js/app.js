@@ -1256,6 +1256,20 @@ window.askAI = async () => {
   inputEl.value = '';
   container.scrollTop = container.scrollHeight;
 
+  const keyMatch = queryText.match(/^\/key\s+(.+)/i);
+  if (keyMatch) {
+    const k = keyMatch[1].trim();
+    if (k.startsWith('gsk_') && k.length > 20) {
+      localStorage.setItem('ai_key', k);
+      container.innerHTML += `<div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 p-2.5 rounded-lg text-emerald-800 dark:text-emerald-300 max-w-[90%] text-xs">\u2705 API key salvata. La chat AI è ora attiva!</div>`;
+    } else {
+      container.innerHTML += `<div class="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 p-2.5 rounded-lg text-red-800 dark:text-red-300 max-w-[90%] text-xs">\u274C Formato non valido. La chiave deve iniziare con "gsk_" ed essere una chiave Groq valida.</div>`;
+    }
+    inputEl.disabled = false; sendBtn.disabled = false; inputEl.focus();
+    container.scrollTop = container.scrollHeight;
+    return;
+  }
+
   const dlMatch = queryText.match(/^(?:scarica|download|scaricare)\s+(.+)/i);
   if (dlMatch) {
     const query = dlMatch[1].toLowerCase().trim();
@@ -1328,7 +1342,7 @@ ${contextText}`;
   }
 
   let replyText = '';
-  const groqKey = window.GROQ_API_KEY || '';
+  const groqKey = localStorage.getItem('ai_key') || '';
   if (groqKey) {
     try {
       replyText = await aiFetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -1355,7 +1369,7 @@ ${contextText}`;
   if (!replyText) {
     replyText = groqKey
       ? '\u26A0\uFE0F AI non disponibile al momento. Riprova tra qualche secondo.'
-      : '\u26A0\uFE0F AI non configurata. Per attivarla, inserisci una API key gratuita di Groq in config.js (GROQ_API_KEY).';
+      : '\u26A0\uFE0F AI non configurata. Per attivarla, inserisci la tua API key gratuita di Groq nella chat (manda un messaggio con: /key gsk_xxx).';
   }
 
   document.getElementById(loadingId)?.remove();
