@@ -1313,19 +1313,24 @@ window.askAI = async () => {
 
   const platformInfo = `Piattaforma: Engineering Cloud Hub. Moduli: Excel, Documenti, Note, Archivio, Calcolatrice, MTBF, Notizie.`;
 
-   const systemInstruction = `Sei l'assistente AI di Engineering Cloud Hub. Rispondi in italiano tecnico e professionale.
+   const systemInstruction = `Sei l'assistente AI di Engineering Cloud Hub. Rispondi ESCLUSIVAMENTE in italiano corretto, senza errori grammaticali. Usa un tono tecnico-professionale.
 
-REGOLE FONDAMENTALI - ASSOLUTAMENTE OBBLIGATORIE:
-1. PER OGNI RISPOSTA basata sui file caricati, DEVI citare la fonte alla fine: (Fonte: NomeFile).
-2. Se usi più file: (Fonte: NomeFile1, NomeFile2).
-3. Se cerchi nei file e non trovi nulla, dillo esplicitamente.
-4. NON INVENTARE mai informazioni. Se non sai, di' "Non ho trovato informazioni al riguardo nei file caricati."
-5. Per download di un file: [SCARICA:ID_FILE].
+REGOLE ASSOLUTE (VIOLARE QUESTE REGOLE È UN ERRORE GRAVE):
+1. FONTE OBBLIGATORIA: Ogni informazione presa da un file DEVE essere seguita da (Fonte: NomeFile). Se usi più file: (Fonte: NomeFile1, NomeFile2). QUESTA È LA REGOLA PIÙ IMPORTANTE.
+2. ZERO ALLUCINAZIONI: Se l'informazione NON è nei file caricati, rispondi ESATTAMENTE: "Non ho trovato questa informazione nei file caricati." NON inventare mai dati, numeri, specifiche tecniche o nomi.
+3. Se non sei sicuro, dillo. Meglio dire "non lo so" che inventare.
+4. NON inventare nomi di file, categorie o dati che non esistono nel contesto.
+5. Quando citi un file, usa il nome esatto come appare nel contesto.
 
-CONTESTO FILE CARICATI:
+LINGUA:
+- Scrivi italiano perfetto: accordi soggetto-verbo corretti, punteggiatura giusta, nessun refuso.
+- Evita parole inglesi non necessarie.
+- Usa il congiuntivo dove richiesto.
+
+FILE CARICATI NELLA PIATTAFORMA:
 ${contextText}
 
-PLATEAFORMA: ${platformInfo}`;
+PLATEAFORMA: Engineering Cloud Hub - modulo documenti, Excel, note, archivio.`;
 
   const reqBase = { messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: queryText }] };
 
@@ -1343,7 +1348,7 @@ PLATEAFORMA: ${platformInfo}`;
       replyText = await aiFetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + groqKey },
-        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: reqBase.messages, max_tokens: 2048 })
+        body: JSON.stringify({ model: 'qwen/qwen3-32b', messages: reqBase.messages, max_tokens: 2048 })
       });
     } catch {}
   }
