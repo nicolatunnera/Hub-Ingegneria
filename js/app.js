@@ -60,6 +60,14 @@ window.verifyHubLogin = () => {
       setTimeout(() => { lb.remove(); document.getElementById('hubMainContent').classList.remove('hidden'); document.getElementById('hubFooter')?.classList.remove('hidden'); }, 400);
       btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Accedi';
       setupPermissions();
+      if (role === 'owner') {
+        const ok = localStorage.getItem('ai_key_owner');
+        if (ok) localStorage.setItem('ai_key', ok);
+      } else {
+        db.collection('accountsHub').where('username', '==', u).get().then(snap => {
+          if (!snap.empty && snap.docs[0].data().aiKey) localStorage.setItem('ai_key', snap.docs[0].data().aiKey);
+        });
+      }
     }
     if (u === 'Ing' && p === 'Ing') { login('owner'); return; }
     if (!u || !p) { fail(); return; }
@@ -84,7 +92,10 @@ window.verifyHubLogin = () => {
       window.userRole = 'owner'; window.username = 'Ing';
       showWelcomeSplash();
       const lb = document.getElementById('loginBlocker'); if (lb) lb.style.opacity = '0';
-      setTimeout(() => { if (lb) lb.remove(); document.getElementById('hubMainContent').classList.remove('hidden'); document.getElementById('hubFooter')?.classList.remove('hidden'); setupPermissions(); }, 400);
+      setTimeout(() => { if (lb) lb.remove(); document.getElementById('hubMainContent').classList.remove('hidden'); document.getElementById('hubFooter')?.classList.remove('hidden'); setupPermissions();
+        const ok = localStorage.getItem('ai_key_owner');
+        if (ok) localStorage.setItem('ai_key', ok);
+      }, 400);
     }
   }
 })();
@@ -1261,7 +1272,14 @@ window.askAI = async () => {
     const k = keyMatch[1].trim();
     if (k.startsWith('gsk_') && k.length > 20) {
       localStorage.setItem('ai_key', k);
-      container.innerHTML += `<div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 p-2.5 rounded-lg text-emerald-800 dark:text-emerald-300 max-w-[90%] text-xs">\u2705 API key salvata. La chat AI è ora attiva!</div>`;
+      if (window.username && window.userRole !== 'owner') {
+        db.collection('accountsHub').where('username', '==', window.username).get().then(snap => {
+          if (!snap.empty) snap.docs[0].ref.update({ aiKey: k });
+        });
+      } else if (window.userRole === 'owner') {
+        localStorage.setItem('ai_key_owner', k);
+      }
+      container.innerHTML += `<div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 p-2.5 rounded-lg text-emerald-800 dark:text-emerald-300 max-w-[90%] text-xs">\u2705 API key salvata e associata al tuo account. La chat AI è ora attiva!</div>`;
     } else {
       container.innerHTML += `<div class="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 p-2.5 rounded-lg text-red-800 dark:text-red-300 max-w-[90%] text-xs">\u274C Formato non valido. La chiave deve iniziare con "gsk_" ed essere una chiave Groq valida.</div>`;
     }
