@@ -934,9 +934,17 @@ db.collection('textHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
   s.forEach(d => {
     const data = d.data();
     if (!data.extractedText && data.fileData) {
+      console.log('[AI] Estrazione testo per:', data.title, '| Tipo:', data.fileType, '| fileData lunghezza:', data.fileData.length);
       extractTextFromBase64(data.fileData, data.fileType).then(txt => {
-        if (txt) db.collection('textHub').doc(d.id).update({ extractedText: txt });
-      }).catch(() => {});
+        if (txt) {
+          console.log('[AI] Testo estratto:', txt.length, 'caratteri per', data.title);
+          db.collection('textHub').doc(d.id).update({ extractedText: txt });
+        } else {
+          console.warn('[AI] Testo estratto vuoto per', data.title);
+        }
+      }).catch(e => console.error('[AI] Errore estrazione per', data.title, e));
+    } else if (!data.extractedText && !data.fileData) {
+      console.warn('[AI] NESSUN fileData per:', data.title, '— file non analizzabile');
     }
   });
 });
