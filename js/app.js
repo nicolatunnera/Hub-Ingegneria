@@ -1329,15 +1329,17 @@ ${contextText}`;
 
   let replyText = '';
   try {
-    replyText = await aiFetch('https://text.pollinations.ai/openai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...reqBase, model: 'openai' }) });
+    replyText = await aiFetch('https://text.pollinations.ai/openai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'openai-fast', messages: reqBase.messages })
+    });
   } catch {
     try {
-      replyText = await aiFetch('https://gen.pollinations.ai/v1/chat/completions', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...reqBase, model: 'openai' })
-      });
-    } catch (err2) {
-      replyText = '\u26A0\uFE0F AI non disponibile: ' + err2.message;
+      const urlPrompt = encodeURIComponent((systemInstruction + '\n\nDomanda: ' + queryText).substring(0, 4000));
+      replyText = await aiFetch('https://text.pollinations.ai/' + urlPrompt + '?model=openai-fast', { method: 'GET' });
+    } catch {
+      replyText = '\u26A0\uFE0F AI non disponibile al momento. Il servizio di Pollinations potrebbe essere temporaneamente sovraccarico. Riprova tra qualche secondo.';
     }
   }
 
