@@ -1348,7 +1348,7 @@ PLATEAFORMA: Engineering Cloud Hub - modulo documenti, Excel, note, archivio.`;
       replyText = await aiFetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + groqKey },
-        body: JSON.stringify({ model: 'qwen/qwen3-32b', messages: reqBase.messages, max_tokens: 2048 })
+        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: reqBase.messages, max_tokens: 2048 })
       });
     } catch {}
   }
