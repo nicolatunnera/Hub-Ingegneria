@@ -929,6 +929,7 @@ db.collection('excelHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
 db.collection('textHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
   allTextFiles = [];
   s.forEach(d => allTextFiles.push({ id: d.id, ...d.data(), isExcel: false }));
+  console.log('[AI] textHub caricati:', allTextFiles.length, 'file', allTextFiles.map(f => f.title + ' (extractedText:' + (f.extractedText ? f.extractedText.length : 0) + ', fileData:' + (f.fileData ? f.fileData.length : 0) + ')'));
   updateCountArchive();
   combineAndRenderArchive();
   s.forEach(d => {
