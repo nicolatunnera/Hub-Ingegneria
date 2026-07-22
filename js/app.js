@@ -1307,49 +1307,25 @@ window.askAI = async () => {
   container.scrollTop = container.scrollHeight;
 
   let contextParts = [];
-  allTextFiles.forEach(d => { contextParts.push(`[${d.title}] Tipo: Documento | File: ${d.fileName || 'N/A'} | Contenuto: ${(d.extractedText || 'Vuoto').substring(0, 300)}`); });
-  allExcelFiles.forEach(e => { contextParts.push(`[${e.name}] Tipo: Excel | Categoria: ${e.category || 'Generale'}`); });
-  let contextText = contextParts.join('\n');
+  allTextFiles.forEach(d => { contextParts.push(`[DOC: ${d.title}] File: ${d.fileName || 'N/A'} | Cartella: ${d.folderId || 'Nessuna'} | Contenuto:\n${(d.extractedText || 'Vuoto').substring(0, 1500)}`); });
+  allExcelFiles.forEach(e => { contextParts.push(`[EXCEL: ${e.name}] Categoria: ${e.category || 'Generale'} | Cartella: ${e.folderId || 'Nessuna'} | Caricato da: ${e.uploadedBy || 'N/A'}`); });
+  let contextText = contextParts.join('\n\n');
 
-  const platformInfo = `Piattaforma: Engineering Cloud Hub v3.5.0
-Ruoli utente: owner (proprietario), user (utente registrato), guest (ospite non autenticato)
-Owner: credenziali Ing/Ing, ha accesso totale, gestione utenti, statistiche, elimina cartelle/categorie.
-User: può caricare file, creare cartelle/categorie, modificare il proprio account (nome, password).
-Guest: solo lettura, non può caricare né modificare. Vede pulsante "Crea un Account".
-Moduli disponibili: Excel (fogli di calcolo), Documenti (PDF/DOC/DWG/DXF/TXT), Note Rapide, Archivio, Calcolatrice, MTBF, Notizie, Registro Attività.
-Cartelle: organizzazione files, creabili da chiunque, modificabili/eliminabili solo da owner o creatore.
-Categorie: emoji + nome, assegnabili a file Excel e Documenti, eliminabili solo da owner se vuote.
-Spazio Privato: upload con scadenza 7 giorni, toggle privato attivabile su richiesta.
-Archivio: filtri per tipo/cartella/categoria, cerca per nome, drag&drop file tra cartelle, selezioni multiple, download/eliminazione bulk.
-Assistente AI: questo stesso chatbot, accessibile dal footer, risponde sui file caricati e sul funzionamento della piattaforma.`;
+  const platformInfo = `Piattaforma: Engineering Cloud Hub. Moduli: Excel, Documenti, Note, Archivio, Calcolatrice, MTBF, Notizie.`;
 
-   const systemInstruction = `Sei un assistente AI tecnico-ingegneristico integrato in Engineering Cloud Hub v3.5.0.
+   const systemInstruction = `Sei l'assistente AI di Engineering Cloud Hub. Rispondi in italiano tecnico e professionale.
 
-IDENTITÀ E TONO:
-- Rispondi in italiano tecnico, pulito, professionale.
-- Usa un lessico ingegneristico preciso quando pertinente.
-- Struttura le risposte con paragrafi brevi e, se utile, elenchi puntati nitidi.
-- Non usare codice, markdown grezzo, ID interni o riferimenti tecnici visibili all'utente.
+REGOLE FONDAMENTALI - ASSOLUTAMENTE OBBLIGATORIE:
+1. PER OGNI RISPOSTA basata sui file caricati, DEVI citare la fonte alla fine: (Fonte: NomeFile).
+2. Se usi più file: (Fonte: NomeFile1, NomeFile2).
+3. Se cerchi nei file e non trovi nulla, dillo esplicitamente.
+4. NON INVENTARE mai informazioni. Se non sai, di' "Non ho trovato informazioni al riguardo nei file caricati."
+5. Per download di un file: [SCARICA:ID_FILE].
 
-CONOSCENZA DELLA PIATTAFORMA:
-${platformInfo}
+CONTESTO FILE CARICATI:
+${contextText}
 
-REGOLE DI RISPOSTA:
-1. Per ogni dato preso dai file, cita la fonte così: (Fonte: TitoloFile).
-2. Se usi più file: (Fonte: Titolo1, Titolo2).
-3. Per offrire il download di un file: [SCARICA:ID_FILE].
-4. Se un'informazione non è nei file elencati, dichiara la fonte esterna.
-5. Se non sai o non trovi l'informazione, dillo chiaramente. Non inventare né allucinare.
-6. Quando elenchi file, usa elenchi puntati ordinati, senza grassetti eccessivi.
-7. Non esporre mai ID di Firestore, hash, chiavi, o dati interni.
-
-CONTROLLO ACCESSI:
-- Se un ospite (guest) chiede di caricare, modificare, eliminare file: rispondi che per queste operazioni deve creare un account o autenticarsi.
-- Se un guest chiede dati privati altrui: declina.
-- Se un utente user chiede di gestire altri utenti o vedere statistiche globali: informa che è riservato all'owner.
-
-File disponibili:
-${contextText}`;
+PLATEAFORMA: ${platformInfo}`;
 
   const reqBase = { messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: queryText }] };
 
@@ -1367,7 +1343,7 @@ ${contextText}`;
       replyText = await aiFetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + groqKey },
-        body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: reqBase.messages, max_tokens: 1024 })
+        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: reqBase.messages, max_tokens: 2048 })
       });
     } catch {}
   }
@@ -1375,13 +1351,13 @@ ${contextText}`;
     try {
       replyText = await aiFetch('https://text.pollinations.ai/', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [{ role: 'user', content: systemInstruction.substring(0, 2000) + '\n\nDomanda: ' + queryText }] })
+        body: JSON.stringify({ messages: [{ role: 'user', content: systemInstruction.substring(0, 4000) + '\n\nDomanda: ' + queryText }] })
       });
     } catch {}
   }
   if (!replyText) {
     try {
-      const urlPrompt = encodeURIComponent(systemInstruction.substring(0, 1500) + '\n\nDomanda: ' + queryText).substring(0, 4000);
+      const urlPrompt = encodeURIComponent(systemInstruction.substring(0, 4000) + '\n\nDomanda: ' + queryText).substring(0, 6000);
       replyText = await aiFetch('https://text.pollinations.ai/' + urlPrompt + '?model=openai-fast', { method: 'GET' });
     } catch {}
   }
