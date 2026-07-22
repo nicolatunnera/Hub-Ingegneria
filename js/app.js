@@ -48,6 +48,18 @@ async function extractTextFromBase64(base64Data, fileType) {
       const bin = atob(base64Data.split(',')[1] || base64Data);
       return decodeURIComponent(escape(bin)).substring(0, 8000);
     }
+    if ((upper === 'XLS' || upper === 'XLSX' || upper === 'CSV') && typeof XLSX !== 'undefined') {
+      const bin = atob(base64Data.split(',')[1] || base64Data);
+      const arr = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      const wb = XLSX.read(arr, { type: 'array' });
+      let txt = '';
+      wb.SheetNames.forEach(name => {
+        const ws = wb.Sheets[name];
+        const csv = XLSX.utils.sheet_to_csv(ws);
+        if (csv.trim()) txt += `[Foglio: ${name}]\n${csv}\n\n`;
+      });
+      return txt.substring(0, 8000);
+    }
   } catch (e) { console.warn('Estrazione testo fallita:', e); }
   return '';
 }
@@ -1359,10 +1371,18 @@ window.askAI = async () => {
     if (!txt && d.fileData) {
       try { txt = await extractTextFromBase64(d.fileData, d.fileType); } catch(e) { console.warn('Estrazione fallita per', d.title, e); }
     }
-    if (!txt) txt = '(testo non estratto — file troppo grande o formato non supportato)';
+    if (!txt) txt = '(testo non estratto)';
     contextParts.push(`[DOC: ${d.title}] File: ${d.fileName || 'N/A'} | Tipo: ${d.fileType || 'N/A'} | Contenuto:\n${txt.substring(0, 3000)}`);
   }
-  allExcelFiles.forEach(e => { contextParts.push(`[EXCEL: ${e.name}] Categoria: ${e.category || 'Generale'} | Caricato da: ${e.uploadedBy || 'N/A'}`); });
+  for (const e of allExcelFiles) {
+    let txt = '';
+    if (e.fileData) {
+      try { txt = await extractTextFromBase64(e.fileData, e.fileName ? e.fileName.split('.').pop() : 'xlsx'); } catch(ex) { console.warn('Estrazione Excel fallita per', e.name, ex); }
+    }
+    if (!txt) txt = '(contenuto non estratto)';
+    console.log('[AI] Excel', e.name, ':', txt.length, 'caratteri estratti');
+    contextParts.push(`[EXCEL: ${e.name}] Categoria: ${e.category || 'Generale'} | Contenuto:\n${txt.substring(0, 3000)}`);
+  }
   let contextText = contextParts.join('\n\n');
 
   const platformInfo = `Piattaforma: Engineering Cloud Hub. Moduli: Excel, Documenti, Note, Archivio, Calcolatrice, MTBF, Notizie.`;
