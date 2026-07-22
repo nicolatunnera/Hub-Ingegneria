@@ -923,6 +923,7 @@ function updateCountArchive() {
 db.collection('excelHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
   allExcelFiles = [];
   s.forEach(d => allExcelFiles.push({ id: d.id, ...d.data(), isExcel: true }));
+  console.log('[AI] excelHub caricati:', allExcelFiles.length, 'file', allExcelFiles.map(f => (f.name || f.fileName) + ' (category:' + (f.category || '') + ', fileData:' + (f.fileData ? f.fileData.length : 0) + ')'));
   updateCountArchive();
   combineAndRenderArchive();
 });
