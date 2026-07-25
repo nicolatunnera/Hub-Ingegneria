@@ -1694,13 +1694,25 @@ document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key
     if (e.key === 'Escape') evClose();
   });
 
-  // Touch swipe for mobile file navigation
+  // Touch swipe for mobile file navigation — only at scroll boundaries
   (function() {
-    let sx = 0, sy = 0;
+    let sx = 0, sy = 0, swiping = false;
     const preview = document.getElementById('evMainPreview');
     if (!preview) return;
-    preview.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+    preview.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; swiping = false; }, { passive: true });
+    preview.addEventListener('touchmove', e => {
+      const dx = e.touches[0].clientX - sx;
+      const dy = e.touches[0].clientY - sy;
+      const scrollable = preview.scrollWidth > preview.clientWidth + 2;
+      if (scrollable && Math.abs(dx) > Math.abs(dy)) {
+        const atLeft = preview.scrollLeft <= 0;
+        const atRight = preview.scrollLeft + preview.clientWidth >= preview.scrollWidth - 2;
+        if ((dx > 0 && !atLeft) || (dx < 0 && !atRight)) { swiping = false; return; }
+      }
+      swiping = true;
+    }, { passive: true });
     preview.addEventListener('touchend', e => {
+      if (!swiping) return;
       const dx = e.changedTouches[0].clientX - sx;
       const dy = e.changedTouches[0].clientY - sy;
       if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
