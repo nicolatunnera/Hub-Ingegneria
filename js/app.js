@@ -215,11 +215,15 @@ window.toggleEyeProtection = () => {
   localStorage.setItem('eyeProtect', active ? '1' : '0');
   const label = document.getElementById('eyeProtectLabel');
   if (label) label.textContent = active ? 'Disattiva protezione occhi' : 'Attiva protezione occhi';
+  const icon = document.querySelector('#eyeProtectToggle i');
+  if (icon) { icon.classList.toggle('text-green-500', !active); icon.classList.toggle('text-amber-500', active); }
 };
 if (localStorage.getItem('eyeProtect') === '1') {
   document.documentElement.classList.add('eye-protect');
   const label = document.getElementById('eyeProtectLabel');
   if (label) label.textContent = 'Disattiva protezione occhi';
+  const icon = document.querySelector('#eyeProtectToggle i');
+  if (icon) { icon.classList.remove('text-green-500'); icon.classList.add('text-amber-500'); }
 }
 let isChatCollapsed = true;
 window.toggleChatCollapse = () => {

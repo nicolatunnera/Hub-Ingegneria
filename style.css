@@ -118,18 +118,10 @@ button { cursor: pointer; touch-action: manipulation; }
   #foldersPanel .grid-cols-2 { grid-template-columns: 1fr !important; }
 }
 
-/* ── Eye protection mode: removes blue/cyan tones, shifts to warm amber/green ── */
-html.eye-protect,
-html.eye-protect * {
-  filter: hue-rotate(15deg) saturate(0.85) brightness(0.95) !important;
+/* ── Eye protection mode: warm tone shift ── */
+html.eye-protect body {
+  filter: sepia(0.15) saturate(1.1) brightness(0.92);
 }
-html.eye-protect .ev-bg,
-html.eye-protect .ev-bg::before,
-html.eye-protect .ev-bg::after {
-  filter: none !important;
-}
-html.eye-protect .ev-main-table th,
-html.eye-protect .ev-main-table td {
-  filter: none !important;
-}
+html.eye-protect .ev-bg { filter: none; }
+html.eye-protect .ev-main-table { filter: none; }
 

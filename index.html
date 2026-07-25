@@ -17,7 +17,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20250725" />
+  <link rel="stylesheet" href="style.css?v=20250725b" />
   <link rel="icon" type="image/png" href="icon-192.png?v=20250718" />
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors">
@@ -277,7 +277,7 @@
     <div class="ev-bg absolute inset-0"></div>
     <div class="relative z-10 w-full h-full flex flex-col overflow-hidden">
       <!-- Top bar -->
-      <div class="flex items-center justify-between px-4 py-3 shrink-0 border-b border-cyan-500/10">
+      <div class="flex items-center justify-between px-4 py-3 shrink-0 border-b ev-bottom-bar">
         <div class="flex items-center gap-3">
           <button onclick="evBackToSelect()" class="ev-pill-btn"><i class="fas fa-arrow-left mr-1"></i><span data-i18n="evBack">Indietro</span></button>
           <span id="evMainTitle" class="text-sm font-bold text-white truncate max-w-[40vw]"></span>
@@ -293,8 +293,8 @@
       <!-- Main preview -->
       <div id="evMainPreview" class="flex-1 overflow-auto p-4 sm:p-6 flex items-start justify-center"></div>
       <!-- Bottom thumbnail strip -->
-      <div class="shrink-0 border-t border-cyan-500/10 bg-black/40 backdrop-blur-sm">
-        <div id="evThumbs" class="flex gap-2 p-3 overflow-x-auto"></div>
+      <div class="shrink-0 border-t ev-bottom-bar backdrop-blur-sm">
+        <div id="evThumbs" class="flex justify-center gap-2 p-3 overflow-x-auto"></div>
       </div>
     </div>
   </div>
@@ -302,7 +302,7 @@
   <!-- STEP 3: WISHLIST PANEL -->
   <div id="evWishlistPanel" class="fixed inset-y-0 right-0 z-[60] hidden w-80 max-w-[90vw]">
     <div class="ev-bg absolute inset-0"></div>
-    <div class="relative z-10 h-full flex flex-col p-4 border-l border-cyan-500/10">
+    <div class="relative z-10 h-full flex flex-col p-4 border-l ev-bottom-bar">
       <div class="flex items-center justify-between mb-4 shrink-0">
         <h2 class="ev-title text-sm"><i class="fas fa-heart mr-2 text-pink-400"></i><span data-i18n="evWishlist">Preferiti</span></h2>
         <button onclick="evCloseWishlist()" class="p-1 hover:bg-white/10 rounded text-gray-400 hover:text-white transition"><i class="fas fa-times"></i></button>
@@ -316,80 +316,140 @@
   </div>
 
   <style>
-    /* ── Global viewer background ── */
-    .ev-bg { background: radial-gradient(ellipse at 50% 0%, rgba(6,182,212,0.1) 0%, rgba(0,0,0,0.97) 60%); backdrop-filter: blur(16px); }
-    .ev-bg::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(34,211,238,0.015) 2px, rgba(34,211,238,0.015) 4px); pointer-events: none; }
+    /* ═══ THEME VARIABLES ═══ */
+    :root {
+      --ev-bg: rgba(0,0,0,0.97); --ev-bg2: rgba(6,182,212,0.1);
+      --ev-scan: rgba(34,211,238,0.15); --ev-scan2: rgba(34,211,238,0.015);
+      --ev-t: #e2e8f0; --ev-t2: #94a3b8; --ev-t3: #64748b;
+      --ev-card: rgba(15,23,42,0.7); --ev-card-b: rgba(34,211,238,0.08);
+      --ev-tbl: rgba(10,15,30,0.8); --ev-tbl-b: rgba(34,211,238,0.12);
+      --ev-th-bg: rgba(34,211,238,0.06); --ev-th: #67e8f9; --ev-td: #94a3b8;
+      --ev-even: rgba(255,255,255,0.01); --ev-hover: rgba(34,211,238,0.04);
+      --ev-thumb: rgba(10,15,30,0.7); --ev-thumb-b: rgba(34,211,238,0.08);
+      --ev-wish: rgba(15,23,42,0.6); --ev-wish-b: rgba(139,92,246,0.12);
+      --ev-wish-t: #e2e8f0; --ev-wish-r: #475569;
+      --ev-pill: rgba(255,255,255,0.05); --ev-pill-b: rgba(148,163,184,0.2); --ev-pill-t: #94a3b8;
+      --ev-bar: rgba(0,0,0,0.4); --ev-counter: #64748b;
+      --ev-close-bg: hover; --ev-close-t: #9ca3af; --ev-close-hover: white;
+    }
+    :root:not(.dark) {
+      --ev-bg: rgba(243,244,246,0.98); --ev-bg2: rgba(6,182,212,0.05);
+      --ev-scan: rgba(34,211,238,0.06); --ev-scan2: rgba(34,211,238,0.008);
+      --ev-t: #0f172a; --ev-t2: #334155; --ev-t3: #64748b;
+      --ev-card: rgba(255,255,255,0.92); --ev-card-b: rgba(34,211,238,0.2);
+      --ev-tbl: rgba(255,255,255,0.95); --ev-tbl-b: rgba(34,211,238,0.18);
+      --ev-th-bg: rgba(6,182,212,0.1); --ev-th: #0891b2; --ev-td: #1e293b;
+      --ev-even: rgba(0,0,0,0.02); --ev-hover: rgba(6,182,212,0.06);
+      --ev-thumb: rgba(255,255,255,0.92); --ev-thumb-b: rgba(34,211,238,0.15);
+      --ev-wish: rgba(255,255,255,0.88); --ev-wish-b: rgba(139,92,246,0.2);
+      --ev-wish-t: #1e293b; --ev-wish-r: #94a3b8;
+      --ev-pill: rgba(0,0,0,0.04); --ev-pill-b: rgba(148,163,184,0.3); --ev-pill-t: #475569;
+      --ev-bar: rgba(255,255,255,0.85); --ev-counter: #64748b;
+      --ev-close-t: #64748b; --ev-close-hover: #0f172a;
+    }
 
-    /* ── Animated scanline overlay ── */
+    /* ═══ OVERRIDE TAILWIND CLASSES IN VIEWER SCOPE ═══ */
+    /* Fix hardcoded text-white / text-gray-* inside viewer */
+    #evSelectModal .ev-title, #evSelectModal .ev-pill-btn,
+    #evViewerModal .ev-title, #evViewerModal .ev-pill-btn,
+    #evWishlistPanel .ev-title, #evWishlistPanel .ev-pill-btn { color: var(--ev-pill-t) !important; }
+    #evSelectModal .ev-title, #evViewerModal .ev-title, #evWishlistPanel .ev-title { color: var(--ev-t) !important; }
+    #evSelectModal .text-gray-500, #evViewerModal .text-gray-500, #evWishlistPanel .text-gray-500 { color: var(--ev-t3) !important; }
+    #evSelectModal .text-gray-400, #evViewerModal .text-gray-400, #evWishlistPanel .text-gray-400 { color: var(--ev-t3) !important; }
+    #evViewerModal .text-white { color: var(--ev-t) !important; }
+    #evWishlistPanel .text-gray-400:hover, #evViewerModal .text-gray-400:hover { color: var(--ev-close-hover) !important; }
+    #evMainTitle { color: var(--ev-t) !important; }
+    #evCounter { color: var(--ev-counter) !important; }
+    #evSelectCount { color: var(--ev-t3) !important; }
+    /* Bottom bar & borders */
+    .ev-bottom-bar { background: var(--ev-bar) !important; border-color: var(--ev-tbl-b) !important; border-style: solid !important; }
+    #evWishlistPanel > div:nth-child(2) { border-color: var(--ev-tbl-b) !important; }
+
+    /* ═══ BACKGROUND ═══ */
+    .ev-bg { background: radial-gradient(ellipse at 50% 0%, var(--ev-bg2) 0%, var(--ev-bg) 60%); backdrop-filter: blur(16px); }
+    .ev-bg::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--ev-scan2) 2px, var(--ev-scan2) 4px); pointer-events: none; }
     @keyframes evScanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100vh); } }
-    .ev-bg::after { content: ''; position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(34,211,238,0.15), transparent); animation: evScanline 8s linear infinite; pointer-events: none; z-index: 1; }
+    .ev-bg::after { content: ''; position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--ev-scan), transparent); animation: evScanline 8s linear infinite; pointer-events: none; z-index: 1; }
 
-    /* ── Buttons ── */
-    .ev-title { font-size: 0.875rem; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 0.5rem; }
-    .ev-pill-btn { padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.6875rem; font-weight: 600; color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); background: rgba(255,255,255,0.05); cursor: pointer; transition: all 0.25s ease; backdrop-filter: blur(8px); }
-    .ev-pill-btn:hover { color: #22d3ee; border-color: rgba(34,211,238,0.5); background: rgba(34,211,238,0.1); box-shadow: 0 0 12px rgba(34,211,238,0.15); transform: translateY(-1px); }
-    .ev-primary-btn { padding: 0.625rem 1.75rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 700; color: #0e1117; background: linear-gradient(135deg, #22d3ee, #06b6d4); cursor: pointer; transition: all 0.3s ease; border: none; position: relative; overflow: hidden; }
+    /* ═══ BUTTONS ═══ */
+    .ev-title { font-size: 0.875rem; font-weight: 700; color: var(--ev-t); display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s; }
+    .ev-pill-btn { padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.6875rem; font-weight: 600; color: var(--ev-pill-t); border: 1px solid var(--ev-pill-b); background: var(--ev-pill); cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); backdrop-filter: blur(8px); }
+    .ev-pill-btn:hover { color: #0891b2; border-color: rgba(34,211,238,0.5); background: rgba(34,211,238,0.1); box-shadow: 0 0 14px rgba(34,211,238,0.2); transform: translateY(-2px) scale(1.02); }
+    .ev-primary-btn { padding: 0.625rem 1.75rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 700; color: #0e1117; background: linear-gradient(135deg, #22d3ee, #06b6d4); cursor: pointer; transition: all 0.35s cubic-bezier(0.4,0,0.2,1); border: none; position: relative; overflow: hidden; }
     .ev-primary-btn::before { content: ''; position: absolute; inset: -2px; background: linear-gradient(135deg, #22d3ee, #8b5cf6, #22d3ee); border-radius: inherit; z-index: -1; opacity: 0; transition: opacity 0.3s; }
-    .ev-primary-btn:hover { box-shadow: 0 0 30px rgba(34,211,238,0.4), 0 0 60px rgba(34,211,238,0.1); transform: translateY(-2px); }
+    .ev-primary-btn:hover { box-shadow: 0 0 30px rgba(34,211,238,0.5), 0 0 60px rgba(34,211,238,0.15); transform: translateY(-3px) scale(1.03); }
     .ev-primary-btn:hover::before { opacity: 1; }
+    .ev-primary-btn:active { transform: translateY(0) scale(0.98); }
 
-    /* ── Selection cards ── */
-    @keyframes evFadeIn { from { opacity: 0; transform: translateY(12px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-    .ev-sel-card { position: relative; background: rgba(15,23,42,0.7); border: 1px solid rgba(34,211,238,0.08); border-radius: 0.75rem; padding: 1rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); overflow: hidden; animation: evFadeIn 0.4s ease both; backdrop-filter: blur(8px); }
-    .ev-sel-card:nth-child(1) { animation-delay: 0.02s; } .ev-sel-card:nth-child(2) { animation-delay: 0.04s; } .ev-sel-card:nth-child(3) { animation-delay: 0.06s; } .ev-sel-card:nth-child(4) { animation-delay: 0.08s; }
-    .ev-sel-card:nth-child(5) { animation-delay: 0.10s; } .ev-sel-card:nth-child(6) { animation-delay: 0.12s; } .ev-sel-card:nth-child(7) { animation-delay: 0.14s; } .ev-sel-card:nth-child(8) { animation-delay: 0.16s; }
-    .ev-sel-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 0%, rgba(34,211,238,0.06) 0%, transparent 70%); opacity: 0; transition: opacity 0.3s; }
-    .ev-sel-card:hover { border-color: rgba(34,211,238,0.3); transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+    /* ═══ SELECTION CARDS ═══ */
+    @keyframes evFadeIn { from { opacity: 0; transform: translateY(16px) scale(0.94); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .ev-sel-card { position: relative; background: var(--ev-card); border: 1px solid var(--ev-card-b); border-radius: 0.75rem; padding: 1rem; cursor: pointer; transition: all 0.35s cubic-bezier(0.4,0,0.2,1); overflow: hidden; animation: evFadeIn 0.45s ease both; backdrop-filter: blur(8px); }
+    .ev-sel-card:nth-child(1) { animation-delay: 0.03s; } .ev-sel-card:nth-child(2) { animation-delay: 0.06s; } .ev-sel-card:nth-child(3) { animation-delay: 0.09s; } .ev-sel-card:nth-child(4) { animation-delay: 0.12s; }
+    .ev-sel-card:nth-child(5) { animation-delay: 0.15s; } .ev-sel-card:nth-child(6) { animation-delay: 0.18s; } .ev-sel-card:nth-child(7) { animation-delay: 0.21s; } .ev-sel-card:nth-child(8) { animation-delay: 0.24s; }
+    .ev-sel-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 0%, rgba(34,211,238,0.08) 0%, transparent 70%); opacity: 0; transition: opacity 0.35s; }
+    .ev-sel-card:hover { border-color: rgba(34,211,238,0.35); transform: translateY(-4px) scale(1.01); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
     .ev-sel-card:hover::before { opacity: 1; }
-    .ev-sel-card.selected { border-color: rgba(34,211,238,0.5); background: rgba(34,211,238,0.08); box-shadow: 0 0 20px rgba(34,211,238,0.1), inset 0 0 30px rgba(34,211,238,0.03); }
-    .ev-sel-card.selected::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; top: 0.5rem; right: 0.5rem; width: 1.375rem; height: 1.375rem; border-radius: 50%; background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #0e1117; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; box-shadow: 0 0 10px rgba(34,211,238,0.4); animation: evPop 0.3s ease; }
-    @keyframes evPop { 0% { transform: scale(0); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
-    .ev-sel-icon { margin-bottom: 0.5rem; }
-    .ev-sel-name { font-size: 0.75rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .ev-sel-meta { font-size: 0.625rem; color: #64748b; margin-top: 0.25rem; }
+    .ev-sel-card.selected { border-color: rgba(34,211,238,0.6); background: rgba(34,211,238,0.08); box-shadow: 0 0 24px rgba(34,211,238,0.12), inset 0 0 30px rgba(34,211,238,0.03); }
+    .ev-sel-card.selected::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; top: 0.5rem; right: 0.5rem; width: 1.375rem; height: 1.375rem; border-radius: 50%; background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #0e1117; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; box-shadow: 0 0 12px rgba(34,211,238,0.5); animation: evPop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes evPop { 0% { transform: scale(0) rotate(-30deg); } 60% { transform: scale(1.25) rotate(5deg); } 100% { transform: scale(1) rotate(0); } }
+    .ev-sel-icon { margin-bottom: 0.5rem; transition: transform 0.3s; }
+    .ev-sel-card:hover .ev-sel-icon { transform: scale(1.12) rotate(-3deg); }
+    .ev-sel-name { font-size: 0.75rem; font-weight: 700; color: var(--ev-t); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s; }
+    .ev-sel-meta { font-size: 0.625rem; color: var(--ev-t3); margin-top: 0.25rem; transition: color 0.3s; }
 
-    /* ── Main preview ── */
-    @keyframes evSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    #evMainPreview { animation: evSlideUp 0.5s ease; }
-    .ev-main-table { width: 100%; max-width: 920px; border-collapse: separate; border-spacing: 0; font-size: 0.6875rem; font-family: 'JetBrains Mono', 'Fira Code', monospace; background: rgba(10,15,30,0.8); border-radius: 0.75rem; overflow: hidden; border: 1px solid rgba(34,211,238,0.12); box-shadow: 0 4px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(34,211,238,0.08); }
-    .ev-main-table th { background: rgba(34,211,238,0.06); color: #67e8f9; padding: 0.625rem 0.875rem; text-align: left; border-bottom: 1px solid rgba(34,211,238,0.12); position: sticky; top: 0; font-weight: 600; z-index: 2; letter-spacing: 0.03em; text-transform: uppercase; font-size: 0.6rem; }
-    .ev-main-table td { padding: 0.4375rem 0.875rem; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.025); white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; transition: all 0.15s; }
-    .ev-main-table tbody tr { transition: background 0.15s; }
-    .ev-main-table tbody tr:hover td { background: rgba(34,211,238,0.04); color: #e2e8f0; }
-    .ev-main-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.01); }
-    .ev-main-table tbody tr:nth-child(even):hover td { background: rgba(34,211,238,0.05); }
-    .ev-sheet-label { font-size: 0.6875rem; color: #22d3ee; font-weight: 700; margin-bottom: 0.625rem; display: flex; align-items: center; gap: 0.5rem; padding-bottom: 0.375rem; border-bottom: 1px solid rgba(34,211,238,0.1); }
+    /* ═══ MAIN PREVIEW ═══ */
+    @keyframes evSlideUp { from { opacity: 0; transform: translateY(24px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    #evMainPreview { animation: evSlideUp 0.55s cubic-bezier(0.4,0,0.2,1); }
+    .ev-main-table { width: 100%; max-width: 920px; border-collapse: separate; border-spacing: 0; font-size: 0.6875rem; font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--ev-tbl); border-radius: 0.75rem; overflow: hidden; border: 1px solid var(--ev-tbl-b); box-shadow: 0 4px 30px rgba(0,0,0,0.1); transition: background 0.4s, border-color 0.4s; }
+    .ev-main-table th { background: var(--ev-th-bg); color: var(--ev-th); padding: 0.625rem 0.875rem; text-align: left; border-bottom: 1px solid var(--ev-tbl-b); position: sticky; top: 0; font-weight: 600; z-index: 2; letter-spacing: 0.03em; text-transform: uppercase; font-size: 0.6rem; transition: background 0.4s, color 0.4s; }
+    .ev-main-table td { padding: 0.4375rem 0.875rem; color: var(--ev-td); border-bottom: 1px solid rgba(128,128,128,0.06); white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; transition: all 0.2s; }
+    .ev-main-table tbody tr { transition: background 0.2s, transform 0.2s; }
+    .ev-main-table tbody tr:hover td { background: var(--ev-hover); color: var(--ev-t); transform: scale(1.005); }
+    .ev-main-table tbody tr:nth-child(even) td { background: var(--ev-even); }
+    .ev-main-table tbody tr:nth-child(even):hover td { background: var(--ev-hover); }
+    @keyframes evRowIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+    .ev-main-table tbody tr { animation: evRowIn 0.3s ease both; }
+    .ev-main-table tbody tr:nth-child(1) { animation-delay: 0.02s; }
+    .ev-main-table tbody tr:nth-child(2) { animation-delay: 0.04s; }
+    .ev-main-table tbody tr:nth-child(3) { animation-delay: 0.06s; }
+    .ev-main-table tbody tr:nth-child(4) { animation-delay: 0.08s; }
+    .ev-main-table tbody tr:nth-child(5) { animation-delay: 0.10s; }
+    .ev-sheet-label { font-size: 0.6875rem; color: #0891b2; font-weight: 700; margin-bottom: 0.625rem; display: flex; align-items: center; gap: 0.5rem; padding-bottom: 0.375rem; border-bottom: 1px solid var(--ev-tbl-b); transition: color 0.4s, border-color 0.4s; }
+    @keyframes evShimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    .ev-sheet-label { background: linear-gradient(90deg, transparent 30%, rgba(34,211,238,0.08) 50%, transparent 70%); background-size: 200% 100%; animation: evShimmer 3s ease-in-out infinite; }
     .ev-sheet-label i { animation: evPulseIcon 2s ease-in-out infinite; }
-    @keyframes evPulseIcon { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; text-shadow: 0 0 6px rgba(34,211,238,0.5); } }
+    @keyframes evPulseIcon { 0%, 100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.15); text-shadow: 0 0 8px rgba(34,211,238,0.6); } }
 
-    /* ── Thumbnails ── */
-    @keyframes evThumbIn { from { opacity: 0; transform: scale(0.85) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-    .ev-thumb { flex-shrink: 0; width: 130px; padding: 0.625rem 0.5rem; border-radius: 0.625rem; background: rgba(10,15,30,0.7); border: 1px solid rgba(34,211,238,0.08); cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); text-align: center; animation: evThumbIn 0.4s ease both; position: relative; overflow: hidden; }
-    .ev-thumb::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(34,211,238,0.04) 0%, transparent 50%); opacity: 0; transition: opacity 0.3s; }
-    .ev-thumb:hover { border-color: rgba(34,211,238,0.3); transform: translateY(-4px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+    /* ═══ THUMBNAILS ═══ */
+    @keyframes evThumbIn { from { opacity: 0; transform: scale(0.8) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .ev-thumb { flex-shrink: 0; width: 130px; padding: 0.625rem 0.5rem; border-radius: 0.625rem; background: var(--ev-thumb); border: 1px solid var(--ev-thumb-b); cursor: pointer; transition: all 0.35s cubic-bezier(0.4,0,0.2,1); text-align: center; animation: evThumbIn 0.4s ease both; position: relative; overflow: hidden; }
+    .ev-thumb::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(34,211,238,0.05) 0%, transparent 50%); opacity: 0; transition: opacity 0.35s; }
+    .ev-thumb:hover { border-color: rgba(34,211,238,0.4); transform: translateY(-6px) scale(1.04); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
     .ev-thumb:hover::before { opacity: 1; }
-    .ev-thumb.active { border-color: rgba(34,211,238,0.6); background: rgba(34,211,238,0.08); box-shadow: 0 0 20px rgba(34,211,238,0.15), 0 0 40px rgba(34,211,238,0.05); transform: translateY(-4px) scale(1.05); }
+    .ev-thumb.active { border-color: rgba(34,211,238,0.7); background: rgba(34,211,238,0.1); box-shadow: 0 0 24px rgba(34,211,238,0.2), 0 0 48px rgba(34,211,238,0.06); transform: translateY(-6px) scale(1.08); }
     .ev-thumb.active::before { opacity: 1; }
-    .ev-thumb.active::after { content: ''; position: absolute; bottom: 0; left: 15%; right: 15%; height: 2px; background: linear-gradient(90deg, transparent, #22d3ee, transparent); border-radius: 1px; }
-    .ev-thumb-name { font-size: 0.5625rem; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.375rem; transition: color 0.2s; font-weight: 500; }
-    .ev-thumb.active .ev-thumb-name { color: #22d3ee; font-weight: 700; }
-    .ev-thumb-icon { transition: filter 0.2s, transform 0.3s; display: flex; justify-content: center; }
-    .ev-thumb:hover .ev-thumb-icon { transform: scale(1.1); }
+    .ev-thumb.active::after { content: ''; position: absolute; bottom: 0; left: 15%; right: 15%; height: 2px; background: linear-gradient(90deg, transparent, #22d3ee, transparent); border-radius: 1px; animation: evGlow 2s ease-in-out infinite; }
+    @keyframes evGlow { 0%,100% { opacity: 0.5; box-shadow: 0 0 4px rgba(34,211,238,0.3); } 50% { opacity: 1; box-shadow: 0 0 10px rgba(34,211,238,0.6); } }
+    .ev-thumb-name { font-size: 0.5625rem; color: var(--ev-t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.375rem; transition: color 0.3s, font-weight 0.3s; font-weight: 500; }
+    .ev-thumb.active .ev-thumb-name { color: #0891b2; font-weight: 700; }
+    .ev-thumb-icon { transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), filter 0.3s; display: flex; justify-content: center; }
+    .ev-thumb:hover .ev-thumb-icon { transform: scale(1.15) rotate(-5deg); }
+    .ev-thumb.active .ev-thumb-icon { transform: scale(1.1); }
 
-    /* ── Custom scrollbars ── */
+    /* ═══ SCROLLBARS ═══ */
     .ev-bg ::-webkit-scrollbar { width: 5px; height: 5px; }
-    .ev-bg ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 3px; }
+    .ev-bg ::-webkit-scrollbar-track { background: rgba(128,128,128,0.1); border-radius: 3px; }
     .ev-bg ::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.25); border-radius: 3px; transition: background 0.2s; }
-    .ev-bg ::-webkit-scrollbar-thumb:hover { background: rgba(34,211,238,0.45); }
+    .ev-bg ::-webkit-scrollbar-thumb:hover { background: rgba(34,211,238,0.5); }
     #evMainPreview::-webkit-scrollbar { width: 6px; }
-    #evThumbs { scrollbar-width: thin; scrollbar-color: rgba(34,211,238,0.25) rgba(0,0,0,0.2); }
+    #evThumbs { scrollbar-width: thin; scrollbar-color: rgba(34,211,238,0.25) rgba(128,128,128,0.1); }
 
-    /* ── Wishlist ── */
-    .ev-wish-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.625rem; background: rgba(15,23,42,0.6); border: 1px solid rgba(139,92,246,0.12); border-radius: 0.5rem; transition: all 0.25s; animation: evFadeIn 0.3s ease both; backdrop-filter: blur(6px); }
-    .ev-wish-item:hover { border-color: rgba(139,92,246,0.3); background: rgba(139,92,246,0.06); }
-    .ev-wish-name { font-size: 0.6875rem; color: #e2e8f0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .ev-wish-remove { color: #475569; cursor: pointer; transition: all 0.2s; padding: 0.25rem; border-radius: 0.25rem; }
-    .ev-wish-remove:hover { color: #f43f5e; background: rgba(244,63,94,0.1); }
+    /* ═══ WISHLIST ═══ */
+    .ev-wish-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.625rem; background: var(--ev-wish); border: 1px solid var(--ev-wish-b); border-radius: 0.5rem; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); animation: evFadeIn 0.35s ease both; backdrop-filter: blur(6px); }
+    .ev-wish-item:hover { border-color: rgba(139,92,246,0.35); background: rgba(139,92,246,0.08); transform: translateX(-4px); }
+    .ev-wish-name { font-size: 0.6875rem; color: var(--ev-wish-t); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s; }
+    .ev-wish-remove { color: var(--ev-wish-r); cursor: pointer; transition: all 0.25s; padding: 0.25rem; border-radius: 0.25rem; }
+    .ev-wish-remove:hover { color: #f43f5e; background: rgba(244,63,94,0.12); transform: scale(1.2) rotate(90deg); }
   </style>
   <!-- ═══════ END EXCEL VIEWER ═══════ -->
 
@@ -703,7 +763,7 @@
       </div>
     </div>
   </div>
-  <div id="chat-expanded" class="fixed bottom-20 right-4 w-80 sm:w-96 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col z-40 hidden transition-all duration-300">
+  <div id="chat-expanded" class="fixed bottom-20 right-4 w-80 sm:w-96 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col z-[55] hidden transition-all duration-300">
     <div onclick="toggleChatCollapse()" class="bg-gradient-to-r from-blue-600 to-blue-800 p-3 flex justify-between items-center cursor-pointer border-b border-blue-700 select-none">
       <div class="flex items-center gap-2">
         <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
@@ -725,7 +785,7 @@
       </div>
     </div>
   </div>
-  <button id="chat-fab" onclick="toggleChatCollapse()" class="fixed bottom-28 right-4 w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-700 hover:from-blue-500 hover:to-purple-600 rounded-full shadow-2xl border-2 border-white/20 flex items-center justify-center text-2xl cursor-pointer transition-all duration-300 z-40">🤖</button>
+  <button id="chat-fab" onclick="toggleChatCollapse()" class="fixed bottom-28 right-4 w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-700 hover:from-blue-500 hover:to-purple-600 rounded-full shadow-2xl border-2 border-white/20 flex items-center justify-center text-2xl cursor-pointer transition-all duration-300 z-[55]">🤖</button>
 
 
   <!-- SIDEBAR -->
@@ -759,7 +819,7 @@
       </div>
       <div class="sidebar-section mb-3">
         <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5"><span data-i18n="evEyeProtection">Protezione Occhi</span></p>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="eyeProtectToggle" onclick="toggleEyeProtection()"><i class="fas fa-eye text-green-500 w-4"></i><span id="eyeProtectLabel">Disattiva protezione occhi</span></button>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="eyeProtectToggle" onclick="toggleEyeProtection()"><i class="fas fa-eye text-green-500 w-4"></i><span id="eyeProtectLabel">Attiva protezione occhi</span></button>
       </div>
       <div class="sidebar-section mb-3">
         <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5"><span data-i18n="info">Informazioni</span></p>
@@ -996,7 +1056,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-  <script src="js/config.js?v=20250725a"></script>
-  <script src="js/app.js?v=20250725a"></script>
+  <script src="js/config.js?v=20250725b"></script>
+  <script src="js/app.js?v=20250725b"></script>
 </body>
 </html>
