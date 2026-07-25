@@ -60,7 +60,11 @@ window.i18n = {
     calcDimLabel:"Diametro (mm)", calcDim2Label:"Altezza (mm)",
     mtbfDesc:"<b>MTBF</b> (Mean Time Between Failures) &egrave; l'intervallo medio tra due guasti consecutivi. Si calcola come:<br><b>MTBF = Ore totali / Numero Guasti</b>",
     mtbfYearsLabel:"MTBF (anni)",
-    mtbfDetails:"<p><b>MTBF</b> = T / n = ore totali / guasti</p><p><b>&lambda;</b> (Failure Rate) = 1 / MTBF = n / T</p><p><b>R(t)</b> = e<sup>-&lambda;t</sup> (affidabilit&agrave; esponenziale)</p><p><b>MTTR</b> = Tempo medio di riparazione (da inserire separatamente)</p><p><b>Disponibilit&agrave;</b> A = MTBF / (MTBF + MTTR)</p><p class='text-gray-400 italic mt-1'>I valori sono indicativi e presuppongono una distribuzione esponenziale dei guasti (modello &agrave; tasso costante).</p>"
+    mtbfDetails:"<p><b>MTBF</b> = T / n = ore totali / guasti</p><p><b>&lambda;</b> (Failure Rate) = 1 / MTBF = n / T</p><p><b>R(t)</b> = e<sup>-&lambda;t</sup> (affidabilit&agrave; esponenziale)</p><p><b>MTTR</b> = Tempo medio di riparazione (da inserire separatamente)</p><p><b>Disponibilit&agrave;</b> A = MTBF / (MTBF + MTTR)</p><p class='text-gray-400 italic mt-1'>I valori sono indicativi e presuppongono una distribuzione esponenziale dei guasti (modello &agrave; tasso costante).</p>",
+    evSelectTitle:"Seleziona file da visualizzare", evSelectAll:"Tutti", evView:"Visualizza", evSelected:"selezionati",
+    evBack:"Indietro", evWishlist:"Preferiti", evWishEmpty:"Nessun file preferito.", evDownloadAll:"Scarica tutti",
+    evClearWish:"Svuota", evEmpty:"Nessun file Excel caricato.", evSheet:"Foglio", evSheets:"fogli",
+    evSheetEmpty:"Foglio vuoto", evNoPreview:"Anteprima non disponibile", evEyeProtection:"Protezione Occhi"
   },
   en: {
     hubName:"Engineering Cloud Hub", search:"Search", calcTitle:"Calculator", newsTitle:"News",
@@ -111,6 +115,10 @@ window.i18n = {
     calcDimLabel:"Diameter (mm)", calcDim2Label:"Height (mm)",
     mtbfDesc:"<b>MTBF</b> (Mean Time Between Failures) is the average time between two consecutive failures. Calculated as:<br><b>MTBF = Total hours / Number of Failures</b>",
     mtbfYearsLabel:"MTBF (years)",
-    mtbfDetails:"<p><b>MTBF</b> = T / n = total hours / failures</p><p><b>&lambda;</b> (Failure Rate) = 1 / MTBF = n / T</p><p><b>R(t)</b> = e<sup>-&lambda;t</sup> (exponential reliability)</p><p><b>MTTR</b> = Mean Time To Repair (insert separately)</p><p><b>Availability</b> A = MTBF / (MTBF + MTTR)</p><p class='text-gray-400 italic mt-1'>Values are indicative and assume an exponential failure distribution (constant rate model).</p>"
+    mtbfDetails:"<p><b>MTBF</b> = T / n = total hours / failures</p><p><b>&lambda;</b> (Failure Rate) = 1 / MTBF = n / T</p><p><b>R(t)</b> = e<sup>-&lambda;t</sup> (exponential reliability)</p><p><b>MTTR</b> = Mean Time To Repair (insert separately)</p><p><b>Availability</b> A = MTBF / (MTBF + MTTR)</p><p class='text-gray-400 italic mt-1'>Values are indicative and assume an exponential failure distribution (constant rate model).</p>",
+    evSelectTitle:"Select files to view", evSelectAll:"All", evView:"View", evSelected:"selected",
+    evBack:"Back", evWishlist:"Favorites", evWishEmpty:"No favorite files.", evDownloadAll:"Download all",
+    evClearWish:"Clear", evEmpty:"No Excel files uploaded.", evSheet:"Sheet", evSheets:"sheets",
+    evSheetEmpty:"Empty sheet", evNoPreview:"Preview not available", evEyeProtection:"Eye Protection"
   }
 };

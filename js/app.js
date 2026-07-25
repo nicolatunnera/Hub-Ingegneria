@@ -208,6 +208,19 @@ window.toggleNewsSidebar = () => document.getElementById('newsModal')?.classList
 document.getElementById('newsBtn')?.addEventListener('click', () => window.toggleNewsSidebar());
 window.toggleTheme = () => document.documentElement.classList.toggle('dark');
 document.getElementById('themeToggle')?.addEventListener('click', () => window.toggleTheme());
+
+window.toggleEyeProtection = () => {
+  document.documentElement.classList.toggle('eye-protect');
+  const active = document.documentElement.classList.contains('eye-protect');
+  localStorage.setItem('eyeProtect', active ? '1' : '0');
+  const label = document.getElementById('eyeProtectLabel');
+  if (label) label.textContent = active ? 'Disattiva protezione occhi' : 'Attiva protezione occhi';
+};
+if (localStorage.getItem('eyeProtect') === '1') {
+  document.documentElement.classList.add('eye-protect');
+  const label = document.getElementById('eyeProtectLabel');
+  if (label) label.textContent = 'Disattiva protezione occhi';
+}
 let isChatCollapsed = true;
 window.toggleChatCollapse = () => {
   isChatCollapsed = !isChatCollapsed;
@@ -785,6 +798,7 @@ function fileIcon(ext) {
   return icons[ext.toLowerCase()] || '📁';
 }
 function triggerFileInput(containerId) {
+  event?.stopPropagation();
   if (containerId === 'excelFileList') document.getElementById('excelFile')?.click();
   else if (containerId === 'docFileList') document.getElementById('docFile')?.click();
 }
@@ -812,11 +826,18 @@ function renderFileList(containerId, files) {
         <div class="text-[10px] text-gray-400 dark:text-gray-500 font-medium mt-1.5 mb-0.5">Categoria</div>
         <select class="file-cat-select w-full px-2 sm:px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition">${catOpts}</select>
       </div>
-      <button onclick="removeFileFromStore('${containerId}', ${i})" class="text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg p-1.5 shrink-0 self-start transition text-sm">✕</button>
+      <button onclick="event.stopPropagation(); removeFileFromStore('${containerId}', ${i})" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white hover:bg-red-500 dark:hover:bg-red-600 rounded-lg shrink-0 self-center transition text-sm font-bold" title="Rimuovi file">✕</button>
     </div>`;
   }
-  html += `<button onclick="triggerFileInput('${containerId}')" class="w-full mt-2 py-2 text-xs border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-400 hover:text-blue-500 hover:border-blue-400 transition flex items-center justify-center gap-1.5 bg-gray-50/50 dark:bg-gray-800/30"><i class="fas fa-plus-circle"></i> Aggiungi altri file</button>`;
+  html += `<div class="flex gap-2 mt-2">
+    <button onclick="triggerFileInput('${containerId}')" class="flex-1 py-2 text-xs border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-400 hover:text-blue-500 hover:border-blue-400 transition flex items-center justify-center gap-1.5 bg-gray-50/50 dark:bg-gray-800/30"><i class="fas fa-plus-circle"></i> Aggiungi altri file</button>
+    <button onclick="clearFileStore('${containerId}')" class="px-3 py-2 text-xs border-2 border-dashed border-red-200 dark:border-red-800 rounded-xl text-red-400 hover:text-white hover:bg-red-500 hover:border-red-400 transition flex items-center gap-1.5 bg-gray-50/50 dark:bg-gray-800/30"><i class="fas fa-trash"></i> Svuota</button>
+  </div>`;
   container.innerHTML = html;
+}
+function clearFileStore(containerId) {
+  _fileStore[containerId] = [];
+  renderFileList(containerId, _fileStore[containerId]);
 }
 document.getElementById('excelFile')?.addEventListener('change', function() { /* handled by setupDropzone */ });
 document.getElementById('docFile')?.addEventListener('change', function() { /* handled by setupDropzone */ });
@@ -1540,12 +1561,12 @@ document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key
     const grid = document.getElementById('evSelectGrid');
     if (!grid) return;
     const files = allExcelFiles.filter(f => isPrivateVisible(f));
-    if (!files.length) { grid.innerHTML = '<div class="col-span-full text-center text-gray-500 text-sm py-12">Nessun file Excel caricato.</div>'; }
+    if (!files.length) { grid.innerHTML = `<div class="col-span-full text-center text-gray-500 text-sm py-12">${(window.i18n[window.currentLang]||window.i18n.it).evEmpty}</div>`; }
     else {
       grid.innerHTML = files.map(f => {
         const folder = f.folderId ? getFolder(f.folderId) : null;
         return `<div class="ev-sel-card" data-id="${escapeHtml(f.id)}" onclick="evToggleSelect('${escapeHtml(f.id)}')">
-          <div class="ev-sel-icon">📊</div>
+          <div class="ev-sel-icon"><img src="icon-192.png" alt="" class="w-8 h-8 rounded-md" /></div>
           <div class="ev-sel-name">${escapeHtml(f.name || 'File Excel')}</div>
           <div class="ev-sel-meta">${f.category || 'Generale'}${folder ? ' · ' + escapeHtml(folder.name) : ''}</div>
         </div>`;
@@ -1574,12 +1595,13 @@ document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key
 
   function evUpdateSelectCount() {
     const el = document.getElementById('evSelectCount');
-    if (el) el.textContent = selectedIds.size + ' selezionati';
+    const t = (window.i18n[window.currentLang]||window.i18n.it);
+    if (el) el.textContent = selectedIds.size + ' ' + t.evSelected;
   }
 
   // ── Open full viewer ──
   window.evOpenViewer = function() {
-    if (!selectedIds.size) { showToast('Seleziona almeno un file.', 'error'); return; }
+    if (!selectedIds.size) { showToast((window.i18n[window.currentLang]||window.i18n.it).evView + ': select at least one file.', 'error'); return; }
     viewFiles = allExcelFiles.filter(f => selectedIds.has(f.id)).map(parseExcel);
     currentIndex = 0;
     document.getElementById('evSelectModal')?.classList.add('hidden');
@@ -1606,6 +1628,7 @@ document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key
     const el = document.getElementById('evMainPreview');
     const titleEl = document.getElementById('evMainTitle');
     const counterEl = document.getElementById('evCounter');
+    const t = (window.i18n[window.currentLang]||window.i18n.it);
     if (!el || !viewFiles.length) return;
     const f = viewFiles[currentIndex];
     if (titleEl) titleEl.textContent = f.name || 'File Excel';
@@ -1625,12 +1648,12 @@ document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key
           }
           html += '</tbody></table>';
         } else {
-          html += '<div class="text-xs text-gray-600 italic py-4">Foglio vuoto</div>';
+          html += `<div class="text-xs text-gray-600 italic py-4">${t.evSheetEmpty}</div>`;
         }
         html += '</div>';
       });
     } else {
-      html = '<div class="text-sm text-gray-600 italic py-12">Anteprima non disponibile</div>';
+      html = `<div class="text-sm text-gray-600 italic py-12">${t.evNoPreview}</div>`;
     }
     el.innerHTML = html;
     evUpdateWishlistBtn();
@@ -1641,7 +1664,7 @@ document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key
     if (!el) return;
     el.innerHTML = viewFiles.map((f, i) =>
       `<div class="ev-thumb${i === currentIndex ? ' active' : ''}" onclick="evGoTo(${i})">
-        <div class="ev-thumb-icon">📊</div>
+        <div class="ev-thumb-icon"><img src="icon-192.png" alt="" class="w-6 h-6 rounded-sm" /></div>
         <div class="ev-thumb-name">${escapeHtml(f.name || 'File')}</div>
       </div>`
     ).join('');
@@ -1698,10 +1721,10 @@ document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key
     const countEl = document.getElementById('evWishCount');
     if (!el) return;
     if (countEl) countEl.textContent = wishlist.length;
-    if (!wishlist.length) { el.innerHTML = '<div class="text-center text-gray-600 text-xs py-8">Nessun file preferito.</div>'; return; }
+    if (!wishlist.length) { el.innerHTML = `<div class="text-center text-gray-600 text-xs py-8">${(window.i18n[window.currentLang]||window.i18n.it).evWishEmpty}</div>`; return; }
     el.innerHTML = wishlist.map((w, i) =>
       `<div class="ev-wish-item">
-        <span class="text-sm">📊</span>
+        <img src="icon-192.png" alt="" class="w-5 h-5 rounded-sm shrink-0" />
         <span class="ev-wish-name">${escapeHtml(w.name)}</span>
         <i class="fas fa-times ev-wish-remove" onclick="evRemoveWish(${i})"></i>
       </div>`

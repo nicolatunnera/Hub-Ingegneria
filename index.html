@@ -17,7 +17,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20250722" />
+  <link rel="stylesheet" href="style.css?v=20250725" />
   <link rel="icon" type="image/png" href="icon-192.png?v=20250718" />
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors">
@@ -258,16 +258,16 @@
     <div class="ev-bg absolute inset-0"></div>
     <div class="relative z-10 w-full h-full flex flex-col p-4 sm:p-6 overflow-hidden">
       <div class="flex items-center justify-between mb-4 shrink-0">
-        <h2 class="ev-title"><span class="text-2xl">📊</span> Seleziona file da visualizzare</h2>
+        <h2 class="ev-title"><span class="text-2xl">📊</span> <span data-i18n="evSelectTitle">Seleziona file da visualizzare</span></h2>
         <div class="flex items-center gap-2">
-          <button onclick="evSelectAll()" class="ev-pill-btn"><i class="fas fa-check-double mr-1"></i>Tutti</button>
+          <button onclick="evSelectAll()" class="ev-pill-btn"><i class="fas fa-check-double mr-1"></i><span data-i18n="evSelectAll">Tutti</span></button>
           <button onclick="evClose()" class="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition"><i class="fas fa-times"></i></button>
         </div>
       </div>
       <div id="evSelectGrid" class="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 auto-rows-min content-start pr-1"></div>
       <div class="shrink-0 mt-4 flex items-center justify-between">
         <span id="evSelectCount" class="text-xs text-gray-500 font-mono">0 selezionati</span>
-        <button onclick="evOpenViewer()" class="ev-primary-btn"><i class="fas fa-play mr-2"></i>Visualizza</button>
+        <button onclick="evOpenViewer()" class="ev-primary-btn"><i class="fas fa-play mr-2"></i><span data-i18n="evView">Visualizza</span></button>
       </div>
     </div>
   </div>
@@ -277,9 +277,9 @@
     <div class="ev-bg absolute inset-0"></div>
     <div class="relative z-10 w-full h-full flex flex-col overflow-hidden">
       <!-- Top bar -->
-      <div class="flex items-center justify-between px-4 py-3 shrink-0 border-b border-cyan-500/10">
+      <div class="flex items-center justify-between px-4 py-3 shrink-0 border-b border-gray-200/10 dark:border-gray-200/10">
         <div class="flex items-center gap-3">
-          <button onclick="evBackToSelect()" class="ev-pill-btn"><i class="fas fa-arrow-left mr-1"></i>Indietro</button>
+          <button onclick="evBackToSelect()" class="ev-pill-btn"><i class="fas fa-arrow-left mr-1"></i><span data-i18n="evBack">Indietro</span></button>
           <span id="evMainTitle" class="text-sm font-bold text-white truncate max-w-[40vw]"></span>
         </div>
         <div class="flex items-center gap-2">
@@ -293,8 +293,8 @@
       <!-- Main preview -->
       <div id="evMainPreview" class="flex-1 overflow-auto p-4 sm:p-6 flex items-start justify-center"></div>
       <!-- Bottom thumbnail strip -->
-      <div class="shrink-0 border-t border-cyan-500/10 bg-black/40 backdrop-blur-sm">
-        <div id="evThumbs" class="flex gap-2 p-3 overflow-x-auto"></div>
+      <div class="shrink-0 border-t border-gray-200/10 dark:border-gray-200/10 ev-bottom-bar backdrop-blur-sm">
+        <div id="evThumbs" class="flex justify-center items-center gap-0 p-3 overflow-x-auto"></div>
       </div>
     </div>
   </div>
@@ -302,32 +302,67 @@
   <!-- STEP 3: WISHLIST PANEL -->
   <div id="evWishlistPanel" class="fixed inset-y-0 right-0 z-[60] hidden w-80 max-w-[90vw]">
     <div class="ev-bg absolute inset-0"></div>
-    <div class="relative z-10 h-full flex flex-col p-4 border-l border-cyan-500/10">
+    <div class="relative z-10 h-full flex flex-col p-4 border-l border-gray-200/10 dark:border-gray-200/10">
       <div class="flex items-center justify-between mb-4 shrink-0">
-        <h2 class="ev-title text-sm"><i class="fas fa-heart mr-2 text-pink-400"></i>Preferiti</h2>
+        <h2 class="ev-title text-sm"><i class="fas fa-heart mr-2 text-pink-400"></i><span data-i18n="evWishlist">Preferiti</span></h2>
         <button onclick="evCloseWishlist()" class="p-1 hover:bg-white/10 rounded text-gray-400 hover:text-white transition"><i class="fas fa-times"></i></button>
       </div>
       <div id="evWishlistItems" class="flex-1 overflow-y-auto space-y-2"></div>
       <div class="shrink-0 mt-3 space-y-2">
-        <button onclick="evDownloadWishlist()" class="ev-primary-btn w-full text-center"><i class="fas fa-download mr-1"></i>Scarica tutti (<span id="evWishCount">0</span>)</button>
-        <button onclick="evClearWishlist()" class="ev-pill-btn w-full text-center text-red-400"><i class="fas fa-trash mr-1"></i>Svuota</button>
+        <button onclick="evDownloadWishlist()" class="ev-primary-btn w-full text-center"><i class="fas fa-download mr-1"></i><span data-i18n="evDownloadAll">Scarica tutti</span> (<span id="evWishCount">0</span>)</button>
+        <button onclick="evClearWishlist()" class="ev-pill-btn w-full text-center text-red-400"><i class="fas fa-trash mr-1"></i><span data-i18n="evClearWish">Svuota</span></button>
       </div>
     </div>
   </div>
 
   <style>
+    /* ── Theme variables for viewer ── */
+    :root {
+      --ev-bg-base: rgba(0,0,0,0.97); --ev-bg-gradient: rgba(6,182,212,0.1);
+      --ev-scanline: rgba(34,211,238,0.15); --ev-scanline2: rgba(34,211,238,0.015);
+      --ev-title: #e2e8f0; --ev-text: #94a3b8; --ev-meta: #64748b;
+      --ev-card-bg: rgba(15,23,42,0.7); --ev-card-border: rgba(34,211,238,0.08);
+      --ev-table-bg: rgba(10,15,30,0.8); --ev-table-border: rgba(34,211,238,0.12);
+      --ev-table-th-bg: rgba(34,211,238,0.06); --ev-table-th: #67e8f9; --ev-table-td: #94a3b8;
+      --ev-table-row-even: rgba(255,255,255,0.01); --ev-table-hover: rgba(34,211,238,0.04);
+      --ev-thumb-bg: rgba(10,15,30,0.7); --ev-thumb-border: rgba(34,211,238,0.08);
+      --ev-wish-bg: rgba(15,23,42,0.6); --ev-wish-border: rgba(139,92,246,0.12);
+      --ev-wish-hover-bg: rgba(139,92,246,0.06); --ev-wish-text: #e2e8f0;
+      --ev-wish-remove: #475569; --ev-pill-bg: rgba(255,255,255,0.05); --ev-pill-border: rgba(148,163,184,0.2);
+      --ev-pill-text: #94a3b8; --ev-cyan: #22d3ee; --ev-scrollbar-track: rgba(0,0,0,0.2);
+      --ev-bottom-bg: rgba(0,0,0,0.4); --ev-counter: #64748b;
+    }
+    :root.dark {
+      --ev-bg-base: rgba(0,0,0,0.97); --ev-bg-gradient: rgba(6,182,212,0.1);
+    }
+    :root:not(.dark) {
+      --ev-bg-base: rgba(243,244,246,0.98); --ev-bg-gradient: rgba(6,182,212,0.06);
+      --ev-scanline: rgba(34,211,238,0.08); --ev-scanline2: rgba(34,211,238,0.01);
+      --ev-title: #1e293b; --ev-text: #475569; --ev-meta: #94a3b8;
+      --ev-card-bg: rgba(255,255,255,0.9); --ev-card-border: rgba(34,211,238,0.15);
+      --ev-table-bg: rgba(255,255,255,0.95); --ev-table-border: rgba(34,211,238,0.15);
+      --ev-table-th-bg: rgba(6,182,212,0.08); --ev-table-th: #0891b2; --ev-table-td: #334155;
+      --ev-table-row-even: rgba(0,0,0,0.015); --ev-table-hover: rgba(6,182,212,0.06);
+      --ev-thumb-bg: rgba(255,255,255,0.9); --ev-thumb-border: rgba(34,211,238,0.12);
+      --ev-wish-bg: rgba(255,255,255,0.85); --ev-wish-border: rgba(139,92,246,0.2);
+      --ev-wish-hover-bg: rgba(139,92,246,0.08); --ev-wish-text: #1e293b;
+      --ev-wish-remove: #94a3b8; --ev-pill-bg: rgba(0,0,0,0.04); --ev-pill-border: rgba(148,163,184,0.3);
+      --ev-pill-text: #475569; --ev-scrollbar-track: rgba(0,0,0,0.06);
+      --ev-bottom-bg: rgba(255,255,255,0.8); --ev-counter: #94a3b8;
+    }
+
     /* ── Global viewer background ── */
-    .ev-bg { background: radial-gradient(ellipse at 50% 0%, rgba(6,182,212,0.1) 0%, rgba(0,0,0,0.97) 60%); backdrop-filter: blur(16px); }
-    .ev-bg::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(34,211,238,0.015) 2px, rgba(34,211,238,0.015) 4px); pointer-events: none; }
+    .ev-bg { background: radial-gradient(ellipse at 50% 0%, var(--ev-bg-gradient) 0%, var(--ev-bg-base) 60%); backdrop-filter: blur(16px); }
+    .ev-bg::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--ev-scanline2) 2px, var(--ev-scanline2) 4px); pointer-events: none; }
 
     /* ── Animated scanline overlay ── */
     @keyframes evScanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100vh); } }
-    .ev-bg::after { content: ''; position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(34,211,238,0.15), transparent); animation: evScanline 8s linear infinite; pointer-events: none; z-index: 1; }
+    .ev-bg::after { content: ''; position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--ev-scanline), transparent); animation: evScanline 8s linear infinite; pointer-events: none; z-index: 1; }
 
     /* ── Buttons ── */
-    .ev-title { font-size: 0.875rem; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 0.5rem; }
-    .ev-pill-btn { padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.6875rem; font-weight: 600; color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); background: rgba(255,255,255,0.05); cursor: pointer; transition: all 0.25s ease; backdrop-filter: blur(8px); }
-    .ev-pill-btn:hover { color: #22d3ee; border-color: rgba(34,211,238,0.5); background: rgba(34,211,238,0.1); box-shadow: 0 0 12px rgba(34,211,238,0.15); transform: translateY(-1px); }
+    .ev-title { font-size: 0.875rem; font-weight: 700; color: var(--ev-title); display: flex; align-items: center; gap: 0.5rem; }
+    .ev-pill-btn { padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.6875rem; font-weight: 600; color: var(--ev-pill-text); border: 1px solid var(--ev-pill-border); background: var(--ev-pill-bg); cursor: pointer; transition: all 0.25s ease; backdrop-filter: blur(8px); }
+    .ev-pill-btn:hover { color: #0891b2; border-color: rgba(34,211,238,0.5); background: rgba(34,211,238,0.1); box-shadow: 0 0 12px rgba(34,211,238,0.15); transform: translateY(-1px); }
     .ev-primary-btn { padding: 0.625rem 1.75rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 700; color: #0e1117; background: linear-gradient(135deg, #22d3ee, #06b6d4); cursor: pointer; transition: all 0.3s ease; border: none; position: relative; overflow: hidden; }
     .ev-primary-btn::before { content: ''; position: absolute; inset: -2px; background: linear-gradient(135deg, #22d3ee, #8b5cf6, #22d3ee); border-radius: inherit; z-index: -1; opacity: 0; transition: opacity 0.3s; }
     .ev-primary-btn:hover { box-shadow: 0 0 30px rgba(34,211,238,0.4), 0 0 60px rgba(34,211,238,0.1); transform: translateY(-2px); }
@@ -335,61 +370,67 @@
 
     /* ── Selection cards ── */
     @keyframes evFadeIn { from { opacity: 0; transform: translateY(12px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-    .ev-sel-card { position: relative; background: rgba(15,23,42,0.7); border: 1px solid rgba(34,211,238,0.08); border-radius: 0.75rem; padding: 1rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); overflow: hidden; animation: evFadeIn 0.4s ease both; backdrop-filter: blur(8px); }
+    .ev-sel-card { position: relative; background: var(--ev-card-bg); border: 1px solid var(--ev-card-border); border-radius: 0.75rem; padding: 1rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); overflow: hidden; animation: evFadeIn 0.4s ease both; backdrop-filter: blur(8px); }
     .ev-sel-card:nth-child(1) { animation-delay: 0.02s; } .ev-sel-card:nth-child(2) { animation-delay: 0.04s; } .ev-sel-card:nth-child(3) { animation-delay: 0.06s; } .ev-sel-card:nth-child(4) { animation-delay: 0.08s; }
     .ev-sel-card:nth-child(5) { animation-delay: 0.10s; } .ev-sel-card:nth-child(6) { animation-delay: 0.12s; } .ev-sel-card:nth-child(7) { animation-delay: 0.14s; } .ev-sel-card:nth-child(8) { animation-delay: 0.16s; }
     .ev-sel-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 0%, rgba(34,211,238,0.06) 0%, transparent 70%); opacity: 0; transition: opacity 0.3s; }
-    .ev-sel-card:hover { border-color: rgba(34,211,238,0.3); transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+    .ev-sel-card:hover { border-color: rgba(34,211,238,0.3); transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
     .ev-sel-card:hover::before { opacity: 1; }
     .ev-sel-card.selected { border-color: rgba(34,211,238,0.5); background: rgba(34,211,238,0.08); box-shadow: 0 0 20px rgba(34,211,238,0.1), inset 0 0 30px rgba(34,211,238,0.03); }
     .ev-sel-card.selected::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; top: 0.5rem; right: 0.5rem; width: 1.375rem; height: 1.375rem; border-radius: 50%; background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #0e1117; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; box-shadow: 0 0 10px rgba(34,211,238,0.4); animation: evPop 0.3s ease; }
     @keyframes evPop { 0% { transform: scale(0); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
-    .ev-sel-icon { font-size: 1.75rem; margin-bottom: 0.5rem; filter: drop-shadow(0 0 6px rgba(34,211,238,0.3)); }
-    .ev-sel-name { font-size: 0.75rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .ev-sel-meta { font-size: 0.625rem; color: #64748b; margin-top: 0.25rem; }
+    .ev-sel-icon { margin-bottom: 0.5rem; }
+    .ev-sel-name { font-size: 0.75rem; font-weight: 700; color: var(--ev-title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ev-sel-meta { font-size: 0.625rem; color: var(--ev-meta); margin-top: 0.25rem; }
 
     /* ── Main preview ── */
     @keyframes evSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     #evMainPreview { animation: evSlideUp 0.5s ease; }
-    .ev-main-table { width: 100%; max-width: 920px; border-collapse: separate; border-spacing: 0; font-size: 0.6875rem; font-family: 'JetBrains Mono', 'Fira Code', monospace; background: rgba(10,15,30,0.8); border-radius: 0.75rem; overflow: hidden; border: 1px solid rgba(34,211,238,0.12); box-shadow: 0 4px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(34,211,238,0.08); }
-    .ev-main-table th { background: rgba(34,211,238,0.06); color: #67e8f9; padding: 0.625rem 0.875rem; text-align: left; border-bottom: 1px solid rgba(34,211,238,0.12); position: sticky; top: 0; font-weight: 600; z-index: 2; letter-spacing: 0.03em; text-transform: uppercase; font-size: 0.6rem; }
-    .ev-main-table td { padding: 0.4375rem 0.875rem; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.025); white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; transition: all 0.15s; }
+    .ev-main-table { width: 100%; max-width: 920px; border-collapse: separate; border-spacing: 0; font-size: 0.6875rem; font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--ev-table-bg); border-radius: 0.75rem; overflow: hidden; border: 1px solid var(--ev-table-border); box-shadow: 0 4px 30px rgba(0,0,0,0.08); }
+    .ev-main-table th { background: var(--ev-table-th-bg); color: var(--ev-table-th); padding: 0.625rem 0.875rem; text-align: left; border-bottom: 1px solid var(--ev-table-border); position: sticky; top: 0; font-weight: 600; z-index: 2; letter-spacing: 0.03em; text-transform: uppercase; font-size: 0.6rem; }
+    .ev-main-table td { padding: 0.4375rem 0.875rem; color: var(--ev-table-td); border-bottom: 1px solid rgba(0,0,0,0.03); white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; transition: all 0.15s; }
     .ev-main-table tbody tr { transition: background 0.15s; }
-    .ev-main-table tbody tr:hover td { background: rgba(34,211,238,0.04); color: #e2e8f0; }
-    .ev-main-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.01); }
-    .ev-main-table tbody tr:nth-child(even):hover td { background: rgba(34,211,238,0.05); }
-    .ev-sheet-label { font-size: 0.6875rem; color: #22d3ee; font-weight: 700; margin-bottom: 0.625rem; display: flex; align-items: center; gap: 0.5rem; padding-bottom: 0.375rem; border-bottom: 1px solid rgba(34,211,238,0.1); }
+    .ev-main-table tbody tr:hover td { background: var(--ev-table-hover); color: var(--ev-title); }
+    .ev-main-table tbody tr:nth-child(even) td { background: var(--ev-table-row-even); }
+    .ev-main-table tbody tr:nth-child(even):hover td { background: var(--ev-table-hover); }
+    .ev-sheet-label { font-size: 0.6875rem; color: #0891b2; font-weight: 700; margin-bottom: 0.625rem; display: flex; align-items: center; gap: 0.5rem; padding-bottom: 0.375rem; border-bottom: 1px solid var(--ev-table-border); }
     .ev-sheet-label i { animation: evPulseIcon 2s ease-in-out infinite; }
     @keyframes evPulseIcon { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; text-shadow: 0 0 6px rgba(34,211,238,0.5); } }
 
     /* ── Thumbnails ── */
     @keyframes evThumbIn { from { opacity: 0; transform: scale(0.85) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-    .ev-thumb { flex-shrink: 0; width: 130px; padding: 0.625rem 0.5rem; border-radius: 0.625rem; background: rgba(10,15,30,0.7); border: 1px solid rgba(34,211,238,0.08); cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); text-align: center; animation: evThumbIn 0.4s ease both; position: relative; overflow: hidden; }
+    .ev-thumb { flex-shrink: 0; width: 130px; padding: 0.625rem 0.5rem; border-radius: 0.625rem; background: var(--ev-thumb-bg); border: 1px solid var(--ev-thumb-border); cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); text-align: center; animation: evThumbIn 0.4s ease both; position: relative; overflow: hidden; margin: 0 -6px; opacity: 0.7; transform: scale(0.92); }
     .ev-thumb::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(34,211,238,0.04) 0%, transparent 50%); opacity: 0; transition: opacity 0.3s; }
-    .ev-thumb:hover { border-color: rgba(34,211,238,0.3); transform: translateY(-4px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+    .ev-thumb:hover { border-color: rgba(34,211,238,0.3); transform: translateY(-4px) scale(1); box-shadow: 0 6px 20px rgba(0,0,0,0.1); opacity: 1; }
     .ev-thumb:hover::before { opacity: 1; }
-    .ev-thumb.active { border-color: rgba(34,211,238,0.6); background: rgba(34,211,238,0.08); box-shadow: 0 0 20px rgba(34,211,238,0.15), 0 0 40px rgba(34,211,238,0.05); transform: translateY(-4px) scale(1.05); }
+    .ev-thumb.active { border-color: rgba(34,211,238,0.6); background: rgba(34,211,238,0.08); box-shadow: 0 0 20px rgba(34,211,238,0.15), 0 0 40px rgba(34,211,238,0.05); transform: translateY(-4px) scale(1.08); opacity: 1; z-index: 2; }
     .ev-thumb.active::before { opacity: 1; }
     .ev-thumb.active::after { content: ''; position: absolute; bottom: 0; left: 15%; right: 15%; height: 2px; background: linear-gradient(90deg, transparent, #22d3ee, transparent); border-radius: 1px; }
-    .ev-thumb-name { font-size: 0.5625rem; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.375rem; transition: color 0.2s; font-weight: 500; }
-    .ev-thumb.active .ev-thumb-name { color: #22d3ee; font-weight: 700; }
-    .ev-thumb-icon { font-size: 1.375rem; filter: drop-shadow(0 0 4px rgba(34,211,238,0.2)); transition: filter 0.2s, transform 0.3s; }
-    .ev-thumb:hover .ev-thumb-icon { transform: scale(1.1); filter: drop-shadow(0 0 8px rgba(34,211,238,0.4)); }
-    .ev-thumb.active .ev-thumb-icon { filter: drop-shadow(0 0 10px rgba(34,211,238,0.5)); }
+    .ev-thumb-name { font-size: 0.5625rem; color: var(--ev-meta); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.375rem; transition: color 0.2s; font-weight: 500; }
+    .ev-thumb.active .ev-thumb-name { color: #0891b2; font-weight: 700; }
+    .ev-thumb-icon { transition: filter 0.2s, transform 0.3s; display: flex; justify-content: center; }
+    .ev-thumb:hover .ev-thumb-icon { transform: scale(1.1); }
+    .ev-thumb.active .ev-thumb-icon { }
 
     /* ── Custom scrollbars ── */
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.25); border-radius: 3px; transition: background 0.2s; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(34,211,238,0.45); }
+    .ev-bg ::-webkit-scrollbar { width: 5px; height: 5px; }
+    .ev-bg ::-webkit-scrollbar-track { background: var(--ev-scrollbar-track); border-radius: 3px; }
+    .ev-bg ::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.25); border-radius: 3px; transition: background 0.2s; }
+    .ev-bg ::-webkit-scrollbar-thumb:hover { background: rgba(34,211,238,0.45); }
     #evMainPreview::-webkit-scrollbar { width: 6px; }
-    #evThumbs { scrollbar-width: thin; scrollbar-color: rgba(34,211,238,0.25) rgba(0,0,0,0.2); }
+    #evThumbs { scrollbar-width: thin; scrollbar-color: rgba(34,211,238,0.25) var(--ev-scrollbar-track); }
+
+    /* ── Bottom bar ── */
+    .ev-bottom-bar { background: var(--ev-bottom-bg); }
+
+    /* ── Counter ── */
+    #evCounter { color: var(--ev-counter); }
 
     /* ── Wishlist ── */
-    .ev-wish-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.625rem; background: rgba(15,23,42,0.6); border: 1px solid rgba(139,92,246,0.12); border-radius: 0.5rem; transition: all 0.25s; animation: evFadeIn 0.3s ease both; backdrop-filter: blur(6px); }
-    .ev-wish-item:hover { border-color: rgba(139,92,246,0.3); background: rgba(139,92,246,0.06); }
-    .ev-wish-name { font-size: 0.6875rem; color: #e2e8f0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .ev-wish-remove { color: #475569; cursor: pointer; transition: all 0.2s; padding: 0.25rem; border-radius: 0.25rem; }
+    .ev-wish-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.625rem; background: var(--ev-wish-bg); border: 1px solid var(--ev-wish-border); border-radius: 0.5rem; transition: all 0.25s; animation: evFadeIn 0.3s ease both; backdrop-filter: blur(6px); }
+    .ev-wish-item:hover { border-color: rgba(139,92,246,0.3); background: var(--ev-wish-hover-bg); }
+    .ev-wish-name { font-size: 0.6875rem; color: var(--ev-wish-text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ev-wish-remove { color: var(--ev-wish-remove); cursor: pointer; transition: all 0.2s; padding: 0.25rem; border-radius: 0.25rem; }
     .ev-wish-remove:hover { color: #f43f5e; background: rgba(244,63,94,0.1); }
   </style>
   <!-- ═══════ END EXCEL VIEWER ═══════ -->
@@ -759,6 +800,10 @@
         </div>
       </div>
       <div class="sidebar-section mb-3">
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5"><span data-i18n="evEyeProtection">Protezione Occhi</span></p>
+        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="eyeProtectToggle" onclick="toggleEyeProtection()"><i class="fas fa-eye text-green-500 w-4"></i><span id="eyeProtectLabel">Disattiva protezione occhi</span></button>
+      </div>
+      <div class="sidebar-section mb-3">
         <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5"><span data-i18n="info">Informazioni</span></p>
         <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openStatsModal()"><i class="fas fa-chart-bar text-purple-500 w-4"></i><span data-i18n="cloudStats">Statistiche Cloud</span></button>
         <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="hubInfoToggle" onclick="toggleHubInfo()"><i class="fas fa-info-circle text-cyan-500 w-4"></i><span data-i18n="hubInfo">Info Hub</span></button>
@@ -812,7 +857,7 @@
         <span class="ev-viewer-pulse"></span>
         <i class="fas fa-chart-bar text-sm"></i>
         <span>Excel Viewer</span>
-        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-white/15 text-white font-bold border border-white/20 font-mono ml-1" id="countExcelViewer">0</span>
+        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-800 dark:bg-white/15 text-white dark:text-white border border-gray-600 dark:border-white/20 font-bold font-mono ml-1" id="countExcelViewer">0</span>
       </button>
     </div>
   </main>
@@ -993,7 +1038,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-  <script src="js/config.js?v=20250722c"></script>
-  <script src="js/app.js?v=20250722c"></script>
+  <script src="js/config.js?v=20250725a"></script>
+  <script src="js/app.js?v=20250725a"></script>
 </body>
 </html>
