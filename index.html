@@ -277,13 +277,16 @@
     </div>
   </div>
   <style>
+    .ev-viewer-trigger { position: relative; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.25rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; color: #67e8f9; background: rgba(15,23,42,0.8); border: 1px solid rgba(34,211,238,0.25); cursor: pointer; transition: all 0.3s; letter-spacing: 0.05em; text-transform: uppercase; }
+    .ev-viewer-trigger:hover { border-color: rgba(34,211,238,0.6); background: rgba(34,211,238,0.1); box-shadow: 0 0 20px rgba(34,211,238,0.15); }
+    .ev-viewer-pulse { position: absolute; left: 0.75rem; width: 6px; height: 6px; border-radius: 50%; background: #22d3ee; animation: evPulse 2s infinite; }
+    @keyframes evPulse { 0%, 100% { opacity: 1; box-shadow: 0 0 4px #22d3ee; } 50% { opacity: 0.4; box-shadow: 0 0 8px #22d3ee; } }
     #excelViewerModal .ev-nav-btn { padding: 0.5rem 0.75rem; border-radius: 0.5rem; color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); background: rgba(255,255,255,0.05); transition: all 0.2s; cursor: pointer; }
     #excelViewerModal .ev-nav-btn:hover { color: #22d3ee; border-color: rgba(34,211,238,0.4); background: rgba(34,211,238,0.1); }
-    .ev-card { position: absolute; width: min(420px, 85vw); background: rgba(15,23,42,0.85); border: 1px solid rgba(34,211,238,0.15); border-radius: 1rem; backdrop-filter: blur(20px); transition: all 0.5s cubic-bezier(0.4,0,0.2,1); cursor: pointer; overflow: hidden; }
-    .ev-card.active { opacity: 1; transform: translateX(0) scale(1); z-index: 10; border-color: rgba(34,211,238,0.4); box-shadow: 0 0 40px rgba(34,211,238,0.15), 0 0 80px rgba(34,211,238,0.05); }
-    .ev-card.prev { opacity: 0.3; transform: translateX(-110%) scale(0.85); z-index: 5; }
-    .ev-card.next { opacity: 0.3; transform: translateX(110%) scale(0.85); z-index: 5; }
-    .ev-card.hidden-card { opacity: 0; transform: translateX(0) scale(0.7); z-index: 1; pointer-events: none; }
+    .ev-card { position: absolute; left: 50%; top: 50%; width: min(420px, 85vw); background: rgba(15,23,42,0.85); border: 1px solid rgba(34,211,238,0.15); border-radius: 1rem; backdrop-filter: blur(20px); transition: all 0.4s cubic-bezier(0.4,0,0.2,1); cursor: pointer; overflow: hidden; max-height: 80vh; }
+    .ev-card.active { opacity: 1; transform: translate(-50%, -50%) scale(1); z-index: 10; border-color: rgba(34,211,238,0.4); box-shadow: 0 0 40px rgba(34,211,238,0.15), 0 0 80px rgba(34,211,238,0.05); }
+    .ev-card.prev { opacity: 0; transform: translate(-160%, -50%) scale(0.8); z-index: 5; pointer-events: none; }
+    .ev-card.next { opacity: 0; transform: translate(60%, -50%) scale(0.8); z-index: 5; pointer-events: none; }
     .ev-card-header { padding: 1rem 1.25rem 0.75rem; border-bottom: 1px solid rgba(34,211,238,0.1); }
     .ev-card-title { font-size: 0.875rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ev-card-meta { display: flex; gap: 0.5rem; margin-top: 0.375rem; flex-wrap: wrap; }
@@ -291,7 +294,7 @@
     .ev-tag-excel { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
     .ev-tag-cat { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
     .ev-tag-folder { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
-    .ev-card-preview { padding: 0.75rem 1rem; max-height: 220px; overflow-y: auto; }
+    .ev-card-preview { padding: 0.75rem 1rem; max-height: 260px; overflow-y: auto; }
     .ev-card-preview table { width: 100%; border-collapse: collapse; font-size: 0.625rem; font-family: 'JetBrains Mono', monospace; }
     .ev-card-preview th { background: rgba(34,211,238,0.08); color: #67e8f9; padding: 0.375rem 0.5rem; text-align: left; border-bottom: 1px solid rgba(34,211,238,0.15); position: sticky; top: 0; font-weight: 600; }
     .ev-card-preview td { padding: 0.25rem 0.5rem; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.03); white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
@@ -712,17 +715,21 @@
         <div class="dash-label" data-i18n="dashArchive">Archivio</div>
         <div class="dash-count" id="countArchive">0</div>
       </div>
-      <div class="dash-card requires-write" onclick="toggleExcelViewer()" style="border: 1px solid rgba(34,211,238,0.2); background: linear-gradient(135deg, rgba(34,211,238,0.05), rgba(139,92,246,0.05));">
-        <div class="dash-icon">📊</div>
-        <div class="dash-label">Excel Viewer</div>
-        <div class="dash-count" id="countExcelViewer">0</div>
-      </div>
       <div class="dash-card" onclick="toggleHistoryModal()">
         <div class="dash-icon">📋</div>
         <div class="dash-label" data-i18n="dashHistory">Registro Attività</div>
         <div class="dash-count" id="countHistory">0</div>
       </div>
 
+    </div>
+
+    <div class="mt-3 flex justify-center">
+      <button onclick="toggleExcelViewer()" class="ev-viewer-trigger">
+        <span class="ev-viewer-pulse"></span>
+        <i class="fas fa-chart-bar text-sm"></i>
+        <span>Excel Viewer</span>
+        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono ml-1" id="countExcelViewer">0</span>
+      </button>
     </div>
   </main>
 
