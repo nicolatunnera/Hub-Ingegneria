@@ -323,7 +323,9 @@ function refreshDynamicContent() {
 }
 
 // ─── DRAG & DROP ──────────────────────────────────────────────────────
-function setupDropzone(zoneId, inputId, textId) {
+const _fileStore = { excelFileList: [], docFileList: [] };
+
+function setupDropzone(zoneId, inputId, textId, storeKey) {
   const zone = document.getElementById(zoneId);
   const input = document.getElementById(inputId);
   if (!zone || !input) return;
@@ -333,12 +335,27 @@ function setupDropzone(zoneId, inputId, textId) {
   zone.ondrop = e => {
     e.preventDefault();
     zone.classList.remove('border-blue-500', 'bg-blue-50/10');
-    if (e.dataTransfer.files.length) { input.files = e.dataTransfer.files; document.getElementById(textId).textContent = e.dataTransfer.files[0].name; }
+    if (e.dataTransfer.files.length) {
+      const incoming = Array.from(e.dataTransfer.files);
+      _fileStore[storeKey] = _fileStore[storeKey].concat(incoming);
+      const nameEl = document.getElementById(textId);
+      if (nameEl) nameEl.textContent = incoming.length === 1 ? incoming[0].name : incoming.length + ' file';
+      renderFileList(zoneId === 'dropzoneExcel' ? 'excelFileList' : 'docFileList', _fileStore[storeKey]);
+    }
   };
-  input.onchange = () => { if (input.files.length) document.getElementById(textId).textContent = input.files[0].name; };
+  input.onchange = () => {
+    if (input.files.length) {
+      const incoming = Array.from(input.files);
+      _fileStore[storeKey] = _fileStore[storeKey].concat(incoming);
+      const nameEl = document.getElementById(textId);
+      if (nameEl) nameEl.textContent = incoming.length === 1 ? incoming[0].name : incoming.length + ' file';
+      renderFileList(zoneId === 'dropzoneExcel' ? 'excelFileList' : 'docFileList', _fileStore[storeKey]);
+      input.value = '';
+    }
+  };
 }
-setupDropzone('dropzoneExcel', 'excelFile', 'textDropExcel');
-setupDropzone('dropzoneDoc', 'docFile', 'textDropDoc');
+setupDropzone('dropzoneExcel', 'excelFile', 'textDropExcel', 'excelFileList');
+setupDropzone('dropzoneDoc', 'docFile', 'textDropDoc', 'docFileList');
 
 // ─── TELEGRAM ─────────────────────────────────────────────────────────
 function escapeMarkdown(text) { return text.replace(/[_*`\[]/g, '\\$&'); }
@@ -771,6 +788,11 @@ function triggerFileInput(containerId) {
   if (containerId === 'excelFileList') document.getElementById('excelFile')?.click();
   else if (containerId === 'docFileList') document.getElementById('docFile')?.click();
 }
+function removeFileFromStore(containerId, index) {
+  const storeKey = containerId;
+  _fileStore[storeKey].splice(index, 1);
+  renderFileList(containerId, _fileStore[storeKey]);
+}
 function renderFileList(containerId, files) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -790,14 +812,14 @@ function renderFileList(containerId, files) {
         <div class="text-[10px] text-gray-400 dark:text-gray-500 font-medium mt-1.5 mb-0.5">Categoria</div>
         <select class="file-cat-select w-full px-2 sm:px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition">${catOpts}</select>
       </div>
-      <button onclick="this.closest('div[data-fi]').remove(); var c=document.getElementById('${containerId}'); if(c&&!c.querySelector('div[data-fi]'))c.innerHTML='';" class="text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg p-1.5 shrink-0 self-start transition text-sm">✕</button>
+      <button onclick="removeFileFromStore('${containerId}', ${i})" class="text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg p-1.5 shrink-0 self-start transition text-sm">✕</button>
     </div>`;
   }
   html += `<button onclick="triggerFileInput('${containerId}')" class="w-full mt-2 py-2 text-xs border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-400 hover:text-blue-500 hover:border-blue-400 transition flex items-center justify-center gap-1.5 bg-gray-50/50 dark:bg-gray-800/30"><i class="fas fa-plus-circle"></i> Aggiungi altri file</button>`;
   container.innerHTML = html;
 }
-document.getElementById('excelFile')?.addEventListener('change', function() { renderFileList('excelFileList', this.files); });
-document.getElementById('docFile')?.addEventListener('change', function() { renderFileList('docFileList', this.files); });
+document.getElementById('excelFile')?.addEventListener('change', function() { /* handled by setupDropzone */ });
+document.getElementById('docFile')?.addEventListener('change', function() { /* handled by setupDropzone */ });
 
 // ─── UPLOAD EXCEL ─────────────────────────────────────────────────────
 document.getElementById('btnUploadExcel').onclick = async () => {
@@ -805,22 +827,22 @@ document.getElementById('btnUploadExcel').onclick = async () => {
   const sel = document.getElementById('excelFolder');
   const folderId = sel.value === '__new__' ? '' : sel.value;
   const isPrivate = document.getElementById('excelPrivate')?.checked || false;
-  const rows = document.querySelectorAll('#excelFileList > div[data-fi]');
-  if (!rows.length) { showToast('Seleziona almeno un file.', 'error'); return; }
+  const files = _fileStore.excelFileList;
+  if (!files.length) { showToast('Seleziona almeno un file.', 'error'); return; }
+  const container = document.getElementById('excelFileList');
   let count = 0, catLog = [];
-  for (const row of rows) {
-    const idx = parseInt(row.dataset.fi);
-    const file = document.getElementById('excelFile').files[idx];
-    if (!file) continue;
-    const title = row.querySelector('.file-title-input')?.value.trim() || fileNameNoExt(file.name);
-    const category = row.querySelector('.file-cat-select')?.value || '';
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const row = container.querySelector(`div[data-fi="${i}"]`);
+    const title = row?.querySelector('.file-title-input')?.value.trim() || fileNameNoExt(file.name);
+    const category = row?.querySelector('.file-cat-select')?.value || '';
     const fileData = await readFileAsBase64(file);
     await db.collection('excelHub').add({ name: title, category, folderId: folderId || '', fileData, fileName: file.name, fileMime: file.type, uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
     await db.collection('historyHub').add({ name: title, operation: `Caricato Excel (${category || 'nessuna'})`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
     count++; if (category) catLog.push(category);
   }
+  _fileStore.excelFileList = [];
   document.getElementById('excelFileList').innerHTML = '';
-  document.getElementById('excelFile').value = '';
   document.getElementById('textDropExcel').textContent = 'Trascina qui i file Excel o clicca per selezionare';
   showToast(`${count} file Excel caricati.`, 'success');
   if (count) await sendTelegramBroadcast(`\u2699\uFE0F *Caricati ${count} file Excel*`);
@@ -832,15 +854,15 @@ document.getElementById('btnUploadDoc').onclick = async () => {
   const sel = document.getElementById('docFolder');
   const folderId = sel.value === '__new__' ? '' : sel.value;
   const isPrivate = document.getElementById('docPrivate')?.checked || false;
-  const rows = document.querySelectorAll('#docFileList > div[data-fi]');
-  if (!rows.length) { showToast('Seleziona almeno un file.', 'error'); return; }
+  const files = _fileStore.docFileList;
+  if (!files.length) { showToast('Seleziona almeno un file.', 'error'); return; }
+  const container = document.getElementById('docFileList');
   let count = 0;
-  for (const row of rows) {
-    const idx = parseInt(row.dataset.fi);
-    const file = document.getElementById('docFile').files[idx];
-    if (!file) continue;
-    const title = row.querySelector('.file-title-input')?.value.trim() || fileNameNoExt(file.name);
-    const category = row.querySelector('.file-cat-select')?.value || '';
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const row = container.querySelector(`div[data-fi="${i}"]`);
+    const title = row?.querySelector('.file-title-input')?.value.trim() || fileNameNoExt(file.name);
+    const category = row?.querySelector('.file-cat-select')?.value || '';
     const fileData = await readFileAsBase64(file);
     const fileType = file.name.split('.').pop().toUpperCase();
     let extractedText = '';
@@ -849,8 +871,8 @@ document.getElementById('btnUploadDoc').onclick = async () => {
     await db.collection('historyHub').add({ name: title, operation: `Caricato Documento (${category || 'nessuna'})`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
     count++;
   }
+  _fileStore.docFileList = [];
   document.getElementById('docFileList').innerHTML = '';
-  document.getElementById('docFile').value = '';
   document.getElementById('textDropDoc').textContent = 'Trascina qui i file o clicca per selezionare (PDF, DOC, TXT, DWG, DXF)';
   showToast(`${count} documenti caricati.`, 'success');
   if (count) await sendTelegramBroadcast(`\u{1F4DD} *Caricati ${count} documenti*`);
