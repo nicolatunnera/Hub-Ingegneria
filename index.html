@@ -17,7 +17,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20250725b" />
+  <link rel="stylesheet" href="style.css?v=20250725c" />
   <link rel="icon" type="image/png" href="icon-192.png?v=20250718" />
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors">
@@ -292,8 +292,11 @@
       </div>
       <!-- Main preview -->
       <div id="evMainPreview" class="flex-1 overflow-auto p-4 sm:p-6 flex items-start justify-center"></div>
+      <!-- Prev / Next arrows (visible on mobile) -->
+      <button onclick="evPrev()" class="sm:hidden fixed left-1 top-1/2 -translate-y-1/2 z-[61] w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white/70 flex items-center justify-center text-xs ev-pill-btn ev-nav-btn"><i class="fas fa-chevron-left"></i></button>
+      <button onclick="evNext()" class="sm:hidden fixed right-1 top-1/2 -translate-y-1/2 z-[61] w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white/70 flex items-center justify-center text-xs ev-pill-btn ev-nav-btn"><i class="fas fa-chevron-right"></i></button>
       <!-- Bottom thumbnail strip -->
-      <div class="shrink-0 border-t ev-bottom-bar backdrop-blur-sm">
+      <div class="shrink-0 border-t ev-bottom-bar backdrop-blur-sm overflow-hidden">
         <div id="evThumbs" class="flex justify-center gap-2 p-3 overflow-x-auto"></div>
       </div>
     </div>
@@ -365,6 +368,15 @@
     .ev-bottom-bar { background: var(--ev-bar) !important; border-color: var(--ev-tbl-b) !important; border-style: solid !important; }
     #evWishlistPanel > div:nth-child(2) { border-color: var(--ev-tbl-b) !important; }
 
+    /* ═══ OVERFLOW CLIP — prevent animations escaping containers ═══ */
+    #evSelectGrid { overflow: clip; }
+    #evSelectGrid::-webkit-scrollbar { width: 4px; }
+    #evSelectGrid::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.2); border-radius: 99px; }
+    #evThumbs { overflow: clip; overflow-x: auto; clip-path: inset(0 round 0.5rem); }
+    #evWishlistItems { overflow: clip; }
+    #evWishlistItems::-webkit-scrollbar { width: 4px; }
+    #evWishlistItems::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.2); border-radius: 99px; }
+
     /* ═══ BACKGROUND ═══ */
     .ev-bg { background: radial-gradient(ellipse at 50% 0%, var(--ev-bg2) 0%, var(--ev-bg) 60%); backdrop-filter: blur(16px); }
     .ev-bg::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--ev-scan2) 2px, var(--ev-scan2) 4px); pointer-events: none; }
@@ -373,21 +385,21 @@
 
     /* ═══ BUTTONS ═══ */
     .ev-title { font-size: 0.875rem; font-weight: 700; color: var(--ev-t); display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s; }
-    .ev-pill-btn { padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.6875rem; font-weight: 600; color: var(--ev-pill-t); border: 1px solid var(--ev-pill-b); background: var(--ev-pill); cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); backdrop-filter: blur(8px); }
-    .ev-pill-btn:hover { color: #0891b2; border-color: rgba(34,211,238,0.5); background: rgba(34,211,238,0.1); box-shadow: 0 0 14px rgba(34,211,238,0.2); transform: translateY(-2px) scale(1.02); }
-    .ev-primary-btn { padding: 0.625rem 1.75rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 700; color: #0e1117; background: linear-gradient(135deg, #22d3ee, #06b6d4); cursor: pointer; transition: all 0.35s cubic-bezier(0.4,0,0.2,1); border: none; position: relative; overflow: hidden; }
+    .ev-pill-btn { padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.6875rem; font-weight: 600; color: var(--ev-pill-t); border: 1px solid var(--ev-pill-b); background: var(--ev-pill); cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); backdrop-filter: blur(8px); will-change: transform; }
+    .ev-pill-btn:hover { color: #0891b2; border-color: rgba(34,211,238,0.5); background: rgba(34,211,238,0.1); box-shadow: 0 0 14px rgba(34,211,238,0.2); transform: translateY(-1px) scale(1.01); }
+    .ev-primary-btn { padding: 0.625rem 1.75rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 700; color: #0e1117; background: linear-gradient(135deg, #22d3ee, #06b6d4); cursor: pointer; transition: all 0.35s cubic-bezier(0.4,0,0.2,1); border: none; position: relative; overflow: hidden; will-change: transform; }
     .ev-primary-btn::before { content: ''; position: absolute; inset: -2px; background: linear-gradient(135deg, #22d3ee, #8b5cf6, #22d3ee); border-radius: inherit; z-index: -1; opacity: 0; transition: opacity 0.3s; }
-    .ev-primary-btn:hover { box-shadow: 0 0 30px rgba(34,211,238,0.5), 0 0 60px rgba(34,211,238,0.15); transform: translateY(-3px) scale(1.03); }
+    .ev-primary-btn:hover { box-shadow: 0 0 30px rgba(34,211,238,0.5), 0 0 60px rgba(34,211,238,0.15); transform: translateY(-2px) scale(1.02); }
     .ev-primary-btn:hover::before { opacity: 1; }
     .ev-primary-btn:active { transform: translateY(0) scale(0.98); }
 
     /* ═══ SELECTION CARDS ═══ */
     @keyframes evFadeIn { from { opacity: 0; transform: translateY(16px) scale(0.94); } to { opacity: 1; transform: translateY(0) scale(1); } }
-    .ev-sel-card { position: relative; background: var(--ev-card); border: 1px solid var(--ev-card-b); border-radius: 0.75rem; padding: 1rem; cursor: pointer; transition: all 0.35s cubic-bezier(0.4,0,0.2,1); overflow: hidden; animation: evFadeIn 0.45s ease both; backdrop-filter: blur(8px); }
+    .ev-sel-card { position: relative; background: var(--ev-card); border: 1px solid var(--ev-card-b); border-radius: 0.75rem; padding: 1rem; cursor: pointer; transition: all 0.35s cubic-bezier(0.4,0,0.2,1); overflow: hidden; animation: evFadeIn 0.45s ease both; backdrop-filter: blur(8px); will-change: transform; }
     .ev-sel-card:nth-child(1) { animation-delay: 0.03s; } .ev-sel-card:nth-child(2) { animation-delay: 0.06s; } .ev-sel-card:nth-child(3) { animation-delay: 0.09s; } .ev-sel-card:nth-child(4) { animation-delay: 0.12s; }
     .ev-sel-card:nth-child(5) { animation-delay: 0.15s; } .ev-sel-card:nth-child(6) { animation-delay: 0.18s; } .ev-sel-card:nth-child(7) { animation-delay: 0.21s; } .ev-sel-card:nth-child(8) { animation-delay: 0.24s; }
     .ev-sel-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 0%, rgba(34,211,238,0.08) 0%, transparent 70%); opacity: 0; transition: opacity 0.35s; }
-    .ev-sel-card:hover { border-color: rgba(34,211,238,0.35); transform: translateY(-4px) scale(1.01); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
+    .ev-sel-card:hover { border-color: rgba(34,211,238,0.35); transform: translateY(-2px) scale(1.005); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
     .ev-sel-card:hover::before { opacity: 1; }
     .ev-sel-card.selected { border-color: rgba(34,211,238,0.6); background: rgba(34,211,238,0.08); box-shadow: 0 0 24px rgba(34,211,238,0.12), inset 0 0 30px rgba(34,211,238,0.03); }
     .ev-sel-card.selected::after { content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; top: 0.5rem; right: 0.5rem; width: 1.375rem; height: 1.375rem; border-radius: 50%; background: linear-gradient(135deg, #22d3ee, #06b6d4); color: #0e1117; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; box-shadow: 0 0 12px rgba(34,211,238,0.5); animation: evPop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
@@ -422,11 +434,11 @@
 
     /* ═══ THUMBNAILS ═══ */
     @keyframes evThumbIn { from { opacity: 0; transform: scale(0.8) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-    .ev-thumb { flex-shrink: 0; width: 130px; padding: 0.625rem 0.5rem; border-radius: 0.625rem; background: var(--ev-thumb); border: 1px solid var(--ev-thumb-b); cursor: pointer; transition: all 0.35s cubic-bezier(0.4,0,0.2,1); text-align: center; animation: evThumbIn 0.4s ease both; position: relative; overflow: hidden; }
+    .ev-thumb { flex-shrink: 0; width: 130px; padding: 0.625rem 0.5rem; border-radius: 0.625rem; background: var(--ev-thumb); border: 1px solid var(--ev-thumb-b); cursor: pointer; transition: all 0.35s cubic-bezier(0.4,0,0.2,1); text-align: center; animation: evThumbIn 0.4s ease both; position: relative; overflow: hidden; will-change: transform; }
     .ev-thumb::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(34,211,238,0.05) 0%, transparent 50%); opacity: 0; transition: opacity 0.35s; }
-    .ev-thumb:hover { border-color: rgba(34,211,238,0.4); transform: translateY(-6px) scale(1.04); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+    .ev-thumb:hover { border-color: rgba(34,211,238,0.4); transform: translateY(-3px) scale(1.03); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
     .ev-thumb:hover::before { opacity: 1; }
-    .ev-thumb.active { border-color: rgba(34,211,238,0.7); background: rgba(34,211,238,0.1); box-shadow: 0 0 24px rgba(34,211,238,0.2), 0 0 48px rgba(34,211,238,0.06); transform: translateY(-6px) scale(1.08); }
+    .ev-thumb.active { border-color: rgba(34,211,238,0.7); background: rgba(34,211,238,0.1); box-shadow: 0 0 24px rgba(34,211,238,0.2), 0 0 48px rgba(34,211,238,0.06); transform: translateY(-3px) scale(1.06); }
     .ev-thumb.active::before { opacity: 1; }
     .ev-thumb.active::after { content: ''; position: absolute; bottom: 0; left: 15%; right: 15%; height: 2px; background: linear-gradient(90deg, transparent, #22d3ee, transparent); border-radius: 1px; animation: evGlow 2s ease-in-out infinite; }
     @keyframes evGlow { 0%,100% { opacity: 0.5; box-shadow: 0 0 4px rgba(34,211,238,0.3); } 50% { opacity: 1; box-shadow: 0 0 10px rgba(34,211,238,0.6); } }
@@ -435,6 +447,11 @@
     .ev-thumb-icon { transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), filter 0.3s; display: flex; justify-content: center; }
     .ev-thumb:hover .ev-thumb-icon { transform: scale(1.15) rotate(-5deg); }
     .ev-thumb.active .ev-thumb-icon { transform: scale(1.1); }
+
+    /* ═══ MOBILE NAV ARROWS ═══ */
+    .ev-nav-btn { display: none; opacity: 0.6; }
+    .ev-nav-btn:hover { opacity: 1; background: rgba(34,211,238,0.2) !important; border-color: rgba(34,211,238,0.4) !important; transform: translateY(-50%) scale(1.1); }
+    @media (max-width: 640px) { .ev-nav-btn { display: flex; } }
 
     /* ═══ SCROLLBARS ═══ */
     .ev-bg ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -445,11 +462,11 @@
     #evThumbs { scrollbar-width: thin; scrollbar-color: rgba(34,211,238,0.25) rgba(128,128,128,0.1); }
 
     /* ═══ WISHLIST ═══ */
-    .ev-wish-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.625rem; background: var(--ev-wish); border: 1px solid var(--ev-wish-b); border-radius: 0.5rem; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); animation: evFadeIn 0.35s ease both; backdrop-filter: blur(6px); }
+    .ev-wish-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.625rem; background: var(--ev-wish); border: 1px solid var(--ev-wish-b); border-radius: 0.5rem; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); animation: evFadeIn 0.35s ease both; backdrop-filter: blur(6px); will-change: transform; overflow: hidden; }
     .ev-wish-item:hover { border-color: rgba(139,92,246,0.35); background: rgba(139,92,246,0.08); transform: translateX(-4px); }
     .ev-wish-name { font-size: 0.6875rem; color: var(--ev-wish-t); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s; }
-    .ev-wish-remove { color: var(--ev-wish-r); cursor: pointer; transition: all 0.25s; padding: 0.25rem; border-radius: 0.25rem; }
-    .ev-wish-remove:hover { color: #f43f5e; background: rgba(244,63,94,0.12); transform: scale(1.2) rotate(90deg); }
+    .ev-wish-remove { color: var(--ev-wish-r); cursor: pointer; transition: all 0.25s; padding: 0.25rem; border-radius: 0.25rem; flex-shrink: 0; }
+    .ev-wish-remove:hover { color: #f43f5e; background: rgba(244,63,94,0.12); transform: scale(1.15) rotate(90deg); }
   </style>
   <!-- ═══════ END EXCEL VIEWER ═══════ -->
 
@@ -1056,7 +1073,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-  <script src="js/config.js?v=20250725b"></script>
-  <script src="js/app.js?v=20250725b"></script>
+  <script src="js/config.js?v=20250725c"></script>
+  <script src="js/app.js?v=20250725c"></script>
 </body>
 </html>

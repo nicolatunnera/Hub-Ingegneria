@@ -124,4 +124,43 @@ html.eye-protect body {
 }
 html.eye-protect .ev-bg { filter: none; }
 html.eye-protect .ev-main-table { filter: none; }
+html.eye-protect #evSelectModal, html.eye-protect #evViewerModal, html.eye-protect #evWishlistPanel { filter: none; }
+
+/* ═══ VIEWER MOBILE ═══ */
+@media (max-width: 640px) {
+  #evSelectGrid, #evThumbs, #evWishlistItems, #evMainPreview { -webkit-overflow-scrolling: touch; }
+  #evSelectModal .relative.z-10 { padding: 0.75rem !important; }
+  #evSelectGrid { gap: 0.5rem !important; }
+  .ev-sel-card { padding: 0.625rem !important; animation-duration: 0.25s !important; }
+  .ev-sel-card:hover { transform: none !important; box-shadow: none !important; }
+  .ev-sel-card.selected { box-shadow: 0 0 12px rgba(34,211,238,0.12) !important; }
+  .ev-sel-card:hover .ev-sel-icon { transform: none !important; }
+
+  #evViewerModal .ev-pill-btn { padding: 0.25rem 0.5rem !important; font-size: 0.625rem !important; }
+  #evMainTitle { font-size: 0.75rem !important; max-width: 30vw !important; }
+  #evMainPreview { padding: 0.5rem !important; }
+  .ev-main-table { font-size: 0.5625rem !important; max-width: 100% !important; }
+  .ev-main-table th { padding: 0.375rem 0.5rem !important; font-size: 0.5rem !important; }
+  .ev-main-table td { padding: 0.3rem 0.5rem !important; max-width: 100px !important; }
+  .ev-main-table tbody tr:hover td { transform: none !important; }
+
+  #evThumbs { padding: 0.5rem !important; gap: 0.375rem !important; }
+  .ev-thumb { width: 90px !important; padding: 0.375rem !important; }
+  .ev-thumb:hover { transform: translateY(-2px) scale(1.02) !important; box-shadow: none !important; }
+  .ev-thumb.active { transform: translateY(-2px) scale(1.04) !important; }
+  .ev-thumb:hover .ev-thumb-icon { transform: scale(1.05) !important; }
+
+  .ev-sheet-label { font-size: 0.5625rem !important; }
+
+  #evWishlistPanel { width: 100vw !important; max-width: 100vw !important; }
+  .ev-wish-item { padding: 0.375rem 0.5rem !important; animation-duration: 0.2s !important; }
+  .ev-wish-item:hover { transform: none !important; }
+
+  .ev-pill-btn:hover { transform: none !important; }
+  .ev-primary-btn:hover { transform: none !important; }
+}
+@media (max-width: 400px) {
+  #evSelectGrid { grid-template-columns: repeat(2, 1fr) !important; }
+  #evThumbs { justify-content: flex-start !important; }
+}
 
