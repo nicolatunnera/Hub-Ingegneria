@@ -1505,156 +1505,246 @@ PLATEAFORMA: Engineering Cloud Hub - modulo documenti, Excel, note, archivio.`;
 
 document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') window.askAI(); });
 
-// ═══════ EXCEL VIEWER — FUTURISTIC FLASH CARDS (removable block) ═══════
+// ═══════ EXCEL VIEWER — REMOVABLE BLOCK ═══════
 (function() {
+  let selectedIds = new Set();
+  let viewFiles = [];
   let currentIndex = 0;
-  let parsedFiles = [];
+  let wishlist = JSON.parse(localStorage.getItem('ev_wishlist') || '[]');
 
-  window.toggleExcelViewer = function() {
-    const modal = document.getElementById('excelViewerModal');
-    if (!modal) return;
-    modal.classList.toggle('hidden');
-    if (!modal.classList.contains('hidden')) renderExcelViewer();
-  };
-
-  window.renderExcelViewer = function() {
-    parsedFiles = [];
-    const cardsEl = document.getElementById('excelViewerCards');
-    const emptyEl = document.getElementById('excelViewerEmpty');
-    const dotsEl = document.getElementById('excelViewerDots');
-    const counterEl = document.getElementById('excelViewerCounter');
-    if (!cardsEl) return;
-
-    const excelFiles = allExcelFiles.filter(f => isPrivateVisible(f));
-    const countEl = document.getElementById('countExcelViewer');
-    if (countEl) countEl.textContent = excelFiles.length;
-
-    if (!excelFiles.length) {
-      cardsEl.innerHTML = '<div id="excelViewerEmpty" class="w-full text-center text-gray-500 text-sm">Nessun file Excel caricato.</div>';
-      if (dotsEl) dotsEl.innerHTML = '';
-      if (counterEl) counterEl.textContent = '0 / 0';
-      return;
-    }
-
-    excelFiles.forEach((f, i) => {
-      let rows = [];
-      let sheets = [];
-      try {
-        if (f.fileData) {
-          const bin = atob(f.fileData.split(',')[1] || f.fileData);
-          const arr = new Uint8Array(bin.length);
-          for (let j = 0; j < bin.length; j++) arr[j] = bin.charCodeAt(j);
-          if (typeof XLSX !== 'undefined') {
-            const wb = XLSX.read(arr, { type: 'array' });
-            sheets = wb.SheetNames;
-            wb.SheetNames.forEach(name => {
-              const data = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1 });
-              rows.push({ name, data: data.slice(0, 20) });
-            });
-          }
-        }
-      } catch(e) { console.warn('[ExcelViewer] Parse error:', f.name, e); }
-      parsedFiles.push({ ...f, parsed: rows, sheets });
-    });
-
-    currentIndex = 0;
-    renderCards();
-    renderDots();
-    updateCounter();
-  };
-
-  function renderCards() {
-    const cardsEl = document.getElementById('excelViewerCards');
-    if (!cardsEl) return;
-    cardsEl.innerHTML = '';
-
-    parsedFiles.forEach((f, i) => {
-      const card = document.createElement('div');
-      card.className = 'ev-card ' + getCardClass(i);
-      card.onclick = () => { if (i !== currentIndex) { currentIndex = i; renderCards(); renderDots(); updateCounter(); } };
-
-      const folder = f.folderId ? getFolder(f.folderId) : null;
-      const folderName = folder ? folder.name : '';
-      const catName = f.category || '';
-
-      let previewHtml = '';
-      if (f.parsed.length) {
-        f.parsed.forEach(sheet => {
-          previewHtml += `<div class="mb-2"><div class="text-[10px] text-cyan-400/70 font-semibold mb-1 flex items-center gap-1"><i class="fas fa-table text-[8px]"></i> ${escapeHtml(sheet.name)}</div>`;
-          if (sheet.data.length) {
-            previewHtml += '<table><thead><tr>';
-            const headerRow = sheet.data[0] || [];
-            headerRow.forEach((h, ci) => { if (ci < 8) previewHtml += `<th>${escapeHtml(String(h ?? ''))}</th>`; });
-            previewHtml += '</tr></thead><tbody>';
-            for (let r = 1; r < Math.min(sheet.data.length, 12); r++) {
-              previewHtml += '<tr>';
-              (sheet.data[r] || []).forEach((cell, ci) => { if (ci < 8) previewHtml += `<td>${escapeHtml(String(cell ?? ''))}</td>`; });
-              previewHtml += '</tr>';
-            }
-            previewHtml += '</tbody></table>';
-          } else {
-            previewHtml += '<div class="text-[10px] text-gray-600 italic">Foglio vuoto</div>';
-          }
-          previewHtml += '</div>';
+  function parseExcel(f) {
+    let rows = [], sheets = [];
+    try {
+      if (f.fileData && typeof XLSX !== 'undefined') {
+        const bin = atob(f.fileData.split(',')[1] || f.fileData);
+        const arr = new Uint8Array(bin.length);
+        for (let j = 0; j < bin.length; j++) arr[j] = bin.charCodeAt(j);
+        const wb = XLSX.read(arr, { type: 'array' });
+        sheets = wb.SheetNames;
+        wb.SheetNames.forEach(name => {
+          const data = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1 });
+          rows.push({ name, data: data.slice(0, 30) });
         });
-      } else {
-        previewHtml = '<div class="text-[10px] text-gray-600 italic text-center py-4">Anteprima non disponibile</div>';
       }
-
-      card.innerHTML = `
-        <div class="ev-card-header">
-          <div class="ev-card-title">${escapeHtml(f.name || 'File Excel')}</div>
-          <div class="ev-card-meta">
-            <span class="ev-card-tag ev-tag-excel">XLS</span>
-            ${catName ? `<span class="ev-card-tag ev-tag-cat">${escapeHtml(catName)}</span>` : ''}
-            ${folderName ? `<span class="ev-card-tag ev-tag-folder"><i class="fas fa-folder text-[8px] mr-0.5"></i>${escapeHtml(folderName)}</span>` : ''}
-          </div>
-        </div>
-        <div class="ev-card-preview">${previewHtml}</div>
-        <div class="ev-card-footer">
-          <span class="ev-card-filename">${escapeHtml(f.fileName || '')}</span>
-          <span class="ev-card-sheets">${f.sheets.length} foglio${f.sheets.length !== 1 ? 'i' : ''}</span>
-        </div>
-      `;
-      cardsEl.appendChild(card);
-    });
+    } catch(e) { console.warn('[EV] Parse error:', f.name, e); }
+    return { ...f, parsed: rows, sheets };
   }
 
-  function getCardClass(i) {
-    if (i === currentIndex) return 'active';
-    if (i < currentIndex) return 'prev';
-    return 'next';
+  function saveWishlist() { localStorage.setItem('ev_wishlist', JSON.stringify(wishlist)); }
+  function isWished(id) { return wishlist.some(w => w.id === id); }
+
+  // ── ENTRY: Open selection modal ──
+  window.evOpen = function() {
+    selectedIds = new Set();
+    const grid = document.getElementById('evSelectGrid');
+    if (!grid) return;
+    const files = allExcelFiles.filter(f => isPrivateVisible(f));
+    if (!files.length) { grid.innerHTML = '<div class="col-span-full text-center text-gray-500 text-sm py-12">Nessun file Excel caricato.</div>'; }
+    else {
+      grid.innerHTML = files.map(f => {
+        const folder = f.folderId ? getFolder(f.folderId) : null;
+        return `<div class="ev-sel-card" data-id="${escapeHtml(f.id)}" onclick="evToggleSelect('${escapeHtml(f.id)}')">
+          <div class="ev-sel-icon">📊</div>
+          <div class="ev-sel-name">${escapeHtml(f.name || 'File Excel')}</div>
+          <div class="ev-sel-meta">${f.category || 'Generale'}${folder ? ' · ' + escapeHtml(folder.name) : ''}</div>
+        </div>`;
+      }).join('');
+    }
+    evUpdateSelectCount();
+    document.getElementById('evSelectModal')?.classList.remove('hidden');
+  };
+
+  window.evToggleSelect = function(id) {
+    if (selectedIds.has(id)) selectedIds.delete(id);
+    else selectedIds.add(id);
+    const card = document.querySelector(`.ev-sel-card[data-id="${id}"]`);
+    if (card) card.classList.toggle('selected', selectedIds.has(id));
+    evUpdateSelectCount();
+  };
+
+  window.evSelectAll = function() {
+    const files = allExcelFiles.filter(f => isPrivateVisible(f));
+    const allSelected = files.every(f => selectedIds.has(f.id));
+    if (allSelected) { selectedIds.clear(); }
+    else { files.forEach(f => selectedIds.add(f.id)); }
+    document.querySelectorAll('.ev-sel-card').forEach(c => c.classList.toggle('selected', selectedIds.has(c.dataset.id)));
+    evUpdateSelectCount();
+  };
+
+  function evUpdateSelectCount() {
+    const el = document.getElementById('evSelectCount');
+    if (el) el.textContent = selectedIds.size + ' selezionati';
   }
 
-  function renderDots() {
-    const dotsEl = document.getElementById('excelViewerDots');
-    if (!dotsEl) return;
-    dotsEl.innerHTML = parsedFiles.map((_, i) =>
-      `<div class="ev-dot${i === currentIndex ? ' active' : ''}" onclick="document.dispatchEvent(new CustomEvent('ev-goto',{detail:${i}}))"></div>`
+  // ── Open full viewer ──
+  window.evOpenViewer = function() {
+    if (!selectedIds.size) { showToast('Seleziona almeno un file.', 'error'); return; }
+    viewFiles = allExcelFiles.filter(f => selectedIds.has(f.id)).map(parseExcel);
+    currentIndex = 0;
+    document.getElementById('evSelectModal')?.classList.add('hidden');
+    document.getElementById('evViewerModal')?.classList.remove('hidden');
+    evRenderMain();
+    evRenderThumbs();
+    evUpdateWishlistBtn();
+  };
+
+  window.evBackToSelect = function() {
+    document.getElementById('evViewerModal')?.classList.add('hidden');
+    document.getElementById('evSelectModal')?.classList.remove('hidden');
+  };
+
+  window.evClose = function() {
+    document.getElementById('evSelectModal')?.classList.add('hidden');
+    document.getElementById('evViewerModal')?.classList.add('hidden');
+    document.getElementById('evWishlistPanel')?.classList.add('hidden');
+    const cv = document.getElementById('countExcelViewer');
+    if (cv) cv.textContent = allExcelFiles.filter(f => isPrivateVisible(f)).length;
+  };
+
+  function evRenderMain() {
+    const el = document.getElementById('evMainPreview');
+    const titleEl = document.getElementById('evMainTitle');
+    const counterEl = document.getElementById('evCounter');
+    if (!el || !viewFiles.length) return;
+    const f = viewFiles[currentIndex];
+    if (titleEl) titleEl.textContent = f.name || 'File Excel';
+    if (counterEl) counterEl.textContent = (currentIndex + 1) + '/' + viewFiles.length;
+    let html = '';
+    if (f.parsed.length) {
+      f.parsed.forEach(sheet => {
+        html += `<div class="mb-6 w-full max-w-[900px]"><div class="ev-sheet-label"><i class="fas fa-table text-[10px]"></i>${escapeHtml(sheet.name)}</div>`;
+        if (sheet.data.length) {
+          html += '<table class="ev-main-table"><thead><tr>';
+          (sheet.data[0] || []).forEach((h, ci) => { if (ci < 10) html += `<th>${escapeHtml(String(h ?? ''))}</th>`; });
+          html += '</tr></thead><tbody>';
+          for (let r = 1; r < Math.min(sheet.data.length, 25); r++) {
+            html += '<tr>';
+            (sheet.data[r] || []).forEach((cell, ci) => { if (ci < 10) html += `<td>${escapeHtml(String(cell ?? ''))}</td>`; });
+            html += '</tr>';
+          }
+          html += '</tbody></table>';
+        } else {
+          html += '<div class="text-xs text-gray-600 italic py-4">Foglio vuoto</div>';
+        }
+        html += '</div>';
+      });
+    } else {
+      html = '<div class="text-sm text-gray-600 italic py-12">Anteprima non disponibile</div>';
+    }
+    el.innerHTML = html;
+    evUpdateWishlistBtn();
+  }
+
+  function evRenderThumbs() {
+    const el = document.getElementById('evThumbs');
+    if (!el) return;
+    el.innerHTML = viewFiles.map((f, i) =>
+      `<div class="ev-thumb${i === currentIndex ? ' active' : ''}" onclick="evGoTo(${i})">
+        <div class="ev-thumb-icon">📊</div>
+        <div class="ev-thumb-name">${escapeHtml(f.name || 'File')}</div>
+      </div>`
+    ).join('');
+    const active = el.children[currentIndex];
+    if (active) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  window.evGoTo = function(i) {
+    currentIndex = i;
+    evRenderMain();
+    evRenderThumbs();
+  };
+
+  // ── Navigation ──
+  window.evPrev = function() { if (currentIndex > 0) evGoTo(currentIndex - 1); };
+  window.evNext = function() { if (currentIndex < viewFiles.length - 1) evGoTo(currentIndex + 1); };
+
+  document.addEventListener('keydown', e => {
+    const viewerOpen = document.getElementById('evViewerModal') && !document.getElementById('evViewerModal').classList.contains('hidden');
+    if (!viewerOpen) return;
+    if (e.key === 'ArrowLeft') evPrev();
+    if (e.key === 'ArrowRight') evNext();
+    if (e.key === 'Escape') evClose();
+  });
+
+  // ── Wishlist ──
+  window.evToggleWishlist = function() {
+    if (!viewFiles.length) return;
+    const f = viewFiles[currentIndex];
+    if (isWished(f.id)) { wishlist = wishlist.filter(w => w.id !== f.id); }
+    else { wishlist.push({ id: f.id, name: f.name || 'File Excel' }); }
+    saveWishlist();
+    evUpdateWishlistBtn();
+  };
+
+  function evUpdateWishlistBtn() {
+    const btn = document.getElementById('evWishlistBtn');
+    if (!btn || !viewFiles.length) return;
+    const f = viewFiles[currentIndex];
+    const wished = isWished(f.id);
+    btn.innerHTML = wished ? '<i class="fas fa-heart text-pink-400"></i>' : '<i class="far fa-heart"></i>';
+    evUpdateBadge();
+  }
+
+  window.evToggleWishPanel = function() {
+    const panel = document.getElementById('evWishlistPanel');
+    if (!panel) return;
+    panel.classList.toggle('hidden');
+    if (!panel.classList.contains('hidden')) evRenderWishlist();
+  };
+
+  function evRenderWishlist() {
+    const el = document.getElementById('evWishlistItems');
+    const countEl = document.getElementById('evWishCount');
+    if (!el) return;
+    if (countEl) countEl.textContent = wishlist.length;
+    if (!wishlist.length) { el.innerHTML = '<div class="text-center text-gray-600 text-xs py-8">Nessun file preferito.</div>'; return; }
+    el.innerHTML = wishlist.map((w, i) =>
+      `<div class="ev-wish-item">
+        <span class="text-sm">📊</span>
+        <span class="ev-wish-name">${escapeHtml(w.name)}</span>
+        <i class="fas fa-times ev-wish-remove" onclick="evRemoveWish(${i})"></i>
+      </div>`
     ).join('');
   }
 
-  function updateCounter() {
-    const counterEl = document.getElementById('excelViewerCounter');
-    if (counterEl) counterEl.textContent = parsedFiles.length ? `${currentIndex + 1} / ${parsedFiles.length}` : '0 / 0';
+  window.evRemoveWish = function(i) {
+    wishlist.splice(i, 1);
+    saveWishlist();
+    evRenderWishlist();
+    evUpdateWishlistBtn();
+  };
+
+  window.evClearWishlist = function() {
+    if (!wishlist.length) return;
+    wishlist = [];
+    saveWishlist();
+    evRenderWishlist();
+    evUpdateWishlistBtn();
+  };
+
+  window.evDownloadWishlist = function() {
+    if (!wishlist.length) return;
+    wishlist.forEach(w => {
+      const file = allExcelFiles.find(f => f.id === w.id);
+      if (file) window.downloadDocument(file.id);
+    });
+    showToast(wishlist.length + ' file in download.', 'success');
+  };
+
+  window.evDownloadCurrent = function() {
+    if (!viewFiles.length) return;
+    window.downloadDocument(viewFiles[currentIndex].id);
+  };
+
+  // Expose closeWishlist for HTML
+  window.evCloseWishlist = function() { document.getElementById('evWishlistPanel')?.classList.add('hidden'); };
+
+  // Badge update
+  function evUpdateBadge() {
+    const badge = document.getElementById('evWishBadge');
+    if (badge) badge.textContent = wishlist.length || '';
   }
-
-  document.addEventListener('ev-goto', e => { currentIndex = e.detail; renderCards(); renderDots(); updateCounter(); });
-
-  document.getElementById('excelViewerPrev')?.addEventListener('click', () => {
-    if (parsedFiles.length && currentIndex > 0) { currentIndex--; renderCards(); renderDots(); updateCounter(); }
-  });
-  document.getElementById('excelViewerNext')?.addEventListener('click', () => {
-    if (parsedFiles.length && currentIndex < parsedFiles.length - 1) { currentIndex++; renderCards(); renderDots(); updateCounter(); }
-  });
-
-  document.addEventListener('keydown', e => {
-    const modal = document.getElementById('excelViewerModal');
-    if (!modal || modal.classList.contains('hidden')) return;
-    if (e.key === 'ArrowLeft' && currentIndex > 0) { currentIndex--; renderCards(); renderDots(); updateCounter(); }
-    if (e.key === 'ArrowRight' && currentIndex < parsedFiles.length - 1) { currentIndex++; renderCards(); renderDots(); updateCounter(); }
-    if (e.key === 'Escape') toggleExcelViewer();
-  });
+  evUpdateBadge();
 })();
 // ═══════ END EXCEL VIEWER ═══════
 
