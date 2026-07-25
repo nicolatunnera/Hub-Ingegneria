@@ -1390,24 +1390,27 @@ window.askAI = async () => {
   container.scrollTop = container.scrollHeight;
 
   let contextParts = [];
+  const MAX_CHARS_PER_FILE = 2000;
+  const MAX_TOTAL_CONTEXT = 12000;
   for (const d of allTextFiles) {
     let txt = d.extractedText || '';
     if (!txt && d.fileData) {
-      try { txt = await extractTextFromBase64(d.fileData, d.fileType); } catch(e) { console.warn('Estrazione fallita per', d.title, e); }
+      try { txt = await extractTextFromBase64(d.fileData, d.fileType); } catch(e) { console.warn('[AI] Estrazione fallita per', d.title, e); }
     }
     if (!txt) txt = '(testo non estratto)';
-    contextParts.push(`[DOC: ${d.title}] File: ${d.fileName || 'N/A'} | Tipo: ${d.fileType || 'N/A'} | Contenuto:\n${txt.substring(0, 3000)}`);
+    contextParts.push(`[DOC: ${d.title}] File: ${d.fileName || 'N/A'} | Tipo: ${d.fileType || 'N/A'} | Contenuto:\n${txt.substring(0, MAX_CHARS_PER_FILE)}`);
   }
   for (const e of allExcelFiles) {
     let txt = '';
     if (e.fileData) {
-      try { txt = await extractTextFromBase64(e.fileData, e.fileName ? e.fileName.split('.').pop() : 'xlsx'); } catch(ex) { console.warn('Estrazione Excel fallita per', e.name, ex); }
+      try { txt = await extractTextFromBase64(e.fileData, e.fileName ? e.fileName.split('.').pop() : 'xlsx'); } catch(ex) { console.warn('[AI] Estrazione Excel fallita per', e.name, ex); }
     }
     if (!txt) txt = '(contenuto non estratto)';
-    console.log('[AI] Excel', e.name, ':', txt.length, 'caratteri estratti');
-    contextParts.push(`[EXCEL: ${e.name}] Categoria: ${e.category || 'Generale'} | Contenuto:\n${txt.substring(0, 3000)}`);
+    contextParts.push(`[EXCEL: ${e.name}] Categoria: ${e.category || 'Generale'} | Contenuto:\n${txt.substring(0, MAX_CHARS_PER_FILE)}`);
   }
   let contextText = contextParts.join('\n\n');
+  if (contextText.length > MAX_TOTAL_CONTEXT) contextText = contextText.substring(0, MAX_TOTAL_CONTEXT) + '\n...(troncato)';
+  console.log('[AI] Contesto totale:', contextText.length, 'caratteri');
 
   const platformInfo = `Piattaforma: Engineering Cloud Hub. Moduli: Excel, Documenti, Note, Archivio, Calcolatrice, MTBF, Notizie.`;
 
@@ -1443,26 +1446,32 @@ PLATEAFORMA: Engineering Cloud Hub - modulo documenti, Excel, note, archivio.`;
   const groqKey = localStorage.getItem('ai_key') || '';
   if (groqKey) {
     try {
+      console.log('[AI] Chiamata Groq...');
       replyText = await aiFetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + groqKey },
         body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: reqBase.messages, max_tokens: 2048 })
       });
-    } catch {}
+      console.log('[AI] Groq OK, risposta lunga:', replyText.length);
+    } catch(e) { console.error('[AI] Groq ERRORE:', e.message); }
   }
   if (!replyText) {
     try {
+      console.log('[AI] Chiamata Pollinations POST...');
       replyText = await aiFetch('https://text.pollinations.ai/', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: [{ role: 'user', content: systemInstruction.substring(0, 4000) + '\n\nDomanda: ' + queryText }] })
       });
-    } catch {}
+      console.log('[AI] Pollinations POST OK, risposta lunga:', replyText.length);
+    } catch(e) { console.error('[AI] Pollinations POST ERRORE:', e.message); }
   }
   if (!replyText) {
     try {
+      console.log('[AI] Chiamata Pollinations GET...');
       const urlPrompt = encodeURIComponent(systemInstruction.substring(0, 4000) + '\n\nDomanda: ' + queryText).substring(0, 6000);
       replyText = await aiFetch('https://text.pollinations.ai/' + urlPrompt + '?model=openai-fast', { method: 'GET' });
-    } catch {}
+      console.log('[AI] Pollinations GET OK, risposta lunga:', replyText.length);
+    } catch(e) { console.error('[AI] Pollinations GET ERRORE:', e.message); }
   }
   if (!replyText) {
     replyText = groqKey
