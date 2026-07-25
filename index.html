@@ -17,7 +17,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20250725c" />
+  <link rel="stylesheet" href="style.css?v=20250725d" />
   <link rel="icon" type="image/png" href="icon-192.png?v=20250718" />
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors">
@@ -369,11 +369,13 @@
     #evWishlistPanel > div:nth-child(2) { border-color: var(--ev-tbl-b) !important; }
 
     /* ═══ OVERFLOW CLIP — prevent animations escaping containers ═══ */
-    #evSelectGrid { overflow: clip; }
+    #evSelectGrid { overflow-x: clip; overflow-y: auto; }
     #evSelectGrid::-webkit-scrollbar { width: 4px; }
     #evSelectGrid::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.2); border-radius: 99px; }
-    #evThumbs { overflow: clip; overflow-x: auto; clip-path: inset(0 round 0.5rem); }
-    #evWishlistItems { overflow: clip; }
+    #evThumbs { overflow-x: auto; overflow-y: clip; clip-path: inset(0 round 0.5rem); }
+    #evThumbs::-webkit-scrollbar { height: 3px; }
+    #evThumbs::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.2); border-radius: 99px; }
+    #evWishlistItems { overflow-x: clip; overflow-y: auto; }
     #evWishlistItems::-webkit-scrollbar { width: 4px; }
     #evWishlistItems::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.2); border-radius: 99px; }
 
@@ -1073,7 +1075,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-  <script src="js/config.js?v=20250725c"></script>
-  <script src="js/app.js?v=20250725c"></script>
+  <script src="js/config.js?v=20250725d"></script>
+  <script src="js/app.js?v=20250725d"></script>
 </body>
 </html>
