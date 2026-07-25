@@ -1535,6 +1535,7 @@ document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key
 
   // ── ENTRY: Open selection modal ──
   window.evOpen = function() {
+    if (window.userRole === 'guest') { showToast('Accesso non consentito agli ospiti.', 'error'); return; }
     selectedIds = new Set();
     const grid = document.getElementById('evSelectGrid');
     if (!grid) return;
