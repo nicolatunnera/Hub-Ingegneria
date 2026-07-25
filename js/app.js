@@ -953,6 +953,8 @@ document.getElementById('deleteSelectedNotes')?.addEventListener('click', () => 
 function updateCountArchive() {
   const ca = document.getElementById('countArchive');
   if (ca) ca.textContent = [...allExcelFiles, ...allTextFiles].filter(f => isPrivateVisible(f)).length;
+  const cv = document.getElementById('countExcelViewer');
+  if (cv) cv.textContent = allExcelFiles.filter(f => isPrivateVisible(f)).length;
 }
 db.collection('excelHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
   allExcelFiles = [];
@@ -1493,4 +1495,157 @@ PLATEAFORMA: Engineering Cloud Hub - modulo documenti, Excel, note, archivio.`;
 };
 
 document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') window.askAI(); });
+
+// ═══════ EXCEL VIEWER — FUTURISTIC FLASH CARDS (removable block) ═══════
+(function() {
+  let currentIndex = 0;
+  let parsedFiles = [];
+
+  window.toggleExcelViewer = function() {
+    const modal = document.getElementById('excelViewerModal');
+    if (!modal) return;
+    modal.classList.toggle('hidden');
+    if (!modal.classList.contains('hidden')) renderExcelViewer();
+  };
+
+  window.renderExcelViewer = function() {
+    parsedFiles = [];
+    const cardsEl = document.getElementById('excelViewerCards');
+    const emptyEl = document.getElementById('excelViewerEmpty');
+    const dotsEl = document.getElementById('excelViewerDots');
+    const counterEl = document.getElementById('excelViewerCounter');
+    if (!cardsEl) return;
+
+    const excelFiles = allExcelFiles.filter(f => isPrivateVisible(f));
+    const countEl = document.getElementById('countExcelViewer');
+    if (countEl) countEl.textContent = excelFiles.length;
+
+    if (!excelFiles.length) {
+      cardsEl.innerHTML = '<div id="excelViewerEmpty" class="w-full text-center text-gray-500 text-sm">Nessun file Excel caricato.</div>';
+      if (dotsEl) dotsEl.innerHTML = '';
+      if (counterEl) counterEl.textContent = '0 / 0';
+      return;
+    }
+
+    excelFiles.forEach((f, i) => {
+      let rows = [];
+      let sheets = [];
+      try {
+        if (f.fileData) {
+          const bin = atob(f.fileData.split(',')[1] || f.fileData);
+          const arr = new Uint8Array(bin.length);
+          for (let j = 0; j < bin.length; j++) arr[j] = bin.charCodeAt(j);
+          if (typeof XLSX !== 'undefined') {
+            const wb = XLSX.read(arr, { type: 'array' });
+            sheets = wb.SheetNames;
+            wb.SheetNames.forEach(name => {
+              const data = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1 });
+              rows.push({ name, data: data.slice(0, 20) });
+            });
+          }
+        }
+      } catch(e) { console.warn('[ExcelViewer] Parse error:', f.name, e); }
+      parsedFiles.push({ ...f, parsed: rows, sheets });
+    });
+
+    currentIndex = 0;
+    renderCards();
+    renderDots();
+    updateCounter();
+  };
+
+  function renderCards() {
+    const cardsEl = document.getElementById('excelViewerCards');
+    if (!cardsEl) return;
+    cardsEl.innerHTML = '';
+
+    parsedFiles.forEach((f, i) => {
+      const card = document.createElement('div');
+      card.className = 'ev-card ' + getCardClass(i);
+      card.onclick = () => { if (i !== currentIndex) { currentIndex = i; renderCards(); renderDots(); updateCounter(); } };
+
+      const folder = f.folderId ? getFolder(f.folderId) : null;
+      const folderName = folder ? folder.name : '';
+      const catName = f.category || '';
+
+      let previewHtml = '';
+      if (f.parsed.length) {
+        f.parsed.forEach(sheet => {
+          previewHtml += `<div class="mb-2"><div class="text-[10px] text-cyan-400/70 font-semibold mb-1 flex items-center gap-1"><i class="fas fa-table text-[8px]"></i> ${escapeHtml(sheet.name)}</div>`;
+          if (sheet.data.length) {
+            previewHtml += '<table><thead><tr>';
+            const headerRow = sheet.data[0] || [];
+            headerRow.forEach((h, ci) => { if (ci < 8) previewHtml += `<th>${escapeHtml(String(h ?? ''))}</th>`; });
+            previewHtml += '</tr></thead><tbody>';
+            for (let r = 1; r < Math.min(sheet.data.length, 12); r++) {
+              previewHtml += '<tr>';
+              (sheet.data[r] || []).forEach((cell, ci) => { if (ci < 8) previewHtml += `<td>${escapeHtml(String(cell ?? ''))}</td>`; });
+              previewHtml += '</tr>';
+            }
+            previewHtml += '</tbody></table>';
+          } else {
+            previewHtml += '<div class="text-[10px] text-gray-600 italic">Foglio vuoto</div>';
+          }
+          previewHtml += '</div>';
+        });
+      } else {
+        previewHtml = '<div class="text-[10px] text-gray-600 italic text-center py-4">Anteprima non disponibile</div>';
+      }
+
+      card.innerHTML = `
+        <div class="ev-card-header">
+          <div class="ev-card-title">${escapeHtml(f.name || 'File Excel')}</div>
+          <div class="ev-card-meta">
+            <span class="ev-card-tag ev-tag-excel">XLS</span>
+            ${catName ? `<span class="ev-card-tag ev-tag-cat">${escapeHtml(catName)}</span>` : ''}
+            ${folderName ? `<span class="ev-card-tag ev-tag-folder"><i class="fas fa-folder text-[8px] mr-0.5"></i>${escapeHtml(folderName)}</span>` : ''}
+          </div>
+        </div>
+        <div class="ev-card-preview">${previewHtml}</div>
+        <div class="ev-card-footer">
+          <span class="ev-card-filename">${escapeHtml(f.fileName || '')}</span>
+          <span class="ev-card-sheets">${f.sheets.length} foglio${f.sheets.length !== 1 ? 'i' : ''}</span>
+        </div>
+      `;
+      cardsEl.appendChild(card);
+    });
+  }
+
+  function getCardClass(i) {
+    if (i === currentIndex) return 'active';
+    if (i < currentIndex) return 'prev';
+    return 'next';
+  }
+
+  function renderDots() {
+    const dotsEl = document.getElementById('excelViewerDots');
+    if (!dotsEl) return;
+    dotsEl.innerHTML = parsedFiles.map((_, i) =>
+      `<div class="ev-dot${i === currentIndex ? ' active' : ''}" onclick="document.dispatchEvent(new CustomEvent('ev-goto',{detail:${i}}))"></div>`
+    ).join('');
+  }
+
+  function updateCounter() {
+    const counterEl = document.getElementById('excelViewerCounter');
+    if (counterEl) counterEl.textContent = parsedFiles.length ? `${currentIndex + 1} / ${parsedFiles.length}` : '0 / 0';
+  }
+
+  document.addEventListener('ev-goto', e => { currentIndex = e.detail; renderCards(); renderDots(); updateCounter(); });
+
+  document.getElementById('excelViewerPrev')?.addEventListener('click', () => {
+    if (parsedFiles.length && currentIndex > 0) { currentIndex--; renderCards(); renderDots(); updateCounter(); }
+  });
+  document.getElementById('excelViewerNext')?.addEventListener('click', () => {
+    if (parsedFiles.length && currentIndex < parsedFiles.length - 1) { currentIndex++; renderCards(); renderDots(); updateCounter(); }
+  });
+
+  document.addEventListener('keydown', e => {
+    const modal = document.getElementById('excelViewerModal');
+    if (!modal || modal.classList.contains('hidden')) return;
+    if (e.key === 'ArrowLeft' && currentIndex > 0) { currentIndex--; renderCards(); renderDots(); updateCounter(); }
+    if (e.key === 'ArrowRight' && currentIndex < parsedFiles.length - 1) { currentIndex++; renderCards(); renderDots(); updateCounter(); }
+    if (e.key === 'Escape') toggleExcelViewer();
+  });
+})();
+// ═══════ END EXCEL VIEWER ═══════
 

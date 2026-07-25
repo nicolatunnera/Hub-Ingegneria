@@ -251,6 +251,62 @@
     </div>
   </div>
 
+  <!-- ═══════ EXCEL VIEWER — FUTURISTIC FLASH CARDS (removable block) ═══════ -->
+  <div id="excelViewerModal" class="fixed inset-0 z-50 hidden" onclick="if(event.target===this)toggleExcelViewer()">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-md"></div>
+    <div class="relative z-10 w-full h-full flex flex-col p-3 sm:p-6 overflow-hidden">
+      <div class="flex items-center justify-between mb-4 shrink-0">
+        <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+          <span class="text-2xl">📊</span>
+          <span>Excel Viewer</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono">LIVE</span>
+        </h2>
+        <div class="flex items-center gap-2">
+          <button id="excelViewerPrev" class="ev-nav-btn" title="Precedente"><i class="fas fa-chevron-left"></i></button>
+          <span id="excelViewerCounter" class="text-xs text-gray-400 font-mono">1 / 1</span>
+          <button id="excelViewerNext" class="ev-nav-btn" title="Successivo"><i class="fas fa-chevron-right"></i></button>
+          <button onclick="toggleExcelViewer()" class="ml-2 p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition"><i class="fas fa-times"></i></button>
+        </div>
+      </div>
+      <div id="excelViewerCards" class="flex-1 flex items-center overflow-hidden relative">
+        <div id="excelViewerEmpty" class="w-full text-center text-gray-500 text-sm">Nessun file Excel caricato.</div>
+      </div>
+      <div class="shrink-0 mt-3 flex items-center justify-center gap-3">
+        <div id="excelViewerDots" class="flex gap-1.5"></div>
+      </div>
+    </div>
+  </div>
+  <style>
+    #excelViewerModal .ev-nav-btn { padding: 0.5rem 0.75rem; border-radius: 0.5rem; color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); background: rgba(255,255,255,0.05); transition: all 0.2s; cursor: pointer; }
+    #excelViewerModal .ev-nav-btn:hover { color: #22d3ee; border-color: rgba(34,211,238,0.4); background: rgba(34,211,238,0.1); }
+    .ev-card { position: absolute; width: min(420px, 85vw); background: rgba(15,23,42,0.85); border: 1px solid rgba(34,211,238,0.15); border-radius: 1rem; backdrop-filter: blur(20px); transition: all 0.5s cubic-bezier(0.4,0,0.2,1); cursor: pointer; overflow: hidden; }
+    .ev-card.active { opacity: 1; transform: translateX(0) scale(1); z-index: 10; border-color: rgba(34,211,238,0.4); box-shadow: 0 0 40px rgba(34,211,238,0.15), 0 0 80px rgba(34,211,238,0.05); }
+    .ev-card.prev { opacity: 0.3; transform: translateX(-110%) scale(0.85); z-index: 5; }
+    .ev-card.next { opacity: 0.3; transform: translateX(110%) scale(0.85); z-index: 5; }
+    .ev-card.hidden-card { opacity: 0; transform: translateX(0) scale(0.7); z-index: 1; pointer-events: none; }
+    .ev-card-header { padding: 1rem 1.25rem 0.75rem; border-bottom: 1px solid rgba(34,211,238,0.1); }
+    .ev-card-title { font-size: 0.875rem; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ev-card-meta { display: flex; gap: 0.5rem; margin-top: 0.375rem; flex-wrap: wrap; }
+    .ev-card-tag { font-size: 0.625rem; padding: 0.125rem 0.5rem; border-radius: 9999px; font-weight: 600; letter-spacing: 0.05em; }
+    .ev-tag-excel { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+    .ev-tag-cat { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+    .ev-tag-folder { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+    .ev-card-preview { padding: 0.75rem 1rem; max-height: 220px; overflow-y: auto; }
+    .ev-card-preview table { width: 100%; border-collapse: collapse; font-size: 0.625rem; font-family: 'JetBrains Mono', monospace; }
+    .ev-card-preview th { background: rgba(34,211,238,0.08); color: #67e8f9; padding: 0.375rem 0.5rem; text-align: left; border-bottom: 1px solid rgba(34,211,238,0.15); position: sticky; top: 0; font-weight: 600; }
+    .ev-card-preview td { padding: 0.25rem 0.5rem; color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.03); white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+    .ev-card-preview tr:hover td { background: rgba(34,211,238,0.04); color: #e2e8f0; }
+    .ev-card-preview::-webkit-scrollbar { width: 4px; }
+    .ev-card-preview::-webkit-scrollbar-track { background: transparent; }
+    .ev-card-preview::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.3); border-radius: 2px; }
+    .ev-card-footer { padding: 0.625rem 1.25rem; border-top: 1px solid rgba(34,211,238,0.1); display: flex; justify-content: space-between; align-items: center; }
+    .ev-card-filename { font-size: 0.625rem; color: #475569; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
+    .ev-card-sheets { font-size: 0.625rem; color: #22d3ee; font-weight: 600; }
+    #excelViewerDots .ev-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(148,163,184,0.3); transition: all 0.3s; cursor: pointer; }
+    #excelViewerDots .ev-dot.active { background: #22d3ee; box-shadow: 0 0 8px rgba(34,211,238,0.5); width: 18px; border-radius: 3px; }
+  </style>
+  <!-- ═══════ END EXCEL VIEWER ═══════ -->
+
   <!-- HISTORY MODAL -->
   <div id="historyModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleHistoryModal()">
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl mx-4 max-h-[85vh] flex flex-col">
@@ -655,6 +711,11 @@
         <div class="dash-icon">🗂️</div>
         <div class="dash-label" data-i18n="dashArchive">Archivio</div>
         <div class="dash-count" id="countArchive">0</div>
+      </div>
+      <div class="dash-card requires-write" onclick="toggleExcelViewer()" style="border: 1px solid rgba(34,211,238,0.2); background: linear-gradient(135deg, rgba(34,211,238,0.05), rgba(139,92,246,0.05));">
+        <div class="dash-icon">📊</div>
+        <div class="dash-label">Excel Viewer</div>
+        <div class="dash-count" id="countExcelViewer">0</div>
       </div>
       <div class="dash-card" onclick="toggleHistoryModal()">
         <div class="dash-icon">📋</div>
