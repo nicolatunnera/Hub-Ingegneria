@@ -6,13 +6,12 @@ console.log('Engineering Cloud Hub v3.5.0');
 window.alert = window.showToast || function(msg) { console.warn('[Alert fallback]', msg); };
 
 // ─── FIREBASE INIT (compat SDK — loaded via <script> in index.html) ────
-let db = null, auth = null, storage = null;
+let db = null, auth = null;
 try {
   if (typeof firebase !== 'undefined' && firebase.initializeApp) {
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
     auth = firebase.auth();
-    if (firebase.storage) storage = firebase.storage();
     auth.signInAnonymously().catch(function(e) { console.warn('Auth anonimo fallito:', e); });
   } else {
     console.warn('Firebase SDK non caricato. Modalità offline.');
@@ -21,54 +20,49 @@ try {
   console.warn('Firebase init fallito:', e);
 }
 
-// ─── STORAGE HELPERS (large files — Firestore has 1MB doc limit) ──────
-const STORAGE_THRESHOLD = 400000;
+// ─── LARGE FILE CHUNKING (Firestore has 1MB/doc limit) ────────────────
+const CHUNK_SIZE = 600000;
+const CHUNK_THRESHOLD = 400000;
 function base64ToBlob(base64Data) {
   const bin = atob(base64Data.split(',')[1] || base64Data);
   const arr = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
   return new Blob([arr]);
 }
-async function uploadFileToStorage(base64Data, folder, fileName) {
-  if (!storage) throw new Error('Storage non disponibile');
-  const blob = base64ToBlob(base64Data);
-  const safeName = (fileName || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
-  const path = folder + '/' + Date.now() + '-' + safeName;
-  await storage.ref(path).put(blob);
-  return path;
+async function saveLargeFile(base64Data, coll, fileId) {
+  const data = base64Data.split(',')[1] || base64Data;
+  const total = data.length;
+  const chunks = Math.ceil(total / CHUNK_SIZE);
+  const digits = String(chunks).length;
+  const collRef = db.collection(coll).doc(fileId).collection('chunks');
+  let i = 0, n = 0;
+  while (i < total) {
+    const piece = data.substring(i, i + CHUNK_SIZE);
+    await collRef.doc(String(n).padStart(digits, '0')).set({ data: piece });
+    i += CHUNK_SIZE; n++;
+  }
+  return chunks;
 }
-async function getStorageDownloadURL(path) {
-  if (!storage) throw new Error('Storage non disponibile');
-  return storage.ref(path).getDownloadURL();
+async function loadLargeFile(coll, fileId, chunks) {
+  if (!chunks) return '';
+  let data = '';
+  const snap = await db.collection(coll).doc(fileId).collection('chunks').orderBy('__name__').get();
+  snap.forEach(d => { data += (d.data().data || ''); });
+  return 'data:application/octet-stream;base64,' + data;
 }
-async function deleteFromStorage(path) {
-  if (!storage || !path) return;
-  try { await storage.ref(path).delete(); } catch(e) { console.warn('Delete storage fallito:', path, e); }
+async function deleteLargeFile(coll, fileId) {
+  try {
+    const snap = await db.collection(coll).doc(fileId).collection('chunks').get();
+    const batch = db.batch();
+    snap.forEach(d => batch.delete(d.ref));
+    if (snap.size) await batch.commit();
+  } catch(e) { console.warn('Cleanup chunks fallito:', e); }
 }
-async function downloadFromStorage(path, fileName) {
-  const url = await getStorageDownloadURL(path);
-  const res = await fetch(url);
-  const blob = await res.blob();
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = fileName || 'file';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
-async function loadFileDataSafe(f) {
+async function loadFileDataSafe(f, coll) {
   if (f.fileData) return f.fileData;
-  if (f.storagePath) {
-    try {
-      const url = await getStorageDownloadURL(f.storagePath);
-      const res = await fetch(url);
-      const blob = await res.blob();
-      return await new Promise((res2, rej2) => {
-        const r = new FileReader();
-        r.onload = () => res2(r.result);
-        r.onerror = rej2;
-        r.readAsDataURL(blob);
-      });
-    } catch(e) { console.warn('Caricamento storage fallito:', f.storagePath, e); }
+  if (f.chunks) {
+    try { return await loadLargeFile(coll, f.id, f.chunks); }
+    catch(e) { console.warn('Caricamento chunk fallito:', f.id, e); }
   }
   return '';
 }
@@ -644,7 +638,7 @@ function cleanupExpiredPrivate() {
     db.collection(col).where('private', '==', true).get().then(snap => {
       snap.forEach(d => {
         if (d.data().expiresAt && d.data().expiresAt.seconds * 1000 < Date.now()) {
-          if (d.data().storagePath) deleteFromStorage(d.data().storagePath);
+          if (d.data().chunks) deleteLargeFile(col, d.id);
           db.collection(col).doc(d.id).delete();
         }
       });
@@ -903,6 +897,7 @@ document.getElementById('docFile')?.addEventListener('change', function() { /* h
 // ─── UPLOAD EXCEL ─────────────────────────────────────────────────────
 document.getElementById('btnUploadExcel').onclick = async () => {
   if (window.userRole === 'guest') { showToast('Accesso non consentito agli ospiti.', 'error'); return; }
+  try {
   const sel = document.getElementById('excelFolder');
   const folderId = sel.value === '__new__' ? '' : sel.value;
   const isPrivate = document.getElementById('excelPrivate')?.checked || false;
@@ -916,12 +911,14 @@ document.getElementById('btnUploadExcel').onclick = async () => {
     const title = row?.querySelector('.file-title-input')?.value.trim() || fileNameNoExt(file.name);
     const category = row?.querySelector('.file-cat-select')?.value || '';
     const fileData = await readFileAsBase64(file);
-    let storagePath = '';
+    const fileId = db.collection('excelHub').doc().id;
+    let chunks = 0;
     let dataToStore = fileData;
-    if (file.size > STORAGE_THRESHOLD) {
-      try { storagePath = await uploadFileToStorage(fileData, 'excel', file.name); dataToStore = ''; } catch(e) { console.warn('Storage upload fallito, uso Firestore:', e); storagePath = ''; dataToStore = fileData; }
+    if (file.size > CHUNK_THRESHOLD) {
+      try { chunks = await saveLargeFile(fileData, 'excelHub', fileId); dataToStore = ''; }
+      catch(e) { console.error('Chunk upload fallito:', e); chunks = 0; dataToStore = fileData; }
     }
-    await db.collection('excelHub').add({ name: title, category, folderId: folderId || '', fileData: dataToStore, storagePath, fileName: file.name, fileMime: file.type, uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    await db.collection('excelHub').doc(fileId).set({ name: title, category, folderId: folderId || '', fileData: dataToStore, chunks, fileName: file.name, fileMime: file.type, uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
     await db.collection('historyHub').add({ name: title, operation: `Caricato Excel (${category || 'nessuna'})`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
     count++; if (category) catLog.push(category);
   }
@@ -930,11 +927,13 @@ document.getElementById('btnUploadExcel').onclick = async () => {
   document.getElementById('textDropExcel').textContent = 'Trascina qui i file Excel o clicca per selezionare';
   showToast(`${count} file Excel caricati.`, 'success');
   if (count) await sendTelegramBroadcast(`\u2699\uFE0F *Caricati ${count} file Excel*`);
+  } catch(e) { console.error('Upload Excel fallito:', e); showToast('Errore durante il caricamento: ' + e.message, 'error', 6000); }
 };
 
 // ─── UPLOAD DOC ───────────────────────────────────────────────────────
 document.getElementById('btnUploadDoc').onclick = async () => {
   if (window.userRole === 'guest') { showToast('Accesso non consentito agli ospiti.', 'error'); return; }
+  try {
   const sel = document.getElementById('docFolder');
   const folderId = sel.value === '__new__' ? '' : sel.value;
   const isPrivate = document.getElementById('docPrivate')?.checked || false;
@@ -951,12 +950,14 @@ document.getElementById('btnUploadDoc').onclick = async () => {
     const fileType = file.name.split('.').pop().toUpperCase();
     let extractedText = '';
     try { extractedText = await extractTextFromBase64(fileData, fileType); } catch(e) {}
-    let storagePath = '';
+    const fileId = db.collection('textHub').doc().id;
+    let chunks = 0;
     let dataToStore = fileData;
-    if (file.size > STORAGE_THRESHOLD) {
-      try { storagePath = await uploadFileToStorage(fileData, 'docs', file.name); dataToStore = ''; } catch(e) { console.warn('Storage upload fallito, uso Firestore:', e); storagePath = ''; dataToStore = fileData; }
+    if (file.size > CHUNK_THRESHOLD) {
+      try { chunks = await saveLargeFile(fileData, 'textHub', fileId); dataToStore = ''; }
+      catch(e) { console.error('Chunk upload fallito:', e); chunks = 0; dataToStore = fileData; }
     }
-    await db.collection('textHub').add({ title, category, fileName: file.name, fileType, fileMime: file.type, fileData: dataToStore, storagePath, extractedText: extractedText || '', folderId: folderId || '', uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    await db.collection('textHub').doc(fileId).set({ title, category, fileName: file.name, fileType, fileMime: file.type, fileData: dataToStore, chunks, extractedText: extractedText || '', folderId: folderId || '', uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
     await db.collection('historyHub').add({ name: title, operation: `Caricato Documento (${category || 'nessuna'})`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
     count++;
   }
@@ -965,6 +966,7 @@ document.getElementById('btnUploadDoc').onclick = async () => {
   document.getElementById('textDropDoc').textContent = 'Trascina qui i file o clicca per selezionare (PDF, DOC, TXT, DWG, DXF, APK)';
   showToast(`${count} documenti caricati.`, 'success');
   if (count) await sendTelegramBroadcast(`\u{1F4DD} *Caricati ${count} documenti*`);
+  } catch(e) { console.error('Upload Documento fallito:', e); showToast('Errore durante il caricamento: ' + e.message, 'error', 6000); }
 };
 
 // ─── NOTES ────────────────────────────────────────────────────────────
@@ -1070,14 +1072,14 @@ db.collection('textHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
           console.warn('[AI] Testo estratto vuoto per', data.title);
         }
       }).catch(e => console.error('[AI] Errore estrazione per', data.title, e));
-    } else if (!data.extractedText && data.storagePath) {
-      loadFileDataSafe({ storagePath: data.storagePath }).then(fileData => {
+    } else if (!data.extractedText && data.chunks) {
+      loadFileDataSafe({ id: d.id, chunks: data.chunks }, 'textHub').then(fileData => {
         if (!fileData) return;
         extractTextFromBase64(fileData, data.fileType).then(txt => {
           if (txt) db.collection('textHub').doc(d.id).update({ extractedText: txt });
-        }).catch(e => console.warn('[AI] Estrazione storage fallita per', data.title, e));
+        }).catch(e => console.warn('[AI] Estrazione chunk fallita per', data.title, e));
       });
-    } else if (!data.extractedText && !data.fileData && !data.storagePath) {
+    } else if (!data.extractedText && !data.fileData && !data.chunks) {
       console.warn('[AI] NESSUN fileData per:', data.title, '— file non analizzabile');
     }
   });
@@ -1218,7 +1220,7 @@ document.getElementById('deleteSelectedArchive')?.addEventListener('click', asyn
     const isExcel = cb.dataset.excel === 'true';
     const file = [...allExcelFiles, ...allTextFiles].find(f => f.id === id);
     const itemName = file ? (file.name || file.title || id) : id;
-    if (file && file.storagePath) await deleteFromStorage(file.storagePath);
+    if (file && file.chunks) await deleteLargeFile(isExcel ? 'excelHub' : 'textHub', id);
     await db.collection(isExcel ? 'excelHub' : 'textHub').doc(id).delete();
     await db.collection('historyHub').add({ name: itemName, operation: `Cancellazione ${isExcel ? 'Excel' : 'Documento'} dal Cloud`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
   }
@@ -1337,9 +1339,19 @@ window.downloadDocument = async function(id) {
   if (window.userRole === 'guest') { showToast('Accesso ai file non consentito per gli ospiti.', 'error'); return; }
   const file = [...allTextFiles, ...allExcelFiles].find(f => f.id === id);
   if (!file) return alert('File non trovato.');
-  if (file.storagePath) {
-    try { await downloadFromStorage(file.storagePath, file.fileName || (file.title || file.name || 'documento')); return; }
-    catch(e) { showToast('Errore download: file non trovato nello storage.', 'error'); return; }
+  if (file.chunks) {
+    try {
+      const coll = file.isExcel ? 'excelHub' : 'textHub';
+      const full = await loadLargeFile(coll, file.id, file.chunks);
+      if (!full) throw new Error('chunks vuoti');
+      const blob = base64ToBlob(full);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = file.fileName || (file.title || file.name || 'documento');
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      return;
+    } catch(e) { console.error('Reassembly fallito:', e); showToast('Errore durante il download del file.', 'error'); return; }
   }
   if (file.fileData) {
     const link = document.createElement('a');
@@ -1370,7 +1382,7 @@ window.deleteCloudItem = async (id, isExcel, itemName) => {
   if (confirm(`Eliminare l'elemento "${itemName}" dal Cloud?`)) {
     const tipo = isExcel ? 'Excel' : 'Documento';
     const file = [...allExcelFiles, ...allTextFiles].find(f => f.id === id);
-    if (file && file.storagePath) await deleteFromStorage(file.storagePath);
+    if (file && file.chunks) await deleteLargeFile(isExcel ? 'excelHub' : 'textHub', id);
     await db.collection(isExcel ? 'excelHub' : 'textHub').doc(id).delete();
     await db.collection('historyHub').add({ name: itemName, operation: `Cancellazione ${tipo} dal Cloud`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
   }
@@ -1500,18 +1512,18 @@ window.askAI = async () => {
     let txt = d.extractedText || '';
     if (!txt && d.fileData) {
       try { txt = await extractTextFromBase64(d.fileData, d.fileType); } catch(e) { console.warn('[AI] Estrazione fallita per', d.title, e); }
-    } else if (!txt && d.storagePath) {
+    } else if (!txt && d.chunks) {
       try {
-        const fd = await loadFileDataSafe(d);
+        const fd = await loadFileDataSafe(d, 'textHub');
         if (fd) txt = await extractTextFromBase64(fd, d.fileType);
-      } catch(e) { console.warn('[AI] Estrazione storage fallita per', d.title, e); }
+      } catch(e) { console.warn('[AI] Estrazione chunk fallita per', d.title, e); }
     }
     if (!txt) txt = '(testo non estratto)';
     contextParts.push(`[DOC: ${d.title}] File: ${d.fileName || 'N/A'} | Tipo: ${d.fileType || 'N/A'} | Contenuto:\n${txt.substring(0, MAX_CHARS_PER_FILE)}`);
   }
   for (const e of allExcelFiles) {
     let txt = '';
-    const fileData = e.fileData || (e.storagePath ? await loadFileDataSafe(e) : '');
+    const fileData = e.fileData || (e.chunks ? await loadFileDataSafe(e, 'excelHub') : '');
     if (fileData) {
       try { txt = await extractTextFromBase64(fileData, e.fileName ? e.fileName.split('.').pop() : 'xlsx'); } catch(ex) { console.warn('[AI] Estrazione Excel fallita per', e.name, ex); }
     }
@@ -1710,7 +1722,7 @@ document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key
 
   async function loadFileData(f) {
     if (f.fileData) return f;
-    const data = await loadFileDataSafe(f);
+    const data = await loadFileDataSafe(f, 'excelHub');
     if (data) return { ...f, fileData: data };
     return f;
   }

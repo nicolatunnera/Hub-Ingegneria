@@ -1,4 +1,4 @@
-const CACHE = 'eng-hub-v17';
+const CACHE = 'eng-hub-v18';
 const ASSETS = [
   'manifest.json',
   'icon-192.png',
