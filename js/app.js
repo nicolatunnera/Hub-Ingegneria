@@ -290,7 +290,17 @@ window.toggleDocModal = () => {
 window.toggleNotesModal = () => document.getElementById('notesModal')?.classList.toggle('hidden');
 window.toggleArchiveModal = () => {
   if (window.userRole === 'guest') { showToast('Archivio non disponibile per gli ospiti.', 'error'); return; }
-  document.getElementById('archiveModal')?.classList.toggle('hidden'); combineAndRenderArchive();
+  const modal = document.getElementById('archiveModal');
+  if (!modal) return;
+  const opening = modal.classList.contains('hidden');
+  modal.classList.toggle('hidden');
+  if (opening) {
+    const inp = document.getElementById('searchCloud');
+    if (inp) { inp.value = ''; }
+    window.searchQuery = '';
+    document.getElementById('clearSearch')?.classList.add('hidden');
+  }
+  combineAndRenderArchive();
 };
 window.toggleHistoryModal = () => document.getElementById('historyModal')?.classList.toggle('hidden');
 
@@ -897,6 +907,10 @@ document.getElementById('docFile')?.addEventListener('change', function() { /* h
 // ─── UPLOAD EXCEL ─────────────────────────────────────────────────────
 document.getElementById('btnUploadExcel').onclick = async () => {
   if (window.userRole === 'guest') { showToast('Accesso non consentito agli ospiti.', 'error'); return; }
+  const btn = document.getElementById('btnUploadExcel');
+  const btnHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i><span data-i18n="uploading">Caricamento...</span>';
   try {
   const sel = document.getElementById('excelFolder');
   const folderId = sel.value === '__new__' ? '' : sel.value;
@@ -905,6 +919,7 @@ document.getElementById('btnUploadExcel').onclick = async () => {
   if (!files.length) { showToast('Seleziona almeno un file.', 'error'); return; }
   const container = document.getElementById('excelFileList');
   let count = 0, catLog = [];
+  const uploadedNames = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const row = container.querySelector(`div[data-fi="${i}"]`);
@@ -921,18 +936,24 @@ document.getElementById('btnUploadExcel').onclick = async () => {
     await db.collection('excelHub').doc(fileId).set({ name: title, category, folderId: folderId || '', fileData: dataToStore, chunks, fileName: file.name, fileMime: file.type, uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
     await db.collection('historyHub').add({ name: title, operation: `Caricato Excel (${category || 'nessuna'})`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
     count++; if (category) catLog.push(category);
+    uploadedNames.push(file.name);
   }
   _fileStore.excelFileList = [];
   document.getElementById('excelFileList').innerHTML = '';
   document.getElementById('textDropExcel').textContent = 'Trascina qui i file Excel o clicca per selezionare';
-  showToast(`${count} file Excel caricati.`, 'success');
+  showToast(`${count} file Excel caricati: ${uploadedNames.join(', ')}`, 'success', 6000);
   if (count) await sendTelegramBroadcast(`\u2699\uFE0F *Caricati ${count} file Excel*`);
   } catch(e) { console.error('Upload Excel fallito:', e); showToast('Errore durante il caricamento: ' + e.message, 'error', 6000); }
+  finally { btn.disabled = false; btn.innerHTML = btnHtml; }
 };
 
 // ─── UPLOAD DOC ───────────────────────────────────────────────────────
 document.getElementById('btnUploadDoc').onclick = async () => {
   if (window.userRole === 'guest') { showToast('Accesso non consentito agli ospiti.', 'error'); return; }
+  const btn = document.getElementById('btnUploadDoc');
+  const btnHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i><span data-i18n="uploading">Caricamento...</span>';
   try {
   const sel = document.getElementById('docFolder');
   const folderId = sel.value === '__new__' ? '' : sel.value;
@@ -941,6 +962,7 @@ document.getElementById('btnUploadDoc').onclick = async () => {
   if (!files.length) { showToast('Seleziona almeno un file.', 'error'); return; }
   const container = document.getElementById('docFileList');
   let count = 0;
+  const uploadedNames = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const row = container.querySelector(`div[data-fi="${i}"]`);
@@ -960,13 +982,15 @@ document.getElementById('btnUploadDoc').onclick = async () => {
     await db.collection('textHub').doc(fileId).set({ title, category, fileName: file.name, fileType, fileMime: file.type, fileData: dataToStore, chunks, extractedText: extractedText || '', folderId: folderId || '', uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
     await db.collection('historyHub').add({ name: title, operation: `Caricato Documento (${category || 'nessuna'})`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
     count++;
+    uploadedNames.push(file.name);
   }
   _fileStore.docFileList = [];
   document.getElementById('docFileList').innerHTML = '';
   document.getElementById('textDropDoc').textContent = 'Trascina qui i file o clicca per selezionare (PDF, DOC, TXT, DWG, DXF, APK)';
-  showToast(`${count} documenti caricati.`, 'success');
+  showToast(`${count} documenti caricati: ${uploadedNames.join(', ')}`, 'success', 6000);
   if (count) await sendTelegramBroadcast(`\u{1F4DD} *Caricati ${count} documenti*`);
   } catch(e) { console.error('Upload Documento fallito:', e); showToast('Errore durante il caricamento: ' + e.message, 'error', 6000); }
+  finally { btn.disabled = false; btn.innerHTML = btnHtml; }
 };
 
 // ─── NOTES ────────────────────────────────────────────────────────────
@@ -1193,7 +1217,7 @@ window.searchQuery = '';
 document.getElementById('typeFilter')?.addEventListener('change', combineAndRenderArchive);
 document.getElementById('folderFilter')?.addEventListener('change', combineAndRenderArchive);
 document.getElementById('searchCloud')?.addEventListener('input', e => {
-  if (!e.isTrusted) return;
+  if (!e.target.value) { window.searchQuery = ''; document.getElementById('clearSearch')?.classList.add('hidden'); combineAndRenderArchive(); return; }
   window.searchQuery = e.target.value.toLowerCase();
   const clearBtn = document.getElementById('clearSearch');
   if (clearBtn) clearBtn.classList.toggle('hidden', !e.target.value);

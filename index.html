@@ -220,7 +220,7 @@
       <div class="p-4 modal-scroll-body">
         <div class="relative mb-3">
           <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-          <input type="text" id="searchCloud" class="w-full pl-8 pr-8 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" placeholder="Cerca per nome, descrizione o tipo file..." autocomplete="off" />
+          <input type="search" id="searchCloud" name="q" class="w-full pl-8 pr-8 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" placeholder="Cerca per nome, descrizione o tipo file..." autocomplete="off" />
           <button id="clearSearch" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hidden text-sm leading-none cursor-pointer">&times;</button>
         </div>
         <div class="flex flex-wrap items-center gap-2 mb-3">
@@ -937,7 +937,7 @@
 
   <script>
     window.onerror = function(msg, url, line) { try { if (window.showToast) window.showToast('JS: ' + msg + ' (riga ' + line + ')', 'error'); } catch(e) {} };
-    window.showToast = function(msg, type) {
+    window.showToast = function(msg, type, duration) {
       var c = document.getElementById('toastContainer');
       if (!c) return;
       var t = document.createElement('div');
@@ -945,7 +945,7 @@
       t.innerHTML = (type === 'error' ? '\u26a0\ufe0f ' : type === 'success' ? '\u2705 ' : '\u2139\ufe0f ') + msg;
       c.appendChild(t);
       requestAnimationFrame(function() { t.classList.remove('translate-x-4','opacity-0'); });
-      setTimeout(function() { t.classList.add('translate-x-4','opacity-0'); setTimeout(function() { t.remove(); }, 300); }, 3500);
+      setTimeout(function() { t.classList.add('translate-x-4','opacity-0'); setTimeout(function() { t.remove(); }, 300); }, duration || 3500);
     };
     function enterApp() {
       var lb = document.getElementById('loginBlocker');
@@ -1074,7 +1074,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-  <script src="js/config.js?v=20250725j"></script>
-  <script src="js/app.js?v=20250725j"></script>
+  <script src="js/config.js?v=20250807a"></script>
+  <script src="js/app.js?v=20250807a"></script>
 </body>
 </html>
