@@ -898,7 +898,7 @@ document.getElementById('btnUploadDoc').onclick = async () => {
   }
   _fileStore.docFileList = [];
   document.getElementById('docFileList').innerHTML = '';
-  document.getElementById('textDropDoc').textContent = 'Trascina qui i file o clicca per selezionare (PDF, DOC, TXT, DWG, DXF)';
+  document.getElementById('textDropDoc').textContent = 'Trascina qui i file o clicca per selezionare (PDF, DOC, TXT, DWG, DXF, APK)';
   showToast(`${count} documenti caricati.`, 'success');
   if (count) await sendTelegramBroadcast(`\u{1F4DD} *Caricati ${count} documenti*`);
 };
