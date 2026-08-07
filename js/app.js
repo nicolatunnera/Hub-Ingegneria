@@ -296,9 +296,16 @@ window.toggleArchiveModal = () => {
   modal.classList.toggle('hidden');
   if (opening) {
     const inp = document.getElementById('searchCloud');
-    if (inp) { inp.value = ''; }
+    if (inp) {
+      inp.value = '';
+      inp.readOnly = true;
+    }
     window.searchQuery = '';
     document.getElementById('clearSearch')?.classList.add('hidden');
+    setTimeout(() => {
+      const i2 = document.getElementById('searchCloud');
+      if (i2) { i2.value = ''; i2.readOnly = false; }
+    }, 400);
   }
   combineAndRenderArchive();
 };
@@ -1214,6 +1221,13 @@ function renderFolderIcons() {
 }
 
 window.searchQuery = '';
+const searchInput = document.getElementById('searchCloud');
+searchInput?.addEventListener('focus', () => {
+  if (window.username && searchInput.value === window.username) { searchInput.value = ''; window.searchQuery = ''; combineAndRenderArchive(); }
+});
+searchInput?.addEventListener('blur', () => {
+  if (window.username && searchInput.value === window.username) { searchInput.value = ''; window.searchQuery = ''; combineAndRenderArchive(); }
+});
 document.getElementById('typeFilter')?.addEventListener('change', combineAndRenderArchive);
 document.getElementById('folderFilter')?.addEventListener('change', combineAndRenderArchive);
 document.getElementById('searchCloud')?.addEventListener('input', e => {
