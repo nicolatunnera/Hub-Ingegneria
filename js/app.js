@@ -6,18 +6,71 @@ console.log('Engineering Cloud Hub v3.5.0');
 window.alert = window.showToast || function(msg) { console.warn('[Alert fallback]', msg); };
 
 // ─── FIREBASE INIT (compat SDK — loaded via <script> in index.html) ────
-let db = null, auth = null;
+let db = null, auth = null, storage = null;
 try {
   if (typeof firebase !== 'undefined' && firebase.initializeApp) {
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
     auth = firebase.auth();
+    if (firebase.storage) storage = firebase.storage();
     auth.signInAnonymously().catch(function(e) { console.warn('Auth anonimo fallito:', e); });
   } else {
     console.warn('Firebase SDK non caricato. Modalità offline.');
   }
 } catch (e) {
   console.warn('Firebase init fallito:', e);
+}
+
+// ─── STORAGE HELPERS (large files — Firestore has 1MB doc limit) ──────
+const STORAGE_THRESHOLD = 400000;
+function base64ToBlob(base64Data) {
+  const bin = atob(base64Data.split(',')[1] || base64Data);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr]);
+}
+async function uploadFileToStorage(base64Data, folder, fileName) {
+  if (!storage) throw new Error('Storage non disponibile');
+  const blob = base64ToBlob(base64Data);
+  const safeName = (fileName || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
+  const path = folder + '/' + Date.now() + '-' + safeName;
+  await storage.ref(path).put(blob);
+  return path;
+}
+async function getStorageDownloadURL(path) {
+  if (!storage) throw new Error('Storage non disponibile');
+  return storage.ref(path).getDownloadURL();
+}
+async function deleteFromStorage(path) {
+  if (!storage || !path) return;
+  try { await storage.ref(path).delete(); } catch(e) { console.warn('Delete storage fallito:', path, e); }
+}
+async function downloadFromStorage(path, fileName) {
+  const url = await getStorageDownloadURL(path);
+  const res = await fetch(url);
+  const blob = await res.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = fileName || 'file';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+async function loadFileDataSafe(f) {
+  if (f.fileData) return f.fileData;
+  if (f.storagePath) {
+    try {
+      const url = await getStorageDownloadURL(f.storagePath);
+      const res = await fetch(url);
+      const blob = await res.blob();
+      return await new Promise((res2, rej2) => {
+        const r = new FileReader();
+        r.onload = () => res2(r.result);
+        r.onerror = rej2;
+        r.readAsDataURL(blob);
+      });
+    } catch(e) { console.warn('Caricamento storage fallito:', f.storagePath, e); }
+  }
+  return '';
 }
 
 function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
@@ -591,6 +644,7 @@ function cleanupExpiredPrivate() {
     db.collection(col).where('private', '==', true).get().then(snap => {
       snap.forEach(d => {
         if (d.data().expiresAt && d.data().expiresAt.seconds * 1000 < Date.now()) {
+          if (d.data().storagePath) deleteFromStorage(d.data().storagePath);
           db.collection(col).doc(d.id).delete();
         }
       });
@@ -862,7 +916,12 @@ document.getElementById('btnUploadExcel').onclick = async () => {
     const title = row?.querySelector('.file-title-input')?.value.trim() || fileNameNoExt(file.name);
     const category = row?.querySelector('.file-cat-select')?.value || '';
     const fileData = await readFileAsBase64(file);
-    await db.collection('excelHub').add({ name: title, category, folderId: folderId || '', fileData, fileName: file.name, fileMime: file.type, uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    let storagePath = '';
+    let dataToStore = fileData;
+    if (file.size > STORAGE_THRESHOLD) {
+      try { storagePath = await uploadFileToStorage(fileData, 'excel', file.name); dataToStore = ''; } catch(e) { console.warn('Storage upload fallito, uso Firestore:', e); storagePath = ''; dataToStore = fileData; }
+    }
+    await db.collection('excelHub').add({ name: title, category, folderId: folderId || '', fileData: dataToStore, storagePath, fileName: file.name, fileMime: file.type, uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
     await db.collection('historyHub').add({ name: title, operation: `Caricato Excel (${category || 'nessuna'})`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
     count++; if (category) catLog.push(category);
   }
@@ -892,7 +951,12 @@ document.getElementById('btnUploadDoc').onclick = async () => {
     const fileType = file.name.split('.').pop().toUpperCase();
     let extractedText = '';
     try { extractedText = await extractTextFromBase64(fileData, fileType); } catch(e) {}
-    await db.collection('textHub').add({ title, category, fileName: file.name, fileType, fileMime: file.type, fileData: fileData || '', extractedText: extractedText || '', folderId: folderId || '', uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    let storagePath = '';
+    let dataToStore = fileData;
+    if (file.size > STORAGE_THRESHOLD) {
+      try { storagePath = await uploadFileToStorage(fileData, 'docs', file.name); dataToStore = ''; } catch(e) { console.warn('Storage upload fallito, uso Firestore:', e); storagePath = ''; dataToStore = fileData; }
+    }
+    await db.collection('textHub').add({ title, category, fileName: file.name, fileType, fileMime: file.type, fileData: dataToStore, storagePath, extractedText: extractedText || '', folderId: folderId || '', uploadedBy: window.username || 'unknown', private: isPrivate, expiresAt: isPrivate ? firebase.firestore.Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) : null, uploadedAt: firebase.firestore.FieldValue.serverTimestamp() });
     await db.collection('historyHub').add({ name: title, operation: `Caricato Documento (${category || 'nessuna'})`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
     count++;
   }
@@ -1006,7 +1070,14 @@ db.collection('textHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
           console.warn('[AI] Testo estratto vuoto per', data.title);
         }
       }).catch(e => console.error('[AI] Errore estrazione per', data.title, e));
-    } else if (!data.extractedText && !data.fileData) {
+    } else if (!data.extractedText && data.storagePath) {
+      loadFileDataSafe({ storagePath: data.storagePath }).then(fileData => {
+        if (!fileData) return;
+        extractTextFromBase64(fileData, data.fileType).then(txt => {
+          if (txt) db.collection('textHub').doc(d.id).update({ extractedText: txt });
+        }).catch(e => console.warn('[AI] Estrazione storage fallita per', data.title, e));
+      });
+    } else if (!data.extractedText && !data.fileData && !data.storagePath) {
       console.warn('[AI] NESSUN fileData per:', data.title, '— file non analizzabile');
     }
   });
@@ -1120,6 +1191,7 @@ window.searchQuery = '';
 document.getElementById('typeFilter')?.addEventListener('change', combineAndRenderArchive);
 document.getElementById('folderFilter')?.addEventListener('change', combineAndRenderArchive);
 document.getElementById('searchCloud')?.addEventListener('input', e => {
+  if (!e.isTrusted) return;
   window.searchQuery = e.target.value.toLowerCase();
   const clearBtn = document.getElementById('clearSearch');
   if (clearBtn) clearBtn.classList.toggle('hidden', !e.target.value);
@@ -1146,6 +1218,7 @@ document.getElementById('deleteSelectedArchive')?.addEventListener('click', asyn
     const isExcel = cb.dataset.excel === 'true';
     const file = [...allExcelFiles, ...allTextFiles].find(f => f.id === id);
     const itemName = file ? (file.name || file.title || id) : id;
+    if (file && file.storagePath) await deleteFromStorage(file.storagePath);
     await db.collection(isExcel ? 'excelHub' : 'textHub').doc(id).delete();
     await db.collection('historyHub').add({ name: itemName, operation: `Cancellazione ${isExcel ? 'Excel' : 'Documento'} dal Cloud`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
   }
@@ -1260,10 +1333,14 @@ function combineAndRenderArchive() {
 }
 window.combineAndRenderArchive = combineAndRenderArchive;
 
-window.downloadDocument = function(id) {
+window.downloadDocument = async function(id) {
   if (window.userRole === 'guest') { showToast('Accesso ai file non consentito per gli ospiti.', 'error'); return; }
   const file = [...allTextFiles, ...allExcelFiles].find(f => f.id === id);
   if (!file) return alert('File non trovato.');
+  if (file.storagePath) {
+    try { await downloadFromStorage(file.storagePath, file.fileName || (file.title || file.name || 'documento')); return; }
+    catch(e) { showToast('Errore download: file non trovato nello storage.', 'error'); return; }
+  }
   if (file.fileData) {
     const link = document.createElement('a');
     link.href = file.fileData;
@@ -1292,6 +1369,8 @@ window.deleteCloudItem = async (id, isExcel, itemName) => {
   }
   if (confirm(`Eliminare l'elemento "${itemName}" dal Cloud?`)) {
     const tipo = isExcel ? 'Excel' : 'Documento';
+    const file = [...allExcelFiles, ...allTextFiles].find(f => f.id === id);
+    if (file && file.storagePath) await deleteFromStorage(file.storagePath);
     await db.collection(isExcel ? 'excelHub' : 'textHub').doc(id).delete();
     await db.collection('historyHub').add({ name: itemName, operation: `Cancellazione ${tipo} dal Cloud`, uploadedBy: window.username || 'unknown', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
   }
@@ -1421,14 +1500,20 @@ window.askAI = async () => {
     let txt = d.extractedText || '';
     if (!txt && d.fileData) {
       try { txt = await extractTextFromBase64(d.fileData, d.fileType); } catch(e) { console.warn('[AI] Estrazione fallita per', d.title, e); }
+    } else if (!txt && d.storagePath) {
+      try {
+        const fd = await loadFileDataSafe(d);
+        if (fd) txt = await extractTextFromBase64(fd, d.fileType);
+      } catch(e) { console.warn('[AI] Estrazione storage fallita per', d.title, e); }
     }
     if (!txt) txt = '(testo non estratto)';
     contextParts.push(`[DOC: ${d.title}] File: ${d.fileName || 'N/A'} | Tipo: ${d.fileType || 'N/A'} | Contenuto:\n${txt.substring(0, MAX_CHARS_PER_FILE)}`);
   }
   for (const e of allExcelFiles) {
     let txt = '';
-    if (e.fileData) {
-      try { txt = await extractTextFromBase64(e.fileData, e.fileName ? e.fileName.split('.').pop() : 'xlsx'); } catch(ex) { console.warn('[AI] Estrazione Excel fallita per', e.name, ex); }
+    const fileData = e.fileData || (e.storagePath ? await loadFileDataSafe(e) : '');
+    if (fileData) {
+      try { txt = await extractTextFromBase64(fileData, e.fileName ? e.fileName.split('.').pop() : 'xlsx'); } catch(ex) { console.warn('[AI] Estrazione Excel fallita per', e.name, ex); }
     }
     if (!txt) txt = '(contenuto non estratto)';
     contextParts.push(`[EXCEL: ${e.name}] Categoria: ${e.category || 'Generale'} | Contenuto:\n${txt.substring(0, MAX_CHARS_PER_FILE)}`);
@@ -1604,9 +1689,17 @@ document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key
   }
 
   // ── Open full viewer ──
-  window.evOpenViewer = function() {
+  window.evOpenViewer = async function() {
     if (!selectedIds.size) { showToast((window.i18n[window.currentLang]||window.i18n.it).evView + ': select at least one file.', 'error'); return; }
-    viewFiles = allExcelFiles.filter(f => selectedIds.has(f.id)).map(parseExcel);
+    const preview = document.getElementById('evMainPreview');
+    if (preview) preview.innerHTML = '<div class="text-xs text-gray-500 italic py-12">Caricamento...</div>';
+    const selected = allExcelFiles.filter(f => selectedIds.has(f.id));
+    const parsed = [];
+    for (const f of selected) {
+      const withData = await loadFileData(f);
+      parsed.push(parseExcel(withData));
+    }
+    viewFiles = parsed;
     currentIndex = 0;
     document.getElementById('evSelectModal')?.classList.add('hidden');
     document.getElementById('evViewerModal')?.classList.remove('hidden');
@@ -1614,6 +1707,13 @@ document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key
     evRenderThumbs();
     evUpdateWishlistBtn();
   };
+
+  async function loadFileData(f) {
+    if (f.fileData) return f;
+    const data = await loadFileDataSafe(f);
+    if (data) return { ...f, fileData: data };
+    return f;
+  }
 
   window.evBackToSelect = function() {
     document.getElementById('evViewerModal')?.classList.add('hidden');
