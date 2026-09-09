@@ -1,3 +1,62 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Firebase config (sensitive)
+firebase-config.json
+firebase-key.json
+.firebaserc
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+
+# Node modules (if using build tools in future)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+*.min.js
+*.min.css
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temp files
+*.tmp
+*.temp
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Backups
+*.backup
+*.bak
+*.orig
+
+# Local development
+local.conf
+dev.conf
 
 # standalone Render repo
 Sito indipendente/
