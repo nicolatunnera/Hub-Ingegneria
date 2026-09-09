@@ -6,14 +6,61 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+    
+    // ═══ UTENTI — Solo il proprietario può leggere/modificare ═══
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+    
+    // ═══ CARTELLE — Verifica proprietà ═══
+    match /folders/{folderId} {
+      allow read, write: if 
+        get(/databases/$(database)/documents/folders/$(folderId)).data.owner_uid == request.auth.uid;
+    }
+    
+    // ═══ FILE — Verifica accesso cartella proprietaria ═══
+    match /files/{fileId} {
+      allow read, write: if 
+        get(/databases/$(database)/documents/folders/$(resource.data.folder_id)).data.owner_uid == request.auth.uid;
+    }
+    
+    // ═══ NOTE — Solo proprietario ═══
+    match /notes/{noteId} {
+      allow read, write: if request.auth.uid == resource.data.owner_uid;
+    }
+    
+    // ═══ ARCHIVIO — Solo proprietario ═══
+    match /archive/{archiveId} {
+      allow read, write: if request.auth.uid == resource.data.owner_uid;
+    }
+    
+    // ═══ PUBBLICO — Lettura consentita, scrittura solo autenticati ═══
+    match /public/{document=**} {
+      allow read: if true;
+      allow write: if request.auth.uid != null;
+    }
+    
+    // ═══ STORICO ATTIVITÀ — Solo proprietario ═══
+    match /history/{historyId} {
+      allow read, write: if request.auth.uid == resource.data.user_uid;
     }
   }
 }
 
 
-─── ISTRUZIONI ─────────────────────────────────────────
-1. Vai su https://console.firebase.google.com/project/hub-ingegneria/firestore/rules
-2. Incolla le regole qui sopra → PUBBLICA
-3. Auth → Sign-in method → verifica che "Anonimo" sia attivo
+─── ISTRUZIONI DEPLOY ─────────────────────────────────
+1. Vai su https://console.firebase.google.com
+2. Seleziona il progetto "hub-ingegneria"
+3. Firestore Database → Rules
+4. Incolla tutto il contenuto qui sopra
+5. Clicca "PUBBLICA"
+6. Verifica che Auth → Accesso Anonimo sia DISABILITATO (per maggior sicurezza)
+
+─── BACKUP DELLE REGOLE VECCHIE ─────────────────────
+Le vecchie regole erano TROPPO PERMISSIVE:
+  OLD: allow read, write: if request.auth != null;
+  
+Questo permetteva a QUALSIASI utente autenticato di leggere/modificare 
+TUTTI i dati di TUTTI gli altri utenti!
+
+⚠️ CRITICO: Aggiorna SUBITO le regole! ⚠️

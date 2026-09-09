@@ -1,4 +1,4 @@
-const CACHE = 'eng-hub-v20';
+const CACHE = 'eng-hub-v' + new Date().toISOString().split('T')[0].replace(/-/g, '');
 const ASSETS = [
   'manifest.json',
   'icon-192.png',
