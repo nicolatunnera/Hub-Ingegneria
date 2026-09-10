@@ -120,7 +120,7 @@ Encoding: UTF-8 o ISO-8859-1
 
 ## Roadmap
 
-- [ ] **v3.6.0** - Viewer 3D integrato con Three.js
+- [x] ~~**v3.6.0**~~ Viewer 3D integrato con Three.js + occt-import-js WASM
 - [ ] **v3.7.0** - Generatore preview PDF da STEP
 - [ ] **v3.8.0** - Supporto file IGES (.igs)
 - [ ] **v4.0.0** - Integrazione Fusion 360 API

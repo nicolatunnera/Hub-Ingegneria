@@ -114,4 +114,4 @@ Se qualcosa non funziona:
 ---
 
 **Made with ❤️ by Nicola Tunnera**
-**v3.5.1 - Improvements Release**
+**v3.6.0 - Viewer Release** | **v3.5.1 - Improvements Release**

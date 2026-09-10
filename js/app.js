@@ -1338,7 +1338,8 @@ function combineAndRenderArchive() {
     const folderCell = `<td class="p-3"><span class="folder-dot" style="background:${color}"></span><span class="hidden sm:inline">${escapeHtml(fName)}</span></td>`;
     const canDel = !isGuest && (window.userRole === 'owner' || f.uploadedBy === window.username);
     const checkbox = isGuest ? '' : `<td class="p-3 text-center"><input type="checkbox" class="archive-checkbox cursor-pointer" data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}"></td>`;
-    const actionsCell = isGuest ? '<td class="p-3"></td>' : `<td class="p-3 text-center whitespace-nowrap"><button data-id="${escapeHtml(f.id)}" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">\u{1F4E5}</button>${canDel ? `<button data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}" data-name="${escapeHtml(f.name || f.title || 'File')}" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">\u{1F5D1}\uFE0F</button>` : ''}</td>`;
+    const viewBtn = !isGuest && !f.isExcel ? `<button data-id="${escapeHtml(f.id)}" class="view-doc-btn text-emerald-500 hover:text-emerald-300 cursor-pointer text-sm" title="Visualizza">\u{1F441}\uFE0F</button>` : '';
+    const actionsCell = isGuest ? '<td class="p-3"></td>' : `<td class="p-3 text-center whitespace-nowrap">${viewBtn}<button data-id="${escapeHtml(f.id)}" class="download-doc-btn text-blue-500 hover:text-blue-300 cursor-pointer text-sm" title="Scarica">\u{1F4E5}</button>${canDel ? `<button data-id="${escapeHtml(f.id)}" data-excel="${f.isExcel}" data-name="${escapeHtml(f.name || f.title || 'File')}" class="delete-btn text-red-500 hover:text-red-300 cursor-pointer text-sm" title="Elimina">\u{1F5D1}\uFE0F</button>` : ''}</td>`;
     const catOptsHtml = '<option value="">—</option>' + allCategories.map(c => `<option value="${escapeHtml(c.name)}" ${f.category === c.name ? 'selected' : ''}>${escapeHtml(c.emoji || '📁')} ${escapeHtml(c.name)}</option>`).join('');
     const catSelectHtml = isGuest || !canDel
       ? `<td class="p-3 text-gray-500 text-[10px] truncate max-w-[80px] sm:max-w-none">${escapeHtml(f.category || '—')}</td>`
@@ -1355,6 +1356,9 @@ function combineAndRenderArchive() {
   });
   body.querySelectorAll('.download-doc-btn').forEach(btn => {
     btn.addEventListener('click', () => window.downloadDocument(btn.dataset.id));
+  });
+  body.querySelectorAll('.view-doc-btn').forEach(btn => {
+    btn.addEventListener('click', () => window.viewDocumentFile(btn.dataset.id));
   });
   body.querySelectorAll('.cat-edit-select').forEach(sel => {
     sel.addEventListener('change', async () => {
@@ -1415,8 +1419,335 @@ window.downloadDocument = async function(id) {
   }
 };
 
+// ─── FILE VIEWER (PDF / Word / STEP / DXF) ───────────────────────────
+let fvCleanup = null;
+function fvShowLoading(body, msg) {
+  body.innerHTML = `<div class="fv-loading"><i class="fas fa-spinner fa-spin text-2xl"></i><span>${msg || 'Caricamento...'}</span></div>`;
+}
+function fvSetFooter(footer, html) {
+  if (!footer) return;
+  footer.innerHTML = html;
+  footer.classList.remove('hidden');
+  footer.classList.add('flex');
+}
+function fvResetFooter(footer) {
+  if (!footer) return;
+  footer.innerHTML = '';
+  footer.classList.remove('flex');
+  footer.classList.add('hidden');
+}
+function closeFileViewer() {
+  const modal = document.getElementById('fileViewerModal');
+  if (modal) modal.classList.add('hidden');
+  if (fvCleanup) { try { fvCleanup(); } catch(e) {} fvCleanup = null; }
+  const body = document.getElementById('fileViewerBody');
+  if (body) { body.innerHTML = ''; body.classList.remove('is-3d'); }
+}
+window.closeFileViewer = closeFileViewer;
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Libreria non caricata: ' + src));
+    document.head.appendChild(s);
+  });
+}
+function dataUrlToArrayBuffer(dataUrl) {
+  const bin = atob(dataUrl.split(',')[1] || dataUrl);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return arr.buffer;
+}
+function dataUrlToText(dataUrl) {
+  const bin = atob(dataUrl.split(',')[1] || dataUrl);
+  try {
+    if (window.TextDecoder) return new TextDecoder('utf-8').decode(Uint8Array.from(bin, c => c.charCodeAt(0)));
+    return decodeURIComponent(escape(bin));
+  } catch(e) { return bin; }
+}
+window.viewDocumentFile = async function(id) {
+  if (window.userRole === 'guest') { showToast('Anteprima non disponibile per gli ospiti.', 'error'); return; }
+  const file = allTextFiles.find(f => f.id === id);
+  if (!file) return alert('File non trovato.');
+  const modal = document.getElementById('fileViewerModal');
+  const body = document.getElementById('fileViewerBody');
+  const footer = document.getElementById('fileViewerFooter');
+  const titleEl = document.getElementById('fileViewerTitle');
+  const typeEl = document.getElementById('fileViewerType');
+  if (!modal || !body) return;
+  try {
+    const rawData = await loadFileDataSafe(file, 'textHub');
+    if (!rawData) { showToast('Dati del file non disponibili.', 'error'); return; }
+    const ext = (file.fileName || '').split('.').pop().toUpperCase() || (file.fileType || '');
+    titleEl.textContent = file.title || file.fileName || 'Documento';
+    typeEl.textContent = ext || 'FILE';
+    fvResetFooter(footer);
+    modal.classList.remove('hidden');
+    if (ext === 'PDF') {
+      await renderPdfFile(body, footer, rawData, file.title);
+    } else if (ext === 'DOCX') {
+      await renderWordFile(body, footer, rawData, ext);
+    } else if (ext === 'DOC') {
+      body.classList.remove('is-3d');
+      body.innerHTML = `<div class="fv-scroll" data-doc="1"><div class="fv-doc-content" style="white-space:pre-wrap;font-family:monospace;font-size:11px">${escapeHtml(file.extractedText || 'Anteprima non disponibile per file .doc (formato legacy). Scarica il file per aprirlo.')}</div></div>`;
+      fvSetFooter(footer, 'Documento .doc (anteprima testuale)');
+    } else if (ext === 'STEP' || ext === 'STP') {
+      await renderStepFile(body, footer, rawData, file.title);
+    } else if (ext === 'DXF') {
+      await renderDxfFile(body, footer, rawData, file.title);
+    } else {
+      const text = dataUrlToText(rawData);
+      const content = text && text.trim() ? (file.extractedText || text) : (file.extractedText || '');
+      if (content && content.trim()) {
+        body.classList.remove('is-3d');
+        body.innerHTML = `<div class="fv-scroll" data-doc="1"><div class="fv-doc-content" style="white-space:pre-wrap;font-family:monospace;font-size:11px">${escapeHtml(content.substring(0, 20000))}</div></div>`;
+      } else {
+        body.innerHTML = `<div class="fv-center"><div class="text-xs text-gray-400 text-center px-6">⚠️ Anteprima non disponibile per questo formato.<br>Scarica il file per aprirlo con il software appropriato.</div></div>`;
+      }
+    }
+  } catch (e) {
+    console.error('Viewer fallito:', e);
+    body.innerHTML = `<div class="fv-center"><div class="text-xs text-red-500 text-center px-6">Errore durante l'anteprima: ${escapeHtml(e.message)}</div></div>`;
+  }
+};
+window._renderPdfRef = null;
+async function renderPdfFile(body, footer, dataUrl, title) {
+  if (typeof pdfjsLib === 'undefined') throw new Error('Libreria PDF non caricata.');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  fvShowLoading(body, 'Preparazione PDF...');
+  const pdf = await pdfjsLib.getDocument({ data: dataUrlToArrayBuffer(dataUrl) }).promise;
+  body.classList.remove('is-3d');
+  body.innerHTML = `<div class="fv-scroll" data-doc="1"></div>`;
+  const scroll = body.firstElementChild;
+  let page = 1;
+  const total = pdf.numPages;
+  const renderPage = async (n) => {
+    scroll.innerHTML = `<div class="fv-loading" style="position:static;padding:1rem 0"><i class="fas fa-spinner fa-spin"></i><span>Pagina ${n} / ${total}</span></div>`;
+    const pg = await pdf.getPage(n);
+    const base = Math.min(900, scroll.clientWidth - 40);
+    const scale = base / pg.getViewport({ scale: 1 }).width;
+    const viewport = pg.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width; canvas.height = viewport.height;
+    scroll.innerHTML = '';
+    scroll.appendChild(canvas);
+    await pg.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+  };
+  await renderPage(1);
+  fvSetFooter(footer, `
+    <button onclick="${'renderPdfNav(-1)'}">&laquo; Prec</button>
+    <span id="fvPdfPage">1 / ${total}</span>
+    <button onclick="${'renderPdfNav(1)'}">Succ &raquo;</button>
+  `);
+  window._renderPdfRef = { renderPage, max: total };
+}
+window.renderPdfNav = async function(dir) {
+  const ref = window._renderPdfRef;
+  const span = document.getElementById('fvPdfPage');
+  if (!ref) return;
+  let cur = parseInt(span ? span.textContent : '1', 10);
+  const n = cur + dir;
+  if (n < 1 || n > ref.max) return;
+  await ref.renderPage(n);
+  if (span) span.textContent = `${n} / ${ref.max}`;
+};
+async function renderWordFile(body, footer, dataUrl, ext) {
+  if (typeof mammoth === 'undefined') throw new Error('Libreria Word non caricata.');
+  fvShowLoading(body, 'Conversione documento...');
+  const bin = atob(dataUrl.split(',')[1] || dataUrl);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  const result = await mammoth.convertToHtml({ arrayBuffer: arr.buffer });
+  body.classList.remove('is-3d');
+  body.innerHTML = `<div class="fv-scroll" data-doc="1"><div class="fv-doc-content">${result.value || '<p>Nessun contenuto</p>'}</div></div>`;
+  fvSetFooter(footer, `Anteprima ${ext} (${Math.round(arr.byteLength / 1024)} KB)`);
+}
+async function ensureThree() {
+  if (window.THREE) return window.THREE;
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
+  if (window.THREE && !window.THREE.OrbitControls) {
+    try { await loadScript('https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js'); } catch(e) {}
+  }
+  return window.THREE;
+}
+async function renderStepFile(body, footer, dataUrl, title) {
+  fvShowLoading(body, 'Caricamento motore 3D (prima volta ~15MB)...');
+  const THREE = await ensureThree();
+  body.classList.add('is-3d');
+  body.innerHTML = `<div id="fv3d"></div>`;
+  const container = document.getElementById('fv3d');
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xf1f5f9);
+  const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000000);
+  camera.position.set(300, 250, 400);
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  container.appendChild(renderer.domElement);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x94a3b8, 1.1));
+  const dir = new THREE.DirectionalLight(0xffffff, 1.2);
+  dir.position.set(200, 300, 400);
+  scene.add(dir);
+  let controls = null;
+  if (THREE.OrbitControls) { controls = new THREE.OrbitControls(camera, renderer.domElement); controls.enableDamping = true; }
+  let disposed = false;
+  const onResize = () => { if (disposed) return; camera.aspect = container.clientWidth / container.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(container.clientWidth, container.clientHeight); };
+  window.addEventListener('resize', onResize);
+  const animate = () => { if (disposed) return; requestAnimationFrame(animate); if (controls) controls.update(); renderer.render(scene, camera); };
+  animate();
+  fvCleanup = () => { disposed = true; window.removeEventListener('resize', onResize); try { controls && controls.dispose(); } catch(e){} try { renderer.dispose(); container.innerHTML = ''; } catch(e){} };
+  const wasmPath = 'https://cdn.jsdelivr.net/npm/occt-import-js@0.0.23/dist/occt-import-js.wasm';
+  try {
+    let occtimportjs = window.occtimportjs;
+    if (!occtimportjs) {
+      await loadScript('https://cdn.jsdelivr.net/npm/occt-import-js@0.0.23/dist/occt-import-js.js');
+      occtimportjs = window.occtimportjs;
+    }
+    if (!occtimportjs) throw new Error('Motore STEP non inizializzato.');
+    const occt = await occtimportjs({ locateFile: () => wasmPath });
+    fvShowLoading(body, 'Conversione STEP in mesh...');
+    const buffer = dataUrlToArrayBuffer(dataUrl);
+    const result = occt.ReadStepFile(new Uint8Array(buffer), null);
+    if (!result || !result.success || !result.meshes || !result.meshes.length) throw new Error('Nessuna geometria trovata nel file STEP.');
+    const group = new THREE.Group();
+    result.meshes.forEach(mesh => {
+      const pos = mesh.attributes && mesh.attributes.position && mesh.attributes.position.array;
+      const idx = mesh.index && mesh.index.array;
+      if (!pos || !pos.length || !idx || !idx.length) return;
+      const positions = pos instanceof Float32Array ? pos : new Float32Array(pos);
+      const indices = idx instanceof Uint32Array ? idx : new Uint32Array(idx);
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geo.setIndex(new THREE.BufferAttribute(indices, 1));
+      geo.computeVertexNormals();
+      const color = mesh.color || null;
+      const mat = color
+        ? new THREE.MeshStandardMaterial({ color: new THREE.Color(color[0], color[1], color[2]), metalness: 0.3, roughness: 0.5, side: THREE.DoubleSide })
+        : new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.3, roughness: 0.5, side: THREE.DoubleSide });
+      group.add(new THREE.Mesh(geo, mat));
+    });
+    if (!group.children.length) throw new Error('Geometria non triangolabile.');
+    scene.add(group);
+    const box = new THREE.Box3().setFromObject(group);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z) || 1;
+    group.position.sub(center);
+    camera.position.set(maxDim * 1.4, maxDim * 1.1, maxDim * 1.8);
+    camera.lookAt(0, 0, 0);
+    if (controls) { controls.target.set(0, 0, 0); controls.update(); }
+    renderer.render(scene, camera);
+    fvSetFooter(footer, `Modello 3D STEP — ${result.meshes.length} mesh • trascina per ruotare`);
+  } catch (e) {
+    disposed = true;
+    console.error('STEP viewer fallito:', e);
+    body.innerHTML = `<div class="fv-center"><div class="text-xs text-red-500 text-center px-6">Errore 3D: ${escapeHtml(e.message)}</div></div>`;
+    fvResetFooter(footer);
+  }
+}
+function parseDxfEntities(text) {
+  const lines = text.split(/\r?\n/);
+  const entities = [];
+  let cur = null, inEntities = false, px = null;
+  const push = () => { if (cur) entities.push(cur); };
+  for (let i = 0; i < lines.length; i += 2) {
+    const code = parseInt(lines[i].trim(), 10);
+    const val = (lines[i + 1] || '').trim();
+    if (isNaN(code)) { i--; continue; }
+    if (code === 0) {
+      const t = val.toUpperCase();
+      if (t === 'SECTION') continue;
+      if (t === 'ENDSEC') { push(); cur = null; inEntities = false; continue; }
+      if (inEntities) {
+        if (['LINE','CIRCLE','ARC','LWPOLYLINE','POLYLINE','POLYLINE2D'].indexOf(t) !== -1) { push(); cur = { type: t, pts: [] }; continue; }
+        push(); cur = null; continue;
+      }
+      push(); cur = null; continue;
+    }
+    if (code === 2 && val.toUpperCase() === 'ENTITIES') { inEntities = true; continue; }
+    if (!cur) continue;
+    if (code === 10) { px = parseFloat(val) || 0; if (cur.type === 'LINE') cur.pts.length = 0; }
+    else if (code === 20 && px !== null) {
+      cur.pts.push([px, parseFloat(val) || 0]);
+      px = null;
+    }
+    else if (code === 11) { px = parseFloat(val) || 0; }
+    else if (code === 21 && px !== null) { cur.pts.push([px, parseFloat(val) || 0]); px = null; }
+    else if (code === 40) { if (cur.r === undefined) cur.r = parseFloat(val) || 0; }
+    else if (code === 50) cur.a1 = parseFloat(val) || 0;
+    else if (code === 51) cur.a2 = parseFloat(val) || 0;
+  }
+  push();
+  return entities;
+}
+async function renderDxfFile(body, footer, dataUrl) {
+  fvShowLoading(body, 'Preparazione disegno DXF...');
+  const entities = parseDxfEntities(dataUrlToText(dataUrl));
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  entities.forEach(e => {
+    e.pts.forEach(pt => { minX = Math.min(minX, pt[0]); maxX = Math.max(maxX, pt[0]); minY = Math.min(minY, pt[1]); maxY = Math.max(maxY, pt[1]); });
+    if ((e.type === 'CIRCLE' || e.type === 'ARC') && e.r) { minX = Math.min(minX, p0x(e) - e.r); maxX = Math.max(maxX, p0x(e) + e.r); minY = Math.min(minY, p0y(e) - e.r); maxY = Math.max(maxY, p0y(e) + e.r); }
+  });
+  const hasGeo = isFinite(minX) && isFinite(maxX) && isFinite(minY) && isFinite(maxY);
+  const prim = entities.filter(e => e.type === 'LINE' || e.type === 'CIRCLE' || e.type === 'ARC' || e.type === 'LWPOLYLINE' || e.type === 'POLYLINE');
+  body.classList.remove('is-3d');
+  body.innerHTML = `<div class="fv-scroll" data-doc="1" style="display:block;text-align:center"><canvas id="fvCanvas"></canvas></div>`;
+  const scroll = body.firstElementChild;
+  const canvas = document.getElementById('fvCanvas');
+  const cw = Math.max(320, scroll.clientWidth - 40);
+  const ch = Math.max(240, scroll.clientHeight - 40);
+  const bw = (maxX - minX) || 1, bh = (maxY - minY) || 1;
+  const scale = Math.min((cw - 80) / bw, (ch - 80) / bh, 1000);
+  canvas.width = Math.max(320, Math.round(bw * scale + 80));
+  canvas.height = Math.max(240, Math.round(bh * scale + 80));
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const ox = (canvas.width - bw * scale) / 2 - minX * scale;
+  const oy = (canvas.height + bh * scale) / 2 + minY * scale;
+  const toX = x => ox + x * scale;
+  const toY = y => oy - y * scale;
+  ctx.strokeStyle = '#1d4ed8'; ctx.lineWidth = Math.max(1, scale * 0.02); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  prim.forEach(e => {
+    if (e.type === 'CIRCLE' || e.type === 'ARC') {
+      if (e.pts[0] && e.r) {
+        ctx.beginPath();
+        if (e.type === 'CIRCLE') ctx.arc(toX(e.pts[0][0]), toY(e.pts[0][1]), e.r * scale, 0, Math.PI * 2);
+        else {
+          const a1 = (e.a1 !== undefined ? e.a1 : 0) * Math.PI / 180;
+          const a2 = (e.a2 !== undefined ? e.a2 : 360) * Math.PI / 180;
+          ctx.arc(toX(e.pts[0][0]), toY(e.pts[0][1]), e.r * scale, -a1, -a2, true);
+        }
+        ctx.stroke();
+      }
+      return;
+    }
+    if (e.type === 'LWPOLYLINE' || e.type === 'POLYLINE') {
+      if (!e.pts.length) return;
+      ctx.beginPath();
+      ctx.moveTo(toX(e.pts[0][0]), toY(e.pts[0][1]));
+      if (e.pts.length > 1) {
+        for (let i = 1; i < e.pts.length; i++) ctx.lineTo(toX(e.pts[i][0]), toY(e.pts[i][1]));
+        if (e.type === 'LWPOLYLINE' && e.closed) ctx.closePath();
+      }
+      ctx.stroke();
+      return;
+    }
+    if (e.pts[0] && e.pts.length > 1) {
+      ctx.beginPath();
+      ctx.moveTo(toX(e.pts[0][0]), toY(e.pts[0][1]));
+      ctx.lineTo(toX(e.pts[1][0]), toY(e.pts[1][1]));
+      ctx.stroke();
+    }
+  });
+  fvSetFooter(footer, `Disegno DXF 2D — ${prim.length} entità`);
+  fvCleanup = () => {};
+  if (!hasGeo) body.innerHTML = `<div class="fv-center"><div class="text-xs text-gray-400">Nessuna geometria 2D trovata nel file DXF.</div></div>`;
+}
+function p0x(e) { return (e.pts[0] && e.pts[0][0]) || 0; }
+function p0y(e) { return (e.pts[0] && e.pts[0][1]) || 0; }
+
 window.deleteCloudItem = async (id, isExcel, itemName) => {
-  if (window.userRole === 'guest') { showToast('Non puoi eliminare file.', 'error'); return; }
   if (window.userRole !== 'owner') {
     const file = [...allExcelFiles, ...allTextFiles].find(f => f.id === id);
     if (!file || file.uploadedBy !== window.username) { showToast('Non hai i permessi per eliminare questo file.', 'error'); return; }

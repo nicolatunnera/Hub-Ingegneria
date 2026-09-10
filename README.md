@@ -3,7 +3,7 @@
 **Piattaforma cloud ingegneristico per la gestione di documenti tecnici, preventivi, relazioni e certificazioni.**
 
 [![Live Demo](https://img.shields.io/badge/Demo%20Live-https%3A%2F%2Fnicholatunnera.github.io%2FHub--Ingegneria-blue)](https://nicolatunnera.github.io/Hub-Ingegneria)
-[![Version](https://img.shields.io/badge/Version-3.5.1-green)]()
+[![Version](https://img.shields.io/badge/Version-3.6.0-green)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)]()
 
 ---
@@ -12,6 +12,7 @@
 
 ### 📊 Gestione Documenti
 - ✅ **Excel Viewer** - Visualizza e navigazione file .xlsx, .xls, .csv
+- 💎 **Viewer Integrato** - Anteprima PDF, Word (.docx), disegni 2D DXF, modelli 3D STEP/STP direttamente in schedario
 - 📄 **Documenti** - PDF, Word (.doc, .docx), Testo, Disegni (DWG, DXF), Immagini
 - 🔧 **File CAD** - Supporto per file .step (nuovo!)
 - 📝 **Note Rapide** - Crea e organizza note sincronizzate
@@ -241,6 +242,7 @@ MIT License - Vedi LICENSE file
 
 | Versione | Data | Novità |
 |----------|------|--------|
+| **3.6.0** | 2026-09-10 | 💎 Viewer file integrato: PDF, Word (.docx), STEP/STP 3D (occt-import-js WASM + Three.js), DXF 2D |
 | **3.5.1** | 2026-09-10 | ✨ Supporto file STEP/STP, security rules adattate, deploy script, doc completa |
 | **3.5.0** | 2025-01-20 | Mobile-layout fixes, chunking Firestore per file grandi |
 

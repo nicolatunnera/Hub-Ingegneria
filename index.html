@@ -17,7 +17,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20250725j" />
+  <link rel="stylesheet" href="style.css?v=20260910b" />
   <link rel="icon" type="image/png" href="icon-192.png?v=20250718" />
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors">
@@ -844,7 +844,7 @@
         <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openStatsModal()"><i class="fas fa-chart-bar text-purple-500 w-4"></i><span data-i18n="cloudStats">Statistiche Cloud</span></button>
         <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="hubInfoToggle" onclick="toggleHubInfo()"><i class="fas fa-info-circle text-cyan-500 w-4"></i><span data-i18n="hubInfo">Info Hub</span></button>
         <div id="hubInfoPanel" class="hidden mt-1.5 p-2.5 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-xs space-y-1.5">
-           <p><span class="font-medium" data-i18n="version">Versione:</span> <span id="hubInfoVersion">v3.5.0</span></p>
+           <p><span class="font-medium" data-i18n="version">Versione:</span> <span id="hubInfoVersion">v3.6.0</span></p>
           <p><span class="font-medium" data-i18n="uptime">Attivo da:</span> <span id="hubInfoUptime">--</span></p>
           <p><span class="font-medium" data-i18n="lastUpdate">Ultimo aggiornamento:</span> <span id="hubInfoUpdate">--</span></p>
           <p><span class="font-medium" data-i18n="localTime">Ora locale:</span> <span id="hubInfoTimeDisplay">--</span></p>
@@ -923,6 +923,22 @@
     <button onclick="openAccountModal()" class="px-3 py-1.5 text-xs bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm"><i class="fas fa-user-edit text-[10px]"></i><span data-i18n="myAccount">Il Mio Account</span></button>
     <span class="text-xs text-gray-400 dark:text-gray-500 ml-4" data-i18n="footerCopyright">&copy; 2025 Engineering Cloud Hub</span>
   </footer>
+
+  <!-- FILE VIEWER MODAL (PDF / Word / STEP / DXF) -->
+  <div id="fileViewerModal" class="fixed inset-0 bg-black/70 z-[70] flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeFileViewer()">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-6xl mx-2 sm:mx-4 h-[92vh] flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between px-3 sm:px-4 py-2.5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <div class="flex items-center gap-2 min-w-0">
+          <button onclick="closeFileViewer()" class="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded text-gray-500 cursor-pointer shrink-0"><i class="fas fa-arrow-left"></i></button>
+          <span id="fileViewerTitle" class="text-xs sm:text-sm font-bold truncate"></span>
+          <span id="fileViewerType" class="shrink-0 text-[9px] px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold"></span>
+        </div>
+        <button onclick="closeFileViewer()" class="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded text-gray-400 cursor-pointer shrink-0"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="fileViewerBody" class="flex-1 overflow-hidden relative bg-gray-100 dark:bg-gray-950"></div>
+      <div id="fileViewerFooter" class="hidden items-center justify-center gap-2 px-3 py-2 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs text-gray-500"></div>
+    </div>
+  </div>
 
   <!-- PRIVATE REQUESTS MODAL -->
   <div id="privateRequestsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closePrivateRequestsModal()">
@@ -1074,7 +1090,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-  <script src="js/config.js?v=20260910a"></script>
-  <script src="js/app.js?v=20260910a"></script>
+  <script src="js/config.js?v=20260910b"></script>
+  <script src="js/app.js?v=20260910b"></script>
 </body>
 </html>

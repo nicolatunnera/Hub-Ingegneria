@@ -207,7 +207,7 @@ const html = `
 <body>
     <div class="container">
         <h1>🚀 Firebase Rules Deployer</h1>
-        <p class="subtitle">Hub Ingegneria v3.5.1 - Cloud Edition</p>
+        <p class="subtitle">Hub Ingegneria v3.6.0 - Cloud Edition</p>
         
         <div class="info-box">
             <div class="step">
@@ -369,7 +369,7 @@ server.listen(PORT, () => {
     console.log('');
     console.log('╔══════════════════════════════════════════════╗');
     console.log('║  Firebase Rules Deployer - Cloud Edition     ║');
-    console.log('║  Hub Ingegneria v3.5.1                       ║');
+    console.log('║  Hub Ingegneria v3.6.0                       ║');
     console.log('╚══════════════════════════════════════════════╝');
     console.log('');
     console.log('✅ Server avviato!');

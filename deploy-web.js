@@ -174,7 +174,7 @@ const html = `
 <body>
     <div class="container">
         <h1>🚀 Firebase Rules Deployer</h1>
-        <p class="subtitle">Hub Ingegneria v3.5.1</p>
+        <p class="subtitle">Hub Ingegneria v3.6.0</p>
         
         <div class="info-box">
             <div class="step">
