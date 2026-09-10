@@ -1963,6 +1963,41 @@ window.askAI = async () => {
     }
   }
 
+  const calcResult = (() => {
+    const expr = queryText.replace(/x/gi, '*').replace(/,/g, '.').replace(/\s+/g, ' ').trim();
+    const pct = expr.match(/(\d+(?:\.\d+)?)\s*%\s*(?:di|of)\s*(\d+(?:\.\d+)?)/i);
+    if (pct) {
+      const v = (parseFloat(pct[1]) / 100) * parseFloat(pct[2]);
+      return { expr: `${pct[1]}% di ${pct[2]}`, value: Math.round(v * 1e6) / 1e6 };
+    }
+    const tryEval = raw => {
+      let clean = raw.replace(/\s+/g, '').replace(/\^/g, '**');
+      if (!/^[\d+\-*/().%^*]+$/.test(clean)) return null;
+      if ((clean.match(/[+\-*/().%^]/g) || []).length > 40) return null;
+      try {
+        const v = new Function(`return (${clean})`)();
+        if (typeof v === 'number' && isFinite(v)) return v;
+      } catch (e) {}
+      return null;
+    };
+    const op = (/\d\s*[+*\/%^\-]\s*\d/).test(expr);
+    if (!op) return null;
+    const candidates = expr.match(/[+\-*/().%^0-9]+/g) || [];
+    candidates.push(expr.replace(/[^+\-*/().%^0-9]+/g, ''));
+    let best = null;
+    for (const c of candidates) {
+      const s = c.trim();
+      if (!s || !/^[\d(]/.test(s) || !/[\d)]$/.test(s)) continue;
+      if (s.startsWith('(') && !s.includes(')')) continue;
+      if (s.endsWith(')') && !s.includes('(')) continue;
+      const t = tryEval(s);
+      if (t === null) continue;
+      if (!best || s.length > best.expr.length) best = { expr: s, value: Math.round(t * 1e6) / 1e6 };
+    }
+    if (best && /^\d{4}\s*-\s*\d{4}$/.test(best.expr)) return null;
+    return best;
+  })();
+
   const loadingId = 'loading-' + Date.now();
   container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">\u{1F50D} Cerco nei file caricati...</div>`;
   container.scrollTop = container.scrollHeight;
@@ -2010,16 +2045,18 @@ window.askAI = async () => {
 
   let replyText;
   const keywordReply = () => {
+    const calcLine = calcResult ? `\u2795 Calcolo: <b>${calcResult.expr}</b> = <b>${calcResult.value}</b>` : null;
     if (!results.length) {
-      return tokens.length
+      const base = tokens.length
         ? 'Non ho trovato questa informazione nei file caricati. Prova con altre parole chiave.'
         : 'Scrivi qualcosa da cercare, ad esempio il nome di un file o un argomento.';
+      return calcLine ? `${calcLine}\n\n${base}` : base;
     }
     const shown = results.slice(0, 3);
     const intro = results.length === 1
       ? 'Ho trovato qualcosa:'
       : `Ho trovato ${results.length} risultati. Ecco i più pertinenti:`;
-    return intro + '\n\n' + shown.map((r, i) => {
+    const list = shown.map((r, i) => {
       let m = accentRe(tokens[0]).exec(r.text);
       const from = m ? Math.max(0, m.index - 40) : 0;
       const frag = r.text.substring(from, from + 180).replace(/\s+/g, ' ').trim();
@@ -2027,25 +2064,47 @@ window.askAI = async () => {
       const dl = r.id ? ` <button onclick="window.downloadDocument('${escapeHtml(r.id)}')" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2 py-0.5 rounded ml-1">\u{1F4E5} Scarica</button>` : '';
       return `<b>${label}${escapeHtml(r.name)}</b>${dl}\n<em class="text-slate-500">"${escapeHtml(frag)}…"</em>`;
     }).join('\n\n');
+    return (calcLine ? `${calcLine}\n\n` : '') + intro + '\n\n' + list;
   };
-  if (localModelReady && localGenerator && results.length) {
-const topDocs = results.slice(0, 3);
-      const context = topDocs.map(d => `[FILE: ${d.name}]\n${d.text.substring(0, 1200)}`).join('\n\n');
-      const systemMsg = `Sei un assistente tecnico dell'Engineering Cloud Hub. Rispondi ESCLUSIVAMENTE basandoti sui file forniti. Se l'informazione non è nei file, dillo. Rispondi in italiano, in modo conciso e professionale. Cita sempre la fonte tra parentesi.`;
-    const userMsg = `DOMANDA: ${queryText}\n\nFILE RILEVANTI:\n${context}`;
-    try {
-      const loadingEl = document.getElementById(loadingId);
+if (localModelReady && localGenerator && results.length) {
+    const topDocs = results.slice(0, 3);
+    const context = topDocs.map(d => `[FILE: ${d.name}]\n${d.text.substring(0, 1200)}`).join('\n\n');
+    const here = typeof window.location !== 'undefined' && window.location.href;
+    const siteKB = `SITO: Engineering Cloud Hub (${here || 'https://nicolatunnera.github.io/Hub-Ingegneria'}). Piattaforma cloud ingegneristica per la gestione di documenti tecnici, preventivi, relazioni e certificazioni.\nFUNZIONALITÀ: Dashboard con 5 sezioni (Excel, Documenti, Note, Archivio, Registro Attività) e contatori per sezione; Excel Viewer che visualizza .xlsx, .xls, .csv navigando i fogli; Viewer integrato che apre PDF, Word .docx, disegni 2D DXF e DWG, modelli 3D STEP/STP interattivi direttamente nello schedario; Note Rapide sincronizzate nel cloud (massimo 10 note); Archivio con cartelle (max 100), filtri per categoria e ricerca per nome file; Registro Attività che tiene lo storico di tutte le operazioni (upload, download, modifiche); Calcolatore Pesi per barre d'acciaio; MTBF Calculator per il calcolo dell'affidabilità e del Mean Time Between Failures; AI Co-Pilot locale integrato nella chat; Telegram Bot per notifiche; tema scuro/chiaro/sepia; multilingua italiano/inglese.
+    REGOLE SITO: il login e la registrazione avvengono tramite Firebase; il 'remember me' salva la sessione; ogni utente può caricare fino a 100 file in totale; gli ospiti (guest) non possono aprire l'Archivio né eliminare file.`;
+    const systemMsg = `Sei l'AI Co-Pilot dell'Engineering Cloud Hub. Rispondi in italiano, in modo conciso, professionale e tecnico. Usa SOLO queste fonti:\n\n${siteKB}\n\nPer risposte sul contenuto dei file usa ESCLUSIVAMENTE i FILE RILEVANTI qui sotto. Se l'informazione richiesta non è nei file né nella descrizione del sito, dillo chiaramente, senza inventare. Se è presente un RISULTATO CALCOLATO, usalo come valore esatto senza rifare i conti.`;
+    let userMsg = `DOMANDA: ${queryText}\n\nFILE RILEVANTI:\n${context}`;
+    if (calcResult) userMsg += `\n\nCALCOLO RICHIESTO: ${calcResult.expr}\nRISULTATO ESATTO (calcolato dal sistema): ${calcResult.value}. Usalo nella risposta.`;
+    const loadingEl = document.getElementById(loadingId);
     if (loadingEl) loadingEl.textContent = '\u{1F916} Elaborazione in corso...';
-      const output = await localGenerator([
-        { role: 'system', content: systemMsg },
-        { role: 'user', content: userMsg }
-      ], { max_new_tokens: 300, temperature: 0.3 });
-      const outputText = output[0]?.generated_text;
-      const lastMsg = Array.isArray(outputText) ? outputText[outputText.length - 1] : outputText;
-      replyText = (lastMsg && typeof lastMsg === 'object' ? (lastMsg.content || '') : lastMsg) || '';
-      if (!replyText.trim()) replyText = 'Non sono riuscito a elaborare una risposta. Prova con parole chiave diverse.';
-    } catch (e) {
-      console.error('[AI] Errore modello locale:', e);
+    const liveEl = document.createElement('div');
+    liveEl.className = 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-lg text-gray-800 dark:text-gray-200 max-w-[90%] text-xs';
+    container.appendChild(liveEl);
+    await new Promise(resolve => {
+      try {
+        import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3').then(({ TextStreamer }) => {
+          const streamer = new TextStreamer(localGenerator.tokenizer, {
+            skip_prompt: true, skip_special_tokens: true,
+            callback_function: text => {
+              liveEl.innerHTML = escapeHtml((liveEl.dataset.full || '') + text).replace(/\n/g, '<br>');
+              liveEl.dataset.full = (liveEl.dataset.full || '') + text;
+              container.scrollTop = container.scrollHeight;
+            }
+          });
+          localGenerator([
+            { role: 'system', content: systemMsg },
+            { role: 'user', content: userMsg }
+          ], { max_new_tokens: 300, temperature: 0.3, do_sample: false, streamer }).then(output => {
+            const outputText = output[0]?.generated_text;
+            const lastMsg = Array.isArray(outputText) ? outputText[outputText.length - 1] : outputText;
+            replyText = (lastMsg && typeof lastMsg === 'object' ? (lastMsg.content || '') : lastMsg) || '';
+            resolve();
+          }).catch(e => { console.error('[AI] Errore modello locale:', e); replyText = 'ERR'; resolve(); });
+        }).catch(e => { console.error('[AI] Streamer import fallito:', e); resolve(); });
+      } catch (e) { console.error('[AI] Errore streamer:', e); resolve(); }
+    });
+    liveEl.remove();
+    if (replyText === 'ERR' || !replyText.trim()) {
       replyText = 'Il modello locale ha avuto un problema, quindi mostro i risultati della ricerca:\n\n' + keywordReply();
     }
   } else {
