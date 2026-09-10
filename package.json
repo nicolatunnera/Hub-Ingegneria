@@ -1,0 +1,12 @@
+{
+  "name": "engineering-cloud-hub",
+  "version": "3.6.0",
+  "description": "Engineering Cloud Hub - piattaforma cloud ingegneristica (GitHub Pages)",
+  "private": true,
+  "devDependencies": {
+    "opencode": "latest"
+  },
+  "scripts": {
+    "serve": "python3 -m http.server 8080"
+  }
+}

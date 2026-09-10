@@ -1933,6 +1933,7 @@ async function loadLocalModel() {
 if (localStorage.getItem('ai_local_model') === '1') {
   loadLocalModel();
 }
+try { window.aiMemory = JSON.parse(localStorage.getItem('ai_memory') || '[]'); } catch (e) { window.aiMemory = []; }
 
 window.askAI = async () => {
   const inputEl = document.getElementById('aiInput');
@@ -2066,15 +2067,18 @@ window.askAI = async () => {
     }).join('\n\n');
     return (calcLine ? `${calcLine}\n\n` : '') + intro + '\n\n' + list;
   };
-if (localModelReady && localGenerator && results.length) {
+if (localModelReady && localGenerator) {
     const topDocs = results.slice(0, 3);
-    const context = topDocs.map(d => `[FILE: ${d.name}]\n${d.text.substring(0, 1200)}`).join('\n\n');
+    const context = topDocs.map(d => `[FILE: ${d.name}]\n${d.text.substring(0, 2500)}`).join('\n\n');
     const here = typeof window.location !== 'undefined' && window.location.href;
     const siteKB = `SITO: Engineering Cloud Hub (${here || 'https://nicolatunnera.github.io/Hub-Ingegneria'}). Piattaforma cloud ingegneristica per la gestione di documenti tecnici, preventivi, relazioni e certificazioni.\nFUNZIONALITÀ: Dashboard con 5 sezioni (Excel, Documenti, Note, Archivio, Registro Attività) e contatori per sezione; Excel Viewer che visualizza .xlsx, .xls, .csv navigando i fogli; Viewer integrato che apre PDF, Word .docx, disegni 2D DXF e DWG, modelli 3D STEP/STP interattivi direttamente nello schedario; Note Rapide sincronizzate nel cloud (massimo 10 note); Archivio con cartelle (max 100), filtri per categoria e ricerca per nome file; Registro Attività che tiene lo storico di tutte le operazioni (upload, download, modifiche); Calcolatore Pesi per barre d'acciaio; MTBF Calculator per il calcolo dell'affidabilità e del Mean Time Between Failures; AI Co-Pilot locale integrato nella chat; Telegram Bot per notifiche; tema scuro/chiaro/sepia; multilingua italiano/inglese.
     REGOLE SITO: il login e la registrazione avvengono tramite Firebase; il 'remember me' salva la sessione; ogni utente può caricare fino a 100 file in totale; gli ospiti (guest) non possono aprire l'Archivio né eliminare file.`;
     const systemMsg = `Sei l'AI Co-Pilot dell'Engineering Cloud Hub. Rispondi in italiano, in modo conciso, professionale e tecnico. Usa SOLO queste fonti:\n\n${siteKB}\n\nPer risposte sul contenuto dei file usa ESCLUSIVAMENTE i FILE RILEVANTI qui sotto. Se l'informazione richiesta non è nei file né nella descrizione del sito, dillo chiaramente, senza inventare. Se è presente un RISULTATO CALCOLATO, usalo come valore esatto senza rifare i conti.`;
-    let userMsg = `DOMANDA: ${queryText}\n\nFILE RILEVANTI:\n${context}`;
+    let userMsg = `DOMANDA: ${queryText}\n\n${results.length ? 'FILE RILEVANTI:\n' + context : 'NOTA: nessun file caricato corrisponde alle parole chiave della domanda. Rispondi usando la conoscenza del sito, e indica chiaramente che l\'informazione non è presente nei file caricati.'}`;
     if (calcResult) userMsg += `\n\nCALCOLO RICHIESTO: ${calcResult.expr}\nRISULTATO ESATTO (calcolato dal sistema): ${calcResult.value}. Usalo nella risposta.`;
+    const systemMessage = { role: 'system', content: systemMsg };
+    const historyMsgs = (window.aiMemory || []).map(m => ({ role: m.role, content: m.content }));
+    const msgs = [systemMessage, ...historyMsgs, { role: 'user', content: userMsg }];
     const loadingEl = document.getElementById(loadingId);
     if (loadingEl) loadingEl.textContent = '\u{1F916} Elaborazione in corso...';
     const liveEl = document.createElement('div');
@@ -2091,10 +2095,7 @@ if (localModelReady && localGenerator && results.length) {
               container.scrollTop = container.scrollHeight;
             }
           });
-          localGenerator([
-            { role: 'system', content: systemMsg },
-            { role: 'user', content: userMsg }
-          ], { max_new_tokens: 300, temperature: 0.3, do_sample: false, streamer }).then(output => {
+          localGenerator(msgs, { max_new_tokens: 300, temperature: 0.3, do_sample: false, streamer }).then(output => {
             const outputText = output[0]?.generated_text;
             const lastMsg = Array.isArray(outputText) ? outputText[outputText.length - 1] : outputText;
             replyText = (lastMsg && typeof lastMsg === 'object' ? (lastMsg.content || '') : lastMsg) || '';
@@ -2106,6 +2107,12 @@ if (localModelReady && localGenerator && results.length) {
     liveEl.remove();
     if (replyText === 'ERR' || !replyText.trim()) {
       replyText = 'Il modello locale ha avuto un problema, quindi mostro i risultati della ricerca:\n\n' + keywordReply();
+    } else {
+      window.aiMemory = window.aiMemory || [];
+      window.aiMemory.push({ role: 'user', content: queryText });
+      window.aiMemory.push({ role: 'assistant', content: replyText.replace(/<[^>]+>/g, '') });
+      if (window.aiMemory.length > 10) window.aiMemory = window.aiMemory.slice(-10);
+      try { localStorage.setItem('ai_memory', JSON.stringify(window.aiMemory)); } catch (e) {}
     }
   } else {
     replyText = keywordReply();
