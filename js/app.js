@@ -1908,6 +1908,7 @@ async function loadLocalModel() {
     if (st) st.textContent = 'Scaricamento modello Qwen 0.5B (~500MB, una tantum)...';
     localGenerator = await pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B-Instruct', {
       dtype: 'q4',
+      device: 'wasm',
       progress_callback: p => {
         if (p.status === 'progress' && p.file && st) {
           const pct = p.progress || 0;
