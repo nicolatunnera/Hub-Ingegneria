@@ -1863,7 +1863,7 @@ async function loadLocalModel() {
     if (st) { st.classList.remove('hidden'); st.textContent = 'Scaricamento transformers.js...'; }
     const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3');
     if (st) st.textContent = 'Scaricamento modello Qwen 0.5B (~500MB, una tantum)...';
-    localGenerator = await pipeline('text-generation', 'Xenova/Qwen2.5-0.5B-Instruct', {
+    localGenerator = await pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B-Instruct', {
       dtype: 'q4',
       progress_callback: p => {
         if (p.status === 'progress' && p.file && st) {
