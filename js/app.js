@@ -1878,8 +1878,8 @@ window.askAI = async () => {
   container.scrollTop = container.scrollHeight;
 
   let contextParts = [];
-  const MAX_CHARS_PER_FILE = 2000;
-  const MAX_TOTAL_CONTEXT = 12000;
+  const MAX_CHARS_PER_FILE = 1500;
+  const MAX_TOTAL_CONTEXT = 6000;
   for (const d of allTextFiles) {
     let txt = d.extractedText || '';
     if (!txt && d.fileData) {
@@ -1929,11 +1929,20 @@ PLATEAFORMA: Engineering Cloud Hub - modulo documenti, Excel, note, archivio.`;
 
   const reqBase = { messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: queryText }] };
 
-  async function aiFetch(url, opts, timeoutMs = 30000) {
+  async function aiFetch(url, opts, timeoutMs = 30000, retries = 2) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     try {
       const r = await fetch(url, { ...opts, signal: ctrl.signal });
+      if (r.status === 429) {
+        const wait = r.headers.get('retry-after');
+        const sec = wait && !isNaN(Number(wait)) ? Number(wait) : 60;
+        if (retries > 0 && sec <= 65) {
+          await new Promise(res => setTimeout(res, sec * 1000));
+          return aiFetch(url, opts, timeoutMs, retries - 1);
+        }
+        throw new Error('HTTP 429 Rate limit Groq raggiunto');
+      }
       if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error('HTTP ' + r.status + (t ? ' ' + t.substring(0, 120) : '')); }
       const raw = await r.text();
       try { const j = JSON.parse(raw); return j.choices?.[0]?.message?.content || raw; } catch { return raw; }
