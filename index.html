@@ -796,6 +796,12 @@
         </div>
       </div>
       <div class="border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800">
+        <div id="aiModelBar" class="flex items-center gap-2 mb-2">
+          <button id="aiModelToggle" onclick="window.toggleLocalAI()" class="text-[10px] px-2 py-0.5 rounded-full border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition cursor-pointer">
+            <i class="fas fa-microchip mr-1"></i><span id="aiModelLabel">Scarica AI locale</span>
+          </button>
+          <span id="aiModelStatus" class="text-[10px] text-gray-400 hidden"></span>
+        </div>
         <div class="flex gap-2">
           <input type="text" id="aiInput" placeholder="Interroga l'archivio dei file..." class="flex-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition placeholder-gray-400" data-i18n="aiPlaceholder" />
           <button id="aiSendBtn" onclick="window.askAI()" class="px-3 py-2 text-xs bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg transition shadow font-medium"><i class="fas fa-paper-plane mr-1"></i> <span data-i18n="send">Invia</span></button>

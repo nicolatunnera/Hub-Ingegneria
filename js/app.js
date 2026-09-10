@@ -1826,6 +1826,70 @@ function cleanLatex(s) {
   return s;
 }
 
+// ═══════ LOCAL AI MODEL (transformers.js) ═══════
+let localGenerator = null;
+let localModelReady = false;
+let localModelLoading = false;
+
+function updateModelUI() {
+  const lbl = document.getElementById('aiModelLabel');
+  const st = document.getElementById('aiModelStatus');
+  if (!lbl) return;
+  if (localModelReady) {
+    lbl.innerHTML = '<i class="fas fa-check-circle text-emerald-500 mr-1"></i>AI locale attiva';
+    lbl.className = 'text-[10px] px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300';
+    if (st) { st.classList.add('hidden'); st.textContent = ''; }
+  } else if (localModelLoading) {
+    lbl.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Caricamento modello...';
+    lbl.className = 'text-[10px] px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300';
+  } else {
+    lbl.innerHTML = '<i class="fas fa-microchip mr-1"></i>Scarica AI locale (~500MB)';
+    lbl.className = 'text-[10px] px-2 py-0.5 rounded-full border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition cursor-pointer';
+    if (st) { st.classList.add('hidden'); st.textContent = ''; }
+  }
+}
+
+window.toggleLocalAI = async () => {
+  if (localModelReady || localModelLoading) return;
+  await loadLocalModel();
+};
+
+async function loadLocalModel() {
+  if (localModelLoading || localModelReady) return;
+  localModelLoading = true;
+  updateModelUI();
+  const st = document.getElementById('aiModelStatus');
+  try {
+    if (st) { st.classList.remove('hidden'); st.textContent = 'Scaricamento transformers.js...'; }
+    const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3');
+    if (st) st.textContent = 'Scaricamento modello Qwen 0.5B (~500MB, una tantum)...';
+    localGenerator = await pipeline('text-generation', 'Xenova/Qwen2.5-0.5B-Instruct', {
+      dtype: 'q4',
+      progress_callback: p => {
+        if (p.status === 'progress' && p.file && st) {
+          const pct = p.progress || 0;
+          st.textContent = `Scaricamento: ${Math.round(pct)}% (${p.file.split('/').pop()})`;
+        }
+      }
+    });
+    localModelReady = true;
+    localModelLoading = false;
+    updateModelUI();
+    localStorage.setItem('ai_local_model', '1');
+    console.log('[AI] Modello locale caricato con successo');
+  } catch (e) {
+    console.error('[AI] Errore caricamento modello:', e);
+    localModelLoading = false;
+    updateModelUI();
+    if (st) { st.textContent = 'Errore: ' + e.message; setTimeout(() => { st.classList.add('hidden'); }, 4000); }
+  }
+}
+
+// Restore model on load if previously enabled
+if (localStorage.getItem('ai_local_model') === '1') {
+  loadLocalModel();
+}
+
 window.askAI = async () => {
   const inputEl = document.getElementById('aiInput');
   const container = document.getElementById('chat-container');
@@ -1901,10 +1965,28 @@ window.askAI = async () => {
   }
 
   let replyText;
-  if (!results.length) {
+    if (!results.length) {
     replyText = tokens.length
       ? 'Non ho trovato questa informazione nei file caricati. Prova con altre parole chiave.'
       : 'Scrivi qualcosa da cercare, ad esempio il nome di un file o un argomento.';
+  } else if (localModelReady && localGenerator) {
+    const topDocs = results.slice(0, 5);
+    const context = topDocs.map(d => `[FILE: ${d.name}]\n${d.text.substring(0, 2000)}`).join('\n\n');
+    const systemMsg = `Sei un assistente tecnico dell'Engineering Cloud Hub. Rispondi ESCLUSIVAMENTE basandoti sui file forniti. Se l'informazione non è nei file, dillo. Rispondi in italiano, in modo conciso e professionale. Cita sempre la fonte tra parentesi.`;
+    const userMsg = `DOMANDA: ${queryText}\n\nFILE RILEVANTI:\n${context}`;
+    try {
+      const loadingEl = document.getElementById(loadingId);
+    if (loadingEl) loadingEl.textContent = '\u{1F916} Elaborazione in corso...';
+      const output = await localGenerator([
+        { role: 'system', content: systemMsg },
+        { role: 'user', content: userMsg }
+      ], { max_new_tokens: 300, temperature: 0.3 });
+      replyText = output[0]?.generated_text?.slice(-1)?.content || output[0]?.generated_text || '';
+      if (!replyText.trim()) replyText = 'Non sono riuscito a elaborare una risposta. Prova con parole chiave diverse.';
+    } catch (e) {
+      console.error('[AI] Errore modello locale:', e);
+      replyText = 'Errore durante l\'elaborazione. Riprova.';
+    }
   } else {
     const shown = results.slice(0, 3);
     const intro = results.length === 1
