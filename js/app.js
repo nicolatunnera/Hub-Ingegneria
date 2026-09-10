@@ -1929,11 +1929,15 @@ PLATEAFORMA: Engineering Cloud Hub - modulo documenti, Excel, note, archivio.`;
 
   const reqBase = { messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: queryText }] };
 
-  async function aiFetch(url, opts) {
-    const r = await fetch(url, opts);
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const raw = await r.text();
-    try { const j = JSON.parse(raw); return j.choices?.[0]?.message?.content || raw; } catch { return raw; }
+  async function aiFetch(url, opts, timeoutMs = 30000) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const r = await fetch(url, { ...opts, signal: ctrl.signal });
+      if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error('HTTP ' + r.status + (t ? ' ' + t.substring(0, 120) : '')); }
+      const raw = await r.text();
+      try { const j = JSON.parse(raw); return j.choices?.[0]?.message?.content || raw; } catch { return raw; }
+    } finally { clearTimeout(timer); }
   }
 
   let groqError = '';
