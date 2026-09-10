@@ -1904,13 +1904,19 @@ window.askAI = async () => {
   if (!results.length) {
     replyText = tokens.length
       ? 'Non ho trovato questa informazione nei file caricati. Prova con altre parole chiave.'
-      : 'Scrivi parole chiave per cercare nei file (es. limite, pressione, formula).';
+      : 'Scrivi qualcosa da cercare, ad esempio il nome di un file o un argomento.';
   } else {
-    replyText = `\u{1F50D} Trovato in <b>${results.length}</b> file (ricerca locale):\n\n` + results.slice(0, 3).map((r, i) => {
+    const shown = results.slice(0, 3);
+    const intro = results.length === 1
+      ? 'Ho trovato qualcosa:'
+      : `Ho trovato ${results.length} risultati. Ecco i più pertinenti:`;
+    replyText = intro + '\n\n' + shown.map((r, i) => {
       let m = accentRe(tokens[0]).exec(r.text);
-      const from = m ? Math.max(0, m.index - 60) : 0;
-      const frag = r.text.substring(from, from + 300).replace(/\s+/g, ' ').trim();
-      return `<b>${i + 1}. ${escapeHtml(r.name)}</b> (${r.score} occorrenze)\n...${escapeHtml(frag)}...\n(Fonte: ${escapeHtml(r.name)}) [DOWNLOAD:${r.id}]`;
+      const from = m ? Math.max(0, m.index - 40) : 0;
+      const frag = r.text.substring(from, from + 180).replace(/\s+/g, ' ').trim();
+      const label = (i + 1) + '. ';
+      const dl = r.id ? ` <button onclick="window.downloadDocument('${escapeHtml(r.id)}')" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2 py-0.5 rounded ml-1">\u{1F4E5} Scarica</button>` : '';
+      return `<b>${label}${escapeHtml(r.name)}</b>${dl}\n<em class="text-slate-500">"${escapeHtml(frag)}…"</em>`;
     }).join('\n\n');
   }
 
