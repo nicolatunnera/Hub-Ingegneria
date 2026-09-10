@@ -1954,8 +1954,11 @@ PLATEAFORMA: Engineering Cloud Hub - modulo documenti, Excel, note, archivio.`;
     } catch(e) { groqError = e.message; console.error('[AI] Groq ERRORE:', e.message); }
   }
   if (!replyText) {
+    const isRateLimit = groqError.includes('429');
     replyText = groqKey
-      ? `\u26A0\uFE0F AI non disponibile (${groqError}). Se la chiave non funziona, scrivi: /key gsk_xxx`
+      ? isRateLimit
+        ? '\u23F3 Troppe richieste. Il limite gratuito Groq \u00E8 di 30 req/minuto. <b>Aspetta 1 minuto</b> e riprova.'
+        : `\u26A0\uFE0F AI non disponibile (${groqError}). Se la chiave non funziona, scrivi: /key gsk_xxx`
       : '\u26A0\uFE0F AI non configurata. Per attivarla serve una chiave <b>gratuita</b> (2 minuti, senza carta di credito):<br><br>1\uFE0F\u20E3 Apri <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="text-blue-500 underline">console.groq.com/keys</a> ed effettua il login (gratis)<br>2\uFE0F\u20E3 Clicca <b>Create API Key</b> e copia la chiave (inizia con <code>gsk_</code>)<br>3\uFE0F\u20E3 Torna qui e scrivi: <code>/key gsk_xxx</code>';
   }
 
