@@ -2009,14 +2009,29 @@ window.askAI = async () => {
   }
 
   let replyText;
+  const keywordReply = () => {
     if (!results.length) {
-    replyText = tokens.length
-      ? 'Non ho trovato questa informazione nei file caricati. Prova con altre parole chiave.'
-      : 'Scrivi qualcosa da cercare, ad esempio il nome di un file o un argomento.';
-  } else if (localModelReady && localGenerator) {
-    const topDocs = results.slice(0, 5);
-    const context = topDocs.map(d => `[FILE: ${d.name}]\n${d.text.substring(0, 2000)}`).join('\n\n');
-    const systemMsg = `Sei un assistente tecnico dell'Engineering Cloud Hub. Rispondi ESCLUSIVAMENTE basandoti sui file forniti. Se l'informazione non è nei file, dillo. Rispondi in italiano, in modo conciso e professionale. Cita sempre la fonte tra parentesi.`;
+      return tokens.length
+        ? 'Non ho trovato questa informazione nei file caricati. Prova con altre parole chiave.'
+        : 'Scrivi qualcosa da cercare, ad esempio il nome di un file o un argomento.';
+    }
+    const shown = results.slice(0, 3);
+    const intro = results.length === 1
+      ? 'Ho trovato qualcosa:'
+      : `Ho trovato ${results.length} risultati. Ecco i più pertinenti:`;
+    return intro + '\n\n' + shown.map((r, i) => {
+      let m = accentRe(tokens[0]).exec(r.text);
+      const from = m ? Math.max(0, m.index - 40) : 0;
+      const frag = r.text.substring(from, from + 180).replace(/\s+/g, ' ').trim();
+      const label = (i + 1) + '. ';
+      const dl = r.id ? ` <button onclick="window.downloadDocument('${escapeHtml(r.id)}')" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2 py-0.5 rounded ml-1">\u{1F4E5} Scarica</button>` : '';
+      return `<b>${label}${escapeHtml(r.name)}</b>${dl}\n<em class="text-slate-500">"${escapeHtml(frag)}…"</em>`;
+    }).join('\n\n');
+  };
+  if (localModelReady && localGenerator && results.length) {
+const topDocs = results.slice(0, 3);
+      const context = topDocs.map(d => `[FILE: ${d.name}]\n${d.text.substring(0, 1200)}`).join('\n\n');
+      const systemMsg = `Sei un assistente tecnico dell'Engineering Cloud Hub. Rispondi ESCLUSIVAMENTE basandoti sui file forniti. Se l'informazione non è nei file, dillo. Rispondi in italiano, in modo conciso e professionale. Cita sempre la fonte tra parentesi.`;
     const userMsg = `DOMANDA: ${queryText}\n\nFILE RILEVANTI:\n${context}`;
     try {
       const loadingEl = document.getElementById(loadingId);
@@ -2025,25 +2040,16 @@ window.askAI = async () => {
         { role: 'system', content: systemMsg },
         { role: 'user', content: userMsg }
       ], { max_new_tokens: 300, temperature: 0.3 });
-      replyText = output[0]?.generated_text?.slice(-1)?.content || output[0]?.generated_text || '';
+      const outputText = output[0]?.generated_text;
+      const lastMsg = Array.isArray(outputText) ? outputText[outputText.length - 1] : outputText;
+      replyText = (lastMsg && typeof lastMsg === 'object' ? (lastMsg.content || '') : lastMsg) || '';
       if (!replyText.trim()) replyText = 'Non sono riuscito a elaborare una risposta. Prova con parole chiave diverse.';
     } catch (e) {
       console.error('[AI] Errore modello locale:', e);
-      replyText = 'Errore durante l\'elaborazione. Riprova.';
+      replyText = 'Il modello locale ha avuto un problema, quindi mostro i risultati della ricerca:\n\n' + keywordReply();
     }
   } else {
-    const shown = results.slice(0, 3);
-    const intro = results.length === 1
-      ? 'Ho trovato qualcosa:'
-      : `Ho trovato ${results.length} risultati. Ecco i più pertinenti:`;
-    replyText = intro + '\n\n' + shown.map((r, i) => {
-      let m = accentRe(tokens[0]).exec(r.text);
-      const from = m ? Math.max(0, m.index - 40) : 0;
-      const frag = r.text.substring(from, from + 180).replace(/\s+/g, ' ').trim();
-      const label = (i + 1) + '. ';
-      const dl = r.id ? ` <button onclick="window.downloadDocument('${escapeHtml(r.id)}')" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2 py-0.5 rounded ml-1">\u{1F4E5} Scarica</button>` : '';
-      return `<b>${label}${escapeHtml(r.name)}</b>${dl}\n<em class="text-slate-500">"${escapeHtml(frag)}…"</em>`;
-    }).join('\n\n');
+    replyText = keywordReply();
   }
 
   document.getElementById(loadingId)?.remove();
