@@ -1940,6 +1940,7 @@ PLATEAFORMA: Engineering Cloud Hub - modulo documenti, Excel, note, archivio.`;
     } finally { clearTimeout(timer); }
   }
 
+  const groqKey = localStorage.getItem('ai_key') || '';
   let groqError = '';
   if (groqKey) {
     try {
