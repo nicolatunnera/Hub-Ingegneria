@@ -1497,8 +1497,7 @@ window.viewDocumentFile = async function(id) {
     } else if (ext === 'DXF') {
       await renderDxfFile(body, footer, rawData, file.title);
     } else {
-      const text = dataUrlToText(rawData);
-      const content = text && text.trim() ? (file.extractedText || text) : (file.extractedText || '');
+      const content = file.extractedText || '';
       if (content && content.trim()) {
         body.classList.remove('is-3d');
         body.innerHTML = `<div class="fv-scroll" data-doc="1"><div class="fv-doc-content" style="white-space:pre-wrap;font-family:monospace;font-size:11px">${escapeHtml(content.substring(0, 20000))}</div></div>`;
@@ -1951,27 +1950,9 @@ PLATEAFORMA: Engineering Cloud Hub - modulo documenti, Excel, note, archivio.`;
     } catch(e) { console.error('[AI] Groq ERRORE:', e.message); }
   }
   if (!replyText) {
-    try {
-      console.log('[AI] Chiamata Pollinations POST...');
-      replyText = await aiFetch('https://text.pollinations.ai/', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [{ role: 'user', content: systemInstruction.substring(0, 4000) + '\n\nDomanda: ' + queryText }] })
-      });
-      console.log('[AI] Pollinations POST OK, risposta lunga:', replyText.length);
-    } catch(e) { console.error('[AI] Pollinations POST ERRORE:', e.message); }
-  }
-  if (!replyText) {
-    try {
-      console.log('[AI] Chiamata Pollinations GET...');
-      const urlPrompt = encodeURIComponent(systemInstruction.substring(0, 4000) + '\n\nDomanda: ' + queryText).substring(0, 6000);
-      replyText = await aiFetch('https://text.pollinations.ai/' + urlPrompt + '?model=openai-fast', { method: 'GET' });
-      console.log('[AI] Pollinations GET OK, risposta lunga:', replyText.length);
-    } catch(e) { console.error('[AI] Pollinations GET ERRORE:', e.message); }
-  }
-  if (!replyText) {
     replyText = groqKey
-      ? '\u26A0\uFE0F AI non disponibile al momento. Riprova tra qualche secondo.'
-      : '\u26A0\uFE0F AI non configurata. Per attivarla, inserisci la tua API key gratuita di Groq nella chat (manda un messaggio con: /key gsk_xxx).';
+      ? '\u26A0\uFE0F AI non disponibile al momento. Controlla che la chiave sia valida o riprova. Per sostituirla scrivi: /key nuova_chiave'
+      : '\u26A0\uFE0F AI non configurata. Per attivarla serve una chiave <b>gratuita</b> (2 minuti, senza carta di credito):<br><br>1\uFE0F\u20E3 Apri <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="text-blue-500 underline">console.groq.com/keys</a> ed effettua il login (gratis)<br>2\uFE0F\u20E3 Clicca <b>Create API Key</b> e copia la chiave (inizia con <code>gsk_</code>)<br>3\uFE0F\u20E3 Torna qui e scrivi: <code>/key gsk_xxx</code>';
   }
 
   document.getElementById(loadingId)?.remove();
