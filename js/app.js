@@ -1839,26 +1839,8 @@ window.askAI = async () => {
   inputEl.value = '';
   container.scrollTop = container.scrollHeight;
 
-  const keyMatch = queryText.match(/^\/key\s+(.+)/i);
-  if (keyMatch) {
-    const k = keyMatch[1].trim();
-    if (k.startsWith('gsk_') && k.length > 20) {
-      localStorage.setItem('ai_key', k);
-      if (window.username && window.userRole !== 'owner') {
-        db.collection('accountsHub').where('username', '==', window.username).get().then(snap => {
-          if (!snap.empty) snap.docs[0].ref.update({ aiKey: k });
-        });
-      } else if (window.userRole === 'owner') {
-        localStorage.setItem('ai_key_owner', k);
-      }
-      container.innerHTML += `<div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 p-2.5 rounded-lg text-emerald-800 dark:text-emerald-300 max-w-[90%] text-xs">\u2705 API key salvata e associata al tuo account. La chat AI è ora attiva!</div>`;
-    } else {
-      container.innerHTML += `<div class="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 p-2.5 rounded-lg text-red-800 dark:text-red-300 max-w-[90%] text-xs">\u274C Formato non valido. La chiave deve iniziare con "gsk_" ed essere una chiave Groq valida.</div>`;
-    }
-    inputEl.disabled = false; sendBtn.disabled = false; inputEl.focus();
-    container.scrollTop = container.scrollHeight;
-    return;
-  }
+  const keyMatch = queryText.match(/^(?:\/key)\s+(.+)/i);
+  if (keyMatch) { inputEl.disabled = false; sendBtn.disabled = false; container.scrollTop = container.scrollHeight; return; }
 
   const dlMatch = queryText.match(/^(?:scarica|download|scaricare)\s+(.+)/i);
   if (dlMatch) {
@@ -1874,12 +1856,15 @@ window.askAI = async () => {
   }
 
   const loadingId = 'loading-' + Date.now();
-  container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">\u270D\uFE0F Sto pensando...</div>`;
+  container.innerHTML += `<div id="${loadingId}" class="p-2 text-slate-500 italic font-mono text-[11px]">\u{1F50D} Cerco nei file caricati...</div>`;
   container.scrollTop = container.scrollHeight;
 
-  let contextParts = [];
-  const MAX_CHARS_PER_FILE = 1500;
-  const MAX_TOTAL_CONTEXT = 6000;
+  const normIt = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const STOP = new Set('il lo la i gli le un uno una di del della dei degli delle al alla ai alle dal dalla dai dagli dalle nel nella nei negli nelle con col sulla sullo su per in e o a che chi come quale quali questo questa questi queste se non ma anche più piu molto sono ha ho hanno era'.split(' '));
+  const accentMap = {a:'[aàáâä]',e:'[eèéêë]',i:'[iìíîï]',o:'[oòóôö]',u:'[uùúûü]'};
+  const accentRe = t => { const re = t.split('').map(c => accentMap[c] || c).join(''); return new RegExp(re, 'gi'); };
+
+  const docs = [];
   for (const d of allTextFiles) {
     let txt = d.extractedText || '';
     if (!txt && d.fileData) {
@@ -1890,8 +1875,7 @@ window.askAI = async () => {
         if (fd) txt = await extractTextFromBase64(fd, d.fileType);
       } catch(e) { console.warn('[AI] Estrazione chunk fallita per', d.title, e); }
     }
-    if (!txt) txt = '(testo non estratto)';
-    contextParts.push(`[DOC: ${d.title}] File: ${d.fileName || 'N/A'} | Tipo: ${d.fileType || 'N/A'} | Contenuto:\n${txt.substring(0, MAX_CHARS_PER_FILE)}`);
+    if (txt.trim()) docs.push({ id: d.id, name: d.title || d.fileName || d.name || 'documento', text: txt });
   }
   for (const e of allExcelFiles) {
     let txt = '';
@@ -1899,76 +1883,35 @@ window.askAI = async () => {
     if (fileData) {
       try { txt = await extractTextFromBase64(fileData, e.fileName ? e.fileName.split('.').pop() : 'xlsx'); } catch(ex) { console.warn('[AI] Estrazione Excel fallita per', e.name, ex); }
     }
-    if (!txt) txt = '(contenuto non estratto)';
-    contextParts.push(`[EXCEL: ${e.name}] Categoria: ${e.category || 'Generale'} | Contenuto:\n${txt.substring(0, MAX_CHARS_PER_FILE)}`);
+    if (txt.trim()) docs.push({ id: e.id, name: e.name || e.fileName || 'foglio', text: txt });
   }
-  let contextText = contextParts.join('\n\n');
-  if (contextText.length > MAX_TOTAL_CONTEXT) contextText = contextText.substring(0, MAX_TOTAL_CONTEXT) + '\n...(troncato)';
-  console.log('[AI] Contesto totale:', contextText.length, 'caratteri');
 
-  const platformInfo = `Piattaforma: Engineering Cloud Hub. Moduli: Excel, Documenti, Note, Archivio, Calcolatrice, MTBF, Notizie.`;
-
-   const systemInstruction = `Sei l'assistente AI di Engineering Cloud Hub. Rispondi ESCLUSIVAMENTE in italiano corretto, senza errori grammaticali. Usa un tono tecnico-professionale.
-
-REGOLE ASSOLUTE (VIOLARE QUESTE REGOLE È UN ERRORE GRAVE):
-1. FONTE OBBLIGATORIA: Ogni informazione presa da un file DEVE essere seguita da (Fonte: NomeFile). Se usi più file: (Fonte: NomeFile1, NomeFile2). QUESTA È LA REGOLA PIÙ IMPORTANTE.
-2. ZERO ALLUCINAZIONI: Se l'informazione NON è nei file caricati, rispondi ESATTAMENTE: "Non ho trovato questa informazione nei file caricati." NON inventare mai dati, numeri, specifiche tecniche o nomi.
-3. Se non sei sicuro, dillo. Meglio dire "non lo so" che inventare.
-4. NON inventare nomi di file, categorie o dati che non esistono nel contesto.
-5. Quando citi un file, usa il nome esatto come appare nel contesto.
-
-LINGUA:
-- Scrivi italiano perfetto: accordi soggetto-verbo corretti, punteggiatura giusta, nessun refuso.
-- Evita parole inglesi non necessarie.
-- Usa il congiuntivo dove richiesto.
-
-FILE CARICATI NELLA PIATTAFORMA:
-${contextText}
-
-PLATEAFORMA: Engineering Cloud Hub - modulo documenti, Excel, note, archivio.`;
-
-  const reqBase = { messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: queryText }] };
-
-  async function aiFetch(url, opts, timeoutMs = 30000, retries = 2) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-    try {
-      const r = await fetch(url, { ...opts, signal: ctrl.signal });
-      if (r.status === 429) {
-        const wait = r.headers.get('retry-after');
-        const sec = wait && !isNaN(Number(wait)) ? Number(wait) : 60;
-        if (retries > 0 && sec <= 65) {
-          await new Promise(res => setTimeout(res, sec * 1000));
-          return aiFetch(url, opts, timeoutMs, retries - 1);
-        }
-        throw new Error('HTTP 429 Rate limit Groq raggiunto');
+  const tokens = normIt(queryText).split(/[^a-z0-9]+/).filter(w => w.length > 2 && !STOP.has(w));
+  let results = [];
+  if (tokens.length) {
+    for (const doc of docs) {
+      let score = 0;
+      for (const t of tokens) {
+        let m, re = accentRe(t);
+        while ((m = re.exec(doc.text)) !== null) score++;
       }
-      if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error('HTTP ' + r.status + (t ? ' ' + t.substring(0, 120) : '')); }
-      const raw = await r.text();
-      try { const j = JSON.parse(raw); return j.choices?.[0]?.message?.content || raw; } catch { return raw; }
-    } finally { clearTimeout(timer); }
+      if (score > 0) results.push({ name: doc.name, id: doc.id, text: doc.text, score });
+    }
+    results.sort((a, b) => b.score - a.score);
   }
 
-  const groqKey = localStorage.getItem('ai_key') || '';
-  let groqError = '';
-  if (groqKey) {
-    try {
-      console.log('[AI] Chiamata Groq...');
-      replyText = await aiFetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + groqKey },
-        body: JSON.stringify({ model: 'openai/gpt-oss-120b', messages: reqBase.messages, max_tokens: 2048 })
-      });
-      console.log('[AI] Groq OK, risposta lunga:', replyText.length);
-    } catch(e) { groqError = e.message; console.error('[AI] Groq ERRORE:', e.message); }
-  }
-  if (!replyText) {
-    const isRateLimit = groqError.includes('429');
-    replyText = groqKey
-      ? isRateLimit
-        ? '\u23F3 Troppe richieste. Il limite gratuito Groq \u00E8 di 30 req/minuto. <b>Aspetta 1 minuto</b> e riprova.'
-        : `\u26A0\uFE0F AI non disponibile (${groqError}). Se la chiave non funziona, scrivi: /key gsk_xxx`
-      : '\u26A0\uFE0F AI non configurata. Per attivarla serve una chiave <b>gratuita</b> (2 minuti, senza carta di credito):<br><br>1\uFE0F\u20E3 Apri <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="text-blue-500 underline">console.groq.com/keys</a> ed effettua il login (gratis)<br>2\uFE0F\u20E3 Clicca <b>Create API Key</b> e copia la chiave (inizia con <code>gsk_</code>)<br>3\uFE0F\u20E3 Torna qui e scrivi: <code>/key gsk_xxx</code>';
+  let replyText;
+  if (!results.length) {
+    replyText = tokens.length
+      ? 'Non ho trovato questa informazione nei file caricati. Prova con altre parole chiave.'
+      : 'Scrivi parole chiave per cercare nei file (es. limite, pressione, formula).';
+  } else {
+    replyText = `\u{1F50D} Trovato in <b>${results.length}</b> file (ricerca locale):\n\n` + results.slice(0, 3).map((r, i) => {
+      let m = accentRe(tokens[0]).exec(r.text);
+      const from = m ? Math.max(0, m.index - 60) : 0;
+      const frag = r.text.substring(from, from + 300).replace(/\s+/g, ' ').trim();
+      return `<b>${i + 1}. ${escapeHtml(r.name)}</b> (${r.score} occorrenze)\n...${escapeHtml(frag)}...\n(Fonte: ${escapeHtml(r.name)}) [DOWNLOAD:${r.id}]`;
+    }).join('\n\n');
   }
 
   document.getElementById(loadingId)?.remove();
