@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
@@ -17,7 +17,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260910d" />
+  <link rel="stylesheet" href="style.css?v=20260910e" />
   <link rel="icon" type="image/png" href="icon-192.png?v=20250718" />
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors">
@@ -74,7 +74,7 @@
         <p id="registerError" class="text-red-500 text-[11px] hidden"></p>
       </div>
 
-      <p id="loginError" class="text-red-500 text-[11px] font-medium mt-3 hidden transition-all duration-300">⚠️ Credenziali errate. Riprova.</p>
+      <p id="loginError" class="text-red-500 text-[11px] font-medium mt-3 hidden transition-all duration-300">âš ï¸ Credenziali errate. Riprova.</p>
     </div>
   </div>
 
@@ -82,7 +82,7 @@
   <div id="toastContainer" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
 
   <div id="hubMainContent" class="hidden pb-14">
-  <div id="fbOfflineBanner" class="hidden bg-red-500/90 text-white text-[10px] text-center py-1 px-2 font-medium">Firebase non disponibile — dati non caricati. Verifica la connessione.</div>
+  <div id="fbOfflineBanner" class="hidden bg-red-500/90 text-white text-[10px] text-center py-1 px-2 font-medium">Firebase non disponibile â€” dati non caricati. Verifica la connessione.</div>
   <!-- NAVBAR -->
   <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-2 sm:px-4 py-2 grid grid-cols-3 items-center">
@@ -124,7 +124,7 @@
             <div class="text-2xl shrink-0"><i class="fas fa-folder-open text-blue-400 dark:text-blue-300"></i></div>
             <div class="flex-1 min-w-0">
               <label class="text-[11px] font-medium text-blue-600 dark:text-blue-300 block mb-1" data-i18n="excelFolderLabel"><i class="fas fa-tag mr-1 text-[10px]"></i>Cartella di destinazione</label>
-              <select id="excelFolder" onchange="toggleNewFolderForm(this,'excelNewFolderForm')" class="w-full px-3 py-2 text-sm border border-blue-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition cursor-pointer"><option value="" data-i18n="selectFolder">— Seleziona cartella —</option></select>
+              <select id="excelFolder" onchange="toggleNewFolderForm(this,'excelNewFolderForm')" class="w-full px-3 py-2 text-sm border border-blue-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition cursor-pointer"><option value="" data-i18n="selectFolder">â€” Seleziona cartella â€”</option></select>
             </div>
           </div>
         </div>
@@ -139,7 +139,7 @@
         <div id="dropzoneExcel" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-all bg-gray-50/50 dark:bg-gray-700/30 group">
           <div class="text-4xl text-gray-300 dark:text-gray-600 group-hover:text-blue-400 transition-colors mb-2"><i class="fas fa-cloud-upload-alt"></i></div>
           <p class="text-sm text-gray-400 group-hover:text-blue-500 transition-colors" id="textDropExcel" data-i18n="dropExcel">Trascina qui i file Excel o clicca per selezionare</p>
-          <p class="text-[11px] text-gray-300 dark:text-gray-500 mt-1">Puoi selezionare più file contemporaneamente</p>
+          <p class="text-[11px] text-gray-300 dark:text-gray-500 mt-1">Puoi selezionare piÃ¹ file contemporaneamente</p>
           <input type="file" id="excelFile" accept=".xls,.xlsx,.csv" multiple class="hidden" />
         </div>
         <div id="excelFileList" class="mt-3 space-y-1 max-h-56 overflow-y-auto pr-1"></div>
@@ -162,7 +162,7 @@
             <div class="text-2xl shrink-0"><i class="fas fa-folder-open text-blue-400 dark:text-blue-300"></i></div>
             <div class="flex-1 min-w-0">
               <label class="text-[11px] font-medium text-blue-600 dark:text-blue-300 block mb-1" data-i18n="docFolderLabel"><i class="fas fa-tag mr-1 text-[10px]"></i>Cartella di destinazione</label>
-              <select id="docFolder" onchange="toggleNewFolderForm(this,'docNewFolderForm')" class="w-full px-3 py-2 text-sm border border-blue-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition cursor-pointer"><option value="" data-i18n="selectFolder">— Seleziona cartella —</option></select>
+              <select id="docFolder" onchange="toggleNewFolderForm(this,'docNewFolderForm')" class="w-full px-3 py-2 text-sm border border-blue-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition cursor-pointer"><option value="" data-i18n="selectFolder">â€” Seleziona cartella â€”</option></select>
             </div>
           </div>
         </div>
@@ -177,7 +177,7 @@
         <div id="dropzoneDoc" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-all bg-gray-50/50 dark:bg-gray-700/30 group">
           <div class="text-4xl text-gray-300 dark:text-gray-600 group-hover:text-blue-400 transition-colors mb-2"><i class="fas fa-cloud-upload-alt"></i></div>
           <p class="text-sm text-gray-400 group-hover:text-blue-500 transition-colors" id="textDropDoc" data-i18n="dropDoc">Trascina qui i file o clicca per selezionare (PDF, DOC, TXT, DWG, DXF, STEP, APK)</p>
-          <p class="text-[11px] text-gray-300 dark:text-gray-500 mt-1">Puoi selezionare più file contemporaneamente</p>
+          <p class="text-[11px] text-gray-300 dark:text-gray-500 mt-1">Puoi selezionare piÃ¹ file contemporaneamente</p>
           <input type="file" id="docFile" accept=".pdf,.doc,.docx,.txt,.dwg,.dxf,.step,.stp,.jpg,.jpeg,.png,.apk" multiple class="hidden" />
         </div>
         <div id="docFileList" class="mt-3 space-y-1 max-h-56 overflow-y-auto pr-1"></div>
@@ -251,14 +251,14 @@
     </div>
   </div>
 
-  <!-- ═══════ EXCEL VIEWER — REMOVABLE BLOCK ═══════ -->
+  <!-- â•â•â•â•â•â•â• EXCEL VIEWER â€” REMOVABLE BLOCK â•â•â•â•â•â•â• -->
 
   <!-- STEP 1: FILE SELECTION -->
   <div id="evSelectModal" class="fixed inset-0 z-[60] hidden" onclick="if(event.target===this)evClose()">
     <div class="ev-bg absolute inset-0"></div>
     <div class="relative z-10 w-full h-full flex flex-col p-4 sm:p-6 overflow-hidden">
       <div class="flex items-center justify-between mb-4 shrink-0">
-        <h2 class="ev-title"><span class="text-2xl">📊</span> <span data-i18n="evSelectTitle">Seleziona file da visualizzare</span></h2>
+        <h2 class="ev-title"><span class="text-2xl">ðŸ“Š</span> <span data-i18n="evSelectTitle">Seleziona file da visualizzare</span></h2>
         <div class="flex items-center gap-2">
           <button onclick="evSelectAll()" class="ev-pill-btn"><i class="fas fa-check-double mr-1"></i><span data-i18n="evSelectAll">Tutti</span></button>
           <button onclick="evClose()" class="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition"><i class="fas fa-times"></i></button>
@@ -319,7 +319,7 @@
   </div>
 
   <style>
-    /* ═══ THEME VARIABLES ═══ */
+    /* â•â•â• THEME VARIABLES â•â•â• */
     :root {
       --ev-bg: rgba(0,0,0,0.97); --ev-bg2: rgba(6,182,212,0.1);
       --ev-scan: rgba(34,211,238,0.15); --ev-scan2: rgba(34,211,238,0.015);
@@ -351,7 +351,7 @@
       --ev-close-t: #64748b; --ev-close-hover: #0f172a;
     }
 
-    /* ═══ OVERRIDE TAILWIND CLASSES IN VIEWER SCOPE ═══ */
+    /* â•â•â• OVERRIDE TAILWIND CLASSES IN VIEWER SCOPE â•â•â• */
     /* Fix hardcoded text-white / text-gray-* inside viewer */
     #evSelectModal .ev-title, #evSelectModal .ev-pill-btn,
     #evViewerModal .ev-title, #evViewerModal .ev-pill-btn,
@@ -368,7 +368,7 @@
     .ev-bottom-bar { background: var(--ev-bar) !important; border-color: var(--ev-tbl-b) !important; border-style: solid !important; }
     #evWishlistPanel > div:nth-child(2) { border-color: var(--ev-tbl-b) !important; }
 
-    /* ═══ OVERFLOW CLIP — prevent animations escaping containers ═══ */
+    /* â•â•â• OVERFLOW CLIP â€” prevent animations escaping containers â•â•â• */
     #evSelectGrid { overflow-x: clip; overflow-y: auto; }
     #evSelectGrid::-webkit-scrollbar { width: 4px; }
     #evSelectGrid::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.2); border-radius: 99px; }
@@ -379,12 +379,12 @@
     #evWishlistItems::-webkit-scrollbar { width: 4px; }
     #evWishlistItems::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.2); border-radius: 99px; }
 
-    /* ═══ BACKGROUND ═══ */
+    /* â•â•â• BACKGROUND â•â•â• */
     .ev-bg { background: var(--ev-bg); }
     .ev-bg::before { content: ''; position: absolute; inset: 0; background: var(--ev-bg2); pointer-events: none; }
     .ev-bg::after { content: ''; position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--ev-scan), transparent); animation: evScanline 8s linear infinite; pointer-events: none; z-index: 1; }
 
-    /* ═══ BUTTONS ═══ */
+    /* â•â•â• BUTTONS â•â•â• */
     .ev-title { font-size: 0.875rem; font-weight: 700; color: var(--ev-t); display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s; }
     .ev-pill-btn { padding: 0.375rem 0.75rem; border-radius: 9999px; font-size: 0.6875rem; font-weight: 600; color: var(--ev-pill-t); border: 1px solid var(--ev-pill-b); background: var(--ev-pill); cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); backdrop-filter: blur(8px); will-change: transform; }
     .ev-pill-btn:hover { color: #0891b2; border-color: rgba(34,211,238,0.5); background: rgba(34,211,238,0.1); box-shadow: 0 0 14px rgba(34,211,238,0.2); transform: translateY(-1px) scale(1.01); }
@@ -394,7 +394,7 @@
     .ev-primary-btn:hover::before { opacity: 1; }
     .ev-primary-btn:active { transform: translateY(0) scale(0.98); }
 
-    /* ═══ SELECTION CARDS ═══ */
+    /* â•â•â• SELECTION CARDS â•â•â• */
     @keyframes evFadeIn { from { opacity: 0; transform: translateY(16px) scale(0.94); } to { opacity: 1; transform: translateY(0) scale(1); } }
     .ev-sel-card { position: relative; background: var(--ev-card); border: 1px solid var(--ev-card-b); border-radius: 0.75rem; padding: 1rem; cursor: pointer; transition: all 0.35s cubic-bezier(0.4,0,0.2,1); overflow: hidden; animation: evFadeIn 0.45s ease both; backdrop-filter: blur(8px); will-change: transform; }
     .ev-sel-card:nth-child(1) { animation-delay: 0.03s; } .ev-sel-card:nth-child(2) { animation-delay: 0.06s; } .ev-sel-card:nth-child(3) { animation-delay: 0.09s; } .ev-sel-card:nth-child(4) { animation-delay: 0.12s; }
@@ -410,7 +410,7 @@
     .ev-sel-name { font-size: 0.75rem; font-weight: 700; color: var(--ev-t); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s; }
     .ev-sel-meta { font-size: 0.625rem; color: var(--ev-t3); margin-top: 0.25rem; transition: color 0.3s; }
 
-    /* ═══ MAIN PREVIEW ═══ */
+    /* â•â•â• MAIN PREVIEW â•â•â• */
     @keyframes evSlideUp { from { opacity: 0; transform: translateY(24px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
     #evMainPreview { animation: evSlideUp 0.55s cubic-bezier(0.4,0,0.2,1); }
     .ev-main-table { width: 100%; max-width: 920px; border-collapse: separate; border-spacing: 0; font-size: 0.6875rem; font-family: 'JetBrains Mono', 'Fira Code', monospace; background: var(--ev-tbl); border-radius: 0.75rem; overflow: hidden; border: 1px solid var(--ev-tbl-b); box-shadow: 0 4px 30px rgba(0,0,0,0.1); transition: background 0.4s, border-color 0.4s; }
@@ -433,7 +433,7 @@
     .ev-sheet-label i { animation: evPulseIcon 2s ease-in-out infinite; }
     @keyframes evPulseIcon { 0%, 100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.15); text-shadow: 0 0 8px rgba(34,211,238,0.6); } }
 
-    /* ═══ THUMBNAILS ═══ */
+    /* â•â•â• THUMBNAILS â•â•â• */
     @keyframes evThumbIn { from { opacity: 0; transform: scale(0.8) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
     .ev-thumb { flex-shrink: 0; width: 130px; padding: 0.625rem 0.5rem; border-radius: 0.625rem; background: var(--ev-thumb); border: 1px solid var(--ev-thumb-b); cursor: pointer; transition: all 0.35s cubic-bezier(0.4,0,0.2,1); text-align: center; animation: evThumbIn 0.4s ease both; position: relative; overflow: hidden; will-change: transform; }
     .ev-thumb::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(34,211,238,0.05) 0%, transparent 50%); opacity: 0; transition: opacity 0.35s; }
@@ -449,12 +449,12 @@
     .ev-thumb:hover .ev-thumb-icon { transform: scale(1.15) rotate(-5deg); }
     .ev-thumb.active .ev-thumb-icon { transform: scale(1.1); }
 
-    /* ═══ MOBILE NAV ARROWS ═══ */
+    /* â•â•â• MOBILE NAV ARROWS â•â•â• */
     .ev-nav-btn { display: none; opacity: 0.6; }
     .ev-nav-btn:hover { opacity: 1; background: rgba(34,211,238,0.2) !important; border-color: rgba(34,211,238,0.4) !important; transform: translateY(-50%) scale(1.1); }
     @media (max-width: 640px) { .ev-nav-btn { display: flex; } }
 
-    /* ═══ SCROLLBARS ═══ */
+    /* â•â•â• SCROLLBARS â•â•â• */
     .ev-bg ::-webkit-scrollbar { width: 5px; height: 5px; }
     .ev-bg ::-webkit-scrollbar-track { background: rgba(128,128,128,0.1); border-radius: 3px; }
     .ev-bg ::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.25); border-radius: 3px; transition: background 0.2s; }
@@ -462,20 +462,20 @@
     #evMainPreview::-webkit-scrollbar { width: 6px; }
     #evThumbs { scrollbar-width: thin; scrollbar-color: rgba(34,211,238,0.25) rgba(128,128,128,0.1); }
 
-    /* ═══ WISHLIST ═══ */
+    /* â•â•â• WISHLIST â•â•â• */
     .ev-wish-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.625rem; background: var(--ev-wish); border: 1px solid var(--ev-wish-b); border-radius: 0.5rem; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); animation: evFadeIn 0.35s ease both; backdrop-filter: blur(6px); will-change: transform; overflow: hidden; }
     .ev-wish-item:hover { border-color: rgba(139,92,246,0.35); background: rgba(139,92,246,0.08); transform: translateX(-4px); }
     .ev-wish-name { font-size: 0.6875rem; color: var(--ev-wish-t); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.3s; }
     .ev-wish-remove { color: var(--ev-wish-r); cursor: pointer; transition: all 0.25s; padding: 0.25rem; border-radius: 0.25rem; flex-shrink: 0; }
     .ev-wish-remove:hover { color: #f43f5e; background: rgba(244,63,94,0.12); transform: scale(1.15) rotate(90deg); }
   </style>
-  <!-- ═══════ END EXCEL VIEWER ═══════ -->
+  <!-- â•â•â•â•â•â•â• END EXCEL VIEWER â•â•â•â•â•â•â• -->
 
   <!-- HISTORY MODAL -->
   <div id="historyModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleHistoryModal()">
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl mx-4 max-h-[85vh] flex flex-col">
       <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 class="text-base font-bold"><i class="fas fa-clipboard-list mr-2 text-cyan-500"></i><span data-i18n="historyModalTitle">Registro Attività</span></h2>
+        <h2 class="text-base font-bold"><i class="fas fa-clipboard-list mr-2 text-cyan-500"></i><span data-i18n="historyModalTitle">Registro AttivitÃ </span></h2>
         <button onclick="toggleHistoryModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
       </div>
       <div class="p-4 modal-scroll-body">
@@ -509,10 +509,10 @@
         <div>
           <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" data-i18n="calcMat">Materiale</label>
           <select id="calcMaterial" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition">
-            <option value="7.85">Acciaio al Carbonio (7.85 kg/dm³)</option>
-            <option value="8.00">Acciaio Inox (8.00 kg/dm³)</option>
-            <option value="2.70">Alluminio (2.70 kg/dm³)</option>
-            <option value="8.90">Rame (8.90 kg/dm³)</option>
+            <option value="7.85">Acciaio al Carbonio (7.85 kg/dmÂ³)</option>
+            <option value="8.00">Acciaio Inox (8.00 kg/dmÂ³)</option>
+            <option value="2.70">Alluminio (2.70 kg/dmÂ³)</option>
+            <option value="8.90">Rame (8.90 kg/dmÂ³)</option>
           </select>
         </div>
         <div>
@@ -774,7 +774,7 @@
       <div class="p-4 modal-scroll-body space-y-4">
         <div class="flex gap-2">
           <input type="text" id="newCategoryName" placeholder="Nome categoria..." class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition" />
-          <select id="newCategoryEmoji" class="px-2 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="📁">📁</option><option value="⚙️">⚙️</option><option value="🔥">🔥</option><option value="💧">💧</option><option value="🔧">🔧</option><option value="📊">📊</option><option value="📐">📐</option><option value="🔬">🔬</option><option value="⚡">⚡</option><option value="🏗️">🏗️</option><option value="🚧">🚧</option><option value="📦">📦</option><option value="🛠️">🛠️</option><option value="💡">💡</option><option value="🧪">🧪</option></select>
+          <select id="newCategoryEmoji" class="px-2 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="ðŸ“">ðŸ“</option><option value="âš™ï¸">âš™ï¸</option><option value="ðŸ”¥">ðŸ”¥</option><option value="ðŸ’§">ðŸ’§</option><option value="ðŸ”§">ðŸ”§</option><option value="ðŸ“Š">ðŸ“Š</option><option value="ðŸ“">ðŸ“</option><option value="ðŸ”¬">ðŸ”¬</option><option value="âš¡">âš¡</option><option value="ðŸ—ï¸">ðŸ—ï¸</option><option value="ðŸš§">ðŸš§</option><option value="ðŸ“¦">ðŸ“¦</option><option value="ðŸ› ï¸">ðŸ› ï¸</option><option value="ðŸ’¡">ðŸ’¡</option><option value="ðŸ§ª">ðŸ§ª</option></select>
           <button onclick="addNewCategory()" class="px-3 py-2 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition shadow-sm font-medium">+</button>
         </div>
         <div id="categoryList" class="space-y-2 max-h-60 overflow-y-auto"></div>
@@ -809,7 +809,7 @@
       </div>
     </div>
   </div>
-  <button id="chat-fab" onclick="toggleChatCollapse()" class="fixed bottom-28 right-4 w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-700 hover:from-blue-500 hover:to-purple-600 rounded-full shadow-2xl border-2 border-white/20 flex items-center justify-center text-2xl cursor-pointer transition-all duration-300 z-[55]">🤖</button>
+  <button id="chat-fab" onclick="toggleChatCollapse()" class="fixed bottom-28 right-4 w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-700 hover:from-blue-500 hover:to-purple-600 rounded-full shadow-2xl border-2 border-white/20 flex items-center justify-center text-2xl cursor-pointer transition-all duration-300 z-[55]">ðŸ¤–</button>
 
 
   <!-- SIDEBAR -->
@@ -857,7 +857,7 @@
         </div>
       </div>
       <hr class="my-3 border-gray-200 dark:border-gray-700" />
-      <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition flex items-center gap-2 text-red-500 requires-write" onclick="if(confirm('Eliminare definitivamente il tuo account? I tuoi dati rimarranno. Questa azione è irreversibile.'))deleteMyAccount()"><i class="fas fa-trash-alt w-4"></i><span data-i18n="deleteMyAccount">Elimina il mio account</span></button>
+      <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition flex items-center gap-2 text-red-500 requires-write" onclick="if(confirm('Eliminare definitivamente il tuo account? I tuoi dati rimarranno. Questa azione Ã¨ irreversibile.'))deleteMyAccount()"><i class="fas fa-trash-alt w-4"></i><span data-i18n="deleteMyAccount">Elimina il mio account</span></button>
     </div>
   </aside>
 
@@ -869,26 +869,26 @@
     </div>
     <div class="dash-grid">
       <div class="dash-card requires-write" onclick="toggleExcelModal()">
-        <div class="dash-icon">📊</div>
+        <div class="dash-icon">ðŸ“Š</div>
         <div class="dash-label" data-i18n="dashExcel">Excel</div>
       </div>
       <div class="dash-card requires-write" onclick="toggleDocModal()">
-        <div class="dash-icon">📄</div>
+        <div class="dash-icon">ðŸ“„</div>
         <div class="dash-label" data-i18n="dashDoc">Documenti</div>
       </div>
       <div class="dash-card" onclick="toggleNotesModal()">
-        <div class="dash-icon">📝</div>
+        <div class="dash-icon">ðŸ“</div>
         <div class="dash-label" data-i18n="dashNotes">Note</div>
         <div class="dash-count" id="countNotes">0</div>
       </div>
       <div class="dash-card requires-write" onclick="toggleArchiveModal()">
-        <div class="dash-icon">🗂️</div>
+        <div class="dash-icon">ðŸ—‚ï¸</div>
         <div class="dash-label" data-i18n="dashArchive">Archivio</div>
         <div class="dash-count" id="countArchive">0</div>
       </div>
       <div class="dash-card" onclick="toggleHistoryModal()">
-        <div class="dash-icon">📋</div>
-        <div class="dash-label" data-i18n="dashHistory">Registro Attività</div>
+        <div class="dash-icon">ðŸ“‹</div>
+        <div class="dash-label" data-i18n="dashHistory">Registro AttivitÃ </div>
         <div class="dash-count" id="countHistory">0</div>
       </div>
 
@@ -983,7 +983,7 @@
       enterApp();
       if (typeof setupPermissions !== 'undefined') setupPermissions();
       if (typeof showWelcomeSplash === 'function') showWelcomeSplash();
-      showToast('Accesso come Ospite — solo visualizzazione', 'info');
+      showToast('Accesso come Ospite â€” solo visualizzazione', 'info');
     };
     window.toggleLoginPass = function() {
       const el = document.getElementById('loginPass');
@@ -1096,7 +1096,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-  <script src="js/config.js?v=20260910d"></script>
-  <script src="js/app.js?v=20260910d"></script>
+  <script src="js/config.js?v=20260910e"></script>
+  <script src="js/app.js?v=20260910e"></script>
 </body>
 </html>
+
+

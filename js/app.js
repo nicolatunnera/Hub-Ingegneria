@@ -1496,6 +1496,8 @@ window.viewDocumentFile = async function(id) {
       await renderStepFile(body, footer, rawData, file.title);
     } else if (ext === 'DXF') {
       await renderDxfFile(body, footer, rawData, file.title);
+    } else if (ext === 'DWG') {
+      await renderDwgFile(body, footer, rawData, file.title);
     } else {
       const content = file.extractedText || '';
       if (content && content.trim()) {
@@ -1745,6 +1747,47 @@ async function renderDxfFile(body, footer, dataUrl) {
 }
 function p0x(e) { return (e.pts[0] && e.pts[0][0]) || 0; }
 function p0y(e) { return (e.pts[0] && e.pts[0][1]) || 0; }
+
+let dwgLibPromise = null;
+function loadDwgLib() {
+  if (!dwgLibPromise) {
+    dwgLibPromise = import('https://cdn.jsdelivr.net/npm/@mlightcad/libredwg-web@0.7.10/dist/libredwg-web.js')
+      .then(m => m.LibreDwg.create('https://cdn.jsdelivr.net/npm/@mlightcad/libredwg-web@0.7.10/wasm'));
+  }
+  return dwgLibPromise;
+}
+
+async function renderDwgFile(body, footer, dataUrl, title) {
+  fvShowLoading(body, 'Conversione DWG in SVG...');
+  try {
+    const lib = await loadDwgLib();
+    fvShowLoading(body, 'Rendering del disegno...');
+    const buf = dataUrlToArrayBuffer(dataUrl);
+    const dataPtr = lib.dwg_read_data(buf, 0);
+    if (dataPtr == null) throw new Error('File DWG non leggibile.');
+    try {
+      const db = lib.convert(dataPtr);
+      const svg = lib.dwg_to_svg(db);
+      if (!svg || !svg.trim()) throw new Error('Nessun contenuto disegnabile trovato.');
+      body.classList.remove('is-3d');
+      body.innerHTML = `<div class="fv-scroll" data-doc="1" style="display:block;text-align:center;padding:12px">${svg}</div>`;
+      const svgEl = body.querySelector('.fv-scroll svg');
+      if (svgEl) {
+        svgEl.style.maxWidth = '100%';
+        svgEl.style.maxHeight = 'calc(100vh - 220px)';
+        svgEl.style.width = 'auto';
+        svgEl.style.height = 'auto';
+      }
+      fvSetFooter(footer, 'Anteprima DWG — conversione locale');
+    } finally {
+      try { lib.dwg_free(dataPtr); } catch(e) {}
+    }
+  } catch (e) {
+    console.error('DWG viewer fallito:', e);
+    body.classList.remove('is-3d');
+    body.innerHTML = `<div class="fv-center"><div class="text-xs text-red-500 text-center px-6">Impossibile aprire il DWG: ${escapeHtml(e.message)}</div></div>`;
+  }
+}
 
 window.deleteCloudItem = async (id, isExcel, itemName) => {
   if (window.userRole !== 'owner') {
