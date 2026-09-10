@@ -1936,22 +1936,21 @@ PLATEAFORMA: Engineering Cloud Hub - modulo documenti, Excel, note, archivio.`;
     try { const j = JSON.parse(raw); return j.choices?.[0]?.message?.content || raw; } catch { return raw; }
   }
 
-  let replyText = '';
-  const groqKey = localStorage.getItem('ai_key') || '';
+  let groqError = '';
   if (groqKey) {
     try {
       console.log('[AI] Chiamata Groq...');
       replyText = await aiFetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + groqKey },
-        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: reqBase.messages, max_tokens: 2048 })
+        body: JSON.stringify({ model: 'openai/gpt-oss-120b', messages: reqBase.messages, max_tokens: 2048 })
       });
       console.log('[AI] Groq OK, risposta lunga:', replyText.length);
-    } catch(e) { console.error('[AI] Groq ERRORE:', e.message); }
+    } catch(e) { groqError = e.message; console.error('[AI] Groq ERRORE:', e.message); }
   }
   if (!replyText) {
     replyText = groqKey
-      ? '\u26A0\uFE0F AI non disponibile al momento. Controlla che la chiave sia valida o riprova. Per sostituirla scrivi: /key nuova_chiave'
+      ? `\u26A0\uFE0F AI non disponibile (${groqError}). Se la chiave non funziona, scrivi: /key gsk_xxx`
       : '\u26A0\uFE0F AI non configurata. Per attivarla serve una chiave <b>gratuita</b> (2 minuti, senza carta di credito):<br><br>1\uFE0F\u20E3 Apri <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="text-blue-500 underline">console.groq.com/keys</a> ed effettua il login (gratis)<br>2\uFE0F\u20E3 Clicca <b>Create API Key</b> e copia la chiave (inizia con <code>gsk_</code>)<br>3\uFE0F\u20E3 Torna qui e scrivi: <code>/key gsk_xxx</code>';
   }
 
