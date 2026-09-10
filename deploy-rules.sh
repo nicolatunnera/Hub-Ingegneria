@@ -51,8 +51,14 @@ echo ""
 echo "🔄 Deploying rules per: $PROJECT_ID"
 echo ""
 
+# firebase deploy si aspetta un file "firestore.rules" per default:
+cp firebase.rules firestore.rules
+
 # Deploy rules
 firebase deploy --only firestore:rules --project "$PROJECT_ID"
+
+# cleanup del file copiato
+rm -f firestore.rules
 
 if [ $? -eq 0 ]; then
     echo ""

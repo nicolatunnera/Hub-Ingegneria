@@ -3,7 +3,7 @@
 **Piattaforma cloud ingegneristico per la gestione di documenti tecnici, preventivi, relazioni e certificazioni.**
 
 [![Live Demo](https://img.shields.io/badge/Demo%20Live-https%3A%2F%2Fnicholatunnera.github.io%2FHub--Ingegneria-blue)](https://nicolatunnera.github.io/Hub-Ingegneria)
-[![Version](https://img.shields.io/badge/Version-3.5.0-green)]()
+[![Version](https://img.shields.io/badge/Version-3.5.1-green)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)]()
 
 ---
@@ -72,12 +72,12 @@ cd Hub-Ingegneria
 2. Crea un nuovo progetto (es. "hub-ingegneria")
 3. Abilita **Firestore Database** (Modalità produzione)
 4. Abilita **Authentication** → Accesso Anonimo
-5. Copia config in `index.html` (sezione Firebase init)
+5. Copia la config in `js/config.js` (`window.firebaseConfig`)
 
 ### Aggiornare Firebase Config
-Cerca in `index.html` la sezione:
+Cerca in `js/config.js` la sezione:
 ```javascript
-const firebaseConfig = {
+window.firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "your-project.firebaseapp.com",
   projectId: "your-project",
@@ -102,38 +102,49 @@ Attiva GitHub Pages nelle impostazioni del repo:
 ## 🔒 Sicurezza Firebase
 
 ### Firestore Rules (IMPORTANTE!)
-Vai su **Firebase Console → Firestore → Rules** e aggiorna:
+Vai su **Firebase Console → Firestore → Rules** e aggiorna con il contenuto di `firebase.rules` (già adattato alle collezioni reali: `accountsHub`, `excelHub`, `textHub`, `chunks`, `historyHub`, `subscribers`, `newsHub`, `notesHub`, `archiveFolders`, `categoriesHub`, `privateSpaceRequests`).
+
+![Structure](https://img.shields.io/badge/collezioni-10-blue)
 
 ```firestore
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Utenti: solo il proprietario può leggere/modificare
-    match /users/{userId} {
-      allow read, write: if request.auth.uid == userId;
+    function isSignedIn() {
+      return request.auth != null && request.auth.uid != null;
     }
-    
-    // Cartelle: solo il proprietario
-    match /folders/{folderId} {
-      allow read, write: if get(/databases/$(database)/documents/folders/$(folderId)).data.owner_uid == request.auth.uid;
-    }
-    
-    // File: verifica proprietà cartella
-    match /files/{fileId} {
-      allow read, write: if get(/databases/$(database)/documents/folders/$(resource.data.folder_id)).data.owner_uid == request.auth.uid;
-    }
-    
-    // Pubblico: lettura per ospiti
-    match /public/{document=**} {
+    // Lettura pubblica (login anonimo), scrittura solo autenticati
+    match /accountsHub/{docId} {
       allow read: if true;
-      allow write: if request.auth.uid != null;
+      allow write: if isSignedIn();
+    }
+    match /excelHub/{fileId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+      match /chunks/{chunkId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+      }
+    }
+    match /textHub/{fileId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+      match /chunks/{chunkId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+      }
+    }
+    match /{collezioni}/{doc} {
+      allow read: if true;
+      allow write: if isSignedIn();
     }
   }
 }
 ```
 
-**⚠️ CRITICO:** Non lasciare mai regole troppo permissive in produzione!
+**⚠️ L'app usa Auth Anonimo**: ogni visitatore riceve un `uid` automaticamente, quindi le scritture restano sempre possibili per gli utenti reali mentre gli accessi via API non autenticata vengono bloccati.
+
+**Nota:** non applicare le vecchie regole con `owner_uid` (erano per un modello dati diverso e romperebbero l'app).
 
 ---
 
@@ -143,7 +154,7 @@ service cloud.firestore {
 |------|-----------|------------|
 | **Excel** | `.xlsx`, `.xls`, `.csv` | Fogli di calcolo |
 | **Documenti** | `.pdf`, `.doc`, `.docx`, `.txt` | Testi e PDF |
-| **Disegni** | `.dwg`, `.dxf`, `.step` | File CAD/3D |
+| **Disegni** | `.dwg`, `.dxf`, `.step`, `.stp` | File CAD/3D |
 | **Immagini** | `.jpg`, `.jpeg`, `.png` | Foto e screenshot |
 | **Mobile** | `.apk` | Applicazioni Android |
 
@@ -156,12 +167,17 @@ service cloud.firestore {
 Hub-Ingegneria/
 ├── index.html          # App principale (monolitica)
 ├── style.css           # Stili Tailwind + custom
-├── sw.js               # Service Worker (PWA)
+├── sw.js               # Service Worker (PWA, cache versionata per data)
 ├── manifest.json       # PWA manifest
-├── firebase.rules      # Firestore security rules
+├── firebase.rules      # Firestore security rules (collezioni reali)
+├── deploy-cloud.js     # Deployer rules da telefono (Firebase Admin)
+├── deploy-web.js       # Deployer rules via browser/CLI
+├── deploy-rules.sh     # Deployer rules via Firebase CLI
 ├── icon-192.png        # App icon
 ├── icon-512.png        # App icon large
-└── js/                 # (Vuoto, pronto per moduli)
+└── js/
+    ├── config.js       # Firebase config + i18n IT/EN + Telegram token
+    └── app.js          # Logica app
 ```
 
 ### Tecnologie
@@ -225,10 +241,8 @@ MIT License - Vedi LICENSE file
 
 | Versione | Data | Novità |
 |----------|------|--------|
-| **3.5.0** | 2025-01-20 | ✨ Supporto file .step, improved security rules |
-| 3.4.0 | 2024-12-15 | MTBF Calculator |
-| 3.3.0 | 2024-11-10 | Telegram integration |
-| 3.2.0 | 2024-10-20 | AI Co-Pilot |
+| **3.5.1** | 2026-09-10 | ✨ Supporto file STEP/STP, security rules adattate, deploy script, doc completa |
+| **3.5.0** | 2025-01-20 | Mobile-layout fixes, chunking Firestore per file grandi |
 
 ---
 

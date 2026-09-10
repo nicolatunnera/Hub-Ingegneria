@@ -1,66 +1,73 @@
-╔══════════════════════════════════════════════════════╗
-║  ENGINEERING CLOUD HUB — FIRESTORE SECURITY RULES   ║
-║  Deploy in Firebase Console → Firestore → Rules      ║
-╚══════════════════════════════════════════════════════╝
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // ═══ UTENTI — Solo il proprietario può leggere/modificare ═══
-    match /users/{userId} {
-      allow read, write: if request.auth.uid == userId;
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.uid != null;
     }
-    
-    // ═══ CARTELLE — Verifica proprietà ═══
-    match /folders/{folderId} {
-      allow read, write: if 
-        get(/databases/$(database)/documents/folders/$(folderId)).data.owner_uid == request.auth.uid;
-    }
-    
-    // ═══ FILE — Verifica accesso cartella proprietaria ═══
-    match /files/{fileId} {
-      allow read, write: if 
-        get(/databases/$(database)/documents/folders/$(resource.data.folder_id)).data.owner_uid == request.auth.uid;
-    }
-    
-    // ═══ NOTE — Solo proprietario ═══
-    match /notes/{noteId} {
-      allow read, write: if request.auth.uid == resource.data.owner_uid;
-    }
-    
-    // ═══ ARCHIVIO — Solo proprietario ═══
-    match /archive/{archiveId} {
-      allow read, write: if request.auth.uid == resource.data.owner_uid;
-    }
-    
-    // ═══ PUBBLICO — Lettura consentita, scrittura solo autenticati ═══
-    match /public/{document=**} {
+
+    // ═══ UTENTI / ACCOUNT (accountsHub) ═══════════════════════════════
+    // LETTURA: consentita a chiunque (necessaria al login anonimo)
+    // SCRITTURA: solo utenti autenticati; per creare/aggiornare il proprio
+    // profilo si usa il campo username (gestito lato client).
+    match /accountsHub/{docId} {
       allow read: if true;
-      allow write: if request.auth.uid != null;
+      allow write: if isSignedIn();
     }
-    
-    // ═══ STORICO ATTIVITÀ — Solo proprietario ═══
-    match /history/{historyId} {
-      allow read, write: if request.auth.uid == resource.data.user_uid;
+
+    // ═══ FILE EXCEL (excelHub) + blobs chunks ═════════════════════════
+    match /excelHub/{fileId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+      allow create, update: if isSignedIn() && request.resource.data.keys().hasAll(['name', 'uploadedAt']);
+      match /chunks/{chunkId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+      }
+    }
+
+    // ═══ FILE DOCUMENTI (textHub) + blobs chunks ══════════════════════
+    // STEP/STP/PDF ecc. — accesso e scrittura come sopra
+    match /textHub/{fileId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+      allow create, update: if isSignedIn() && request.resource.data.keys().hasAny(['title', 'fileName']);
+      match /chunks/{chunkId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+      }
+    }
+
+    // ═══ STORICO ATTIVITÀ ═════════════════════════════════════════════
+    match /historyHub/{entryId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // ═══ CONFIGURAZIONE VARIABASE (categoriesHub, archiveFolders, ecc.) ══
+    match /categoriesHub/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /archiveFolders/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /subscribers/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /privateSpaceRequests/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /newsHub/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /notesHub/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
     }
   }
 }
-
-
-─── ISTRUZIONI DEPLOY ─────────────────────────────────
-1. Vai su https://console.firebase.google.com
-2. Seleziona il progetto "hub-ingegneria"
-3. Firestore Database → Rules
-4. Incolla tutto il contenuto qui sopra
-5. Clicca "PUBBLICA"
-6. Verifica che Auth → Accesso Anonimo sia DISABILITATO (per maggior sicurezza)
-
-─── BACKUP DELLE REGOLE VECCHIE ─────────────────────
-Le vecchie regole erano TROPPO PERMISSIVE:
-  OLD: allow read, write: if request.auth != null;
-  
-Questo permetteva a QUALSIASI utente autenticato di leggere/modificare 
-TUTTI i dati di TUTTI gli altri utenti!
-
-⚠️ CRITICO: Aggiorna SUBITO le regole! ⚠️

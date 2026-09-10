@@ -298,9 +298,9 @@ const html = `
 // Funzione per leggere il file rules
 function getRulesContent() {
     try {
-        return fs.readFileSync(path.join(__dirname, 'firestore.rules'), 'utf8');
+        return fs.readFileSync(path.join(__dirname, 'firebase.rules'), 'utf8');
     } catch (e) {
-        throw new Error('firestore.rules non trovato');
+        throw new Error('firebase.rules non trovato');
     }
 }
 
@@ -342,7 +342,7 @@ const server = http.createServer(async (req, res) => {
                 // Update security rules
                 await admin.securityRules().releaseFirestoreRulesetFromSource(
                     projectId,
-                    { source: { files: [{ name: 'firestore.rules', content: rulesContent }] } }
+                    { source: { files: [{ name: 'firebase.rules', content: rulesContent }] } }
                 );
                 
                 res.writeHead(200, { 'Content-Type': 'application/json' });

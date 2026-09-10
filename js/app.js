@@ -95,6 +95,10 @@ async function extractTextFromBase64(base64Data, fileType) {
       const bin = atob(base64Data.split(',')[1] || base64Data);
       return decodeURIComponent(escape(bin)).substring(0, 8000);
     }
+    if (upper === 'STEP' || upper === 'STP') {
+      const bin = atob(base64Data.split(',')[1] || base64Data);
+      return decodeURIComponent(escape(bin)).replace(/[^\x20-\x7E\n]/g, '').substring(0, 8000);
+    }
     if ((upper === 'XLS' || upper === 'XLSX' || upper === 'CSV') && typeof XLSX !== 'undefined') {
       const bin = atob(base64Data.split(',')[1] || base64Data);
       const arr = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
@@ -863,7 +867,7 @@ function readFileAsBase64(file) {
 // ─── MULTI UPLOAD HELPERS ─────────────────────────────────────────────
 function fileNameNoExt(name) { const dot = name.lastIndexOf('.'); return dot > 0 ? name.substring(0, dot) : name; }
 function fileIcon(ext) {
-  const icons = { xls:'📊', xlsx:'📊', csv:'📋', pdf:'📄', doc:'📝', docx:'📝', txt:'📃', dwg:'📐', dxf:'📐', jpg:'🖼️', jpeg:'🖼️', png:'🖼️' };
+  const icons = { xls:'📊', xlsx:'📊', csv:'📋', pdf:'📄', doc:'📝', docx:'📝', txt:'📃', dwg:'📐', dxf:'📐', step:'🧱', stp:'🧱', jpg:'🖼️', jpeg:'🖼️', png:'🖼️' };
   return icons[ext.toLowerCase()] || '📁';
 }
 function triggerFileInput(containerId) {
@@ -993,7 +997,7 @@ document.getElementById('btnUploadDoc').onclick = async () => {
   }
   _fileStore.docFileList = [];
   document.getElementById('docFileList').innerHTML = '';
-  document.getElementById('textDropDoc').textContent = 'Trascina qui i file o clicca per selezionare (PDF, DOC, TXT, DWG, DXF, APK)';
+  document.getElementById('textDropDoc').textContent = 'Trascina qui i file o clicca per selezionare (PDF, DOC, TXT, DWG, DXF, STEP, APK)';
   showToast(`${count} documenti caricati: ${uploadedNames.join(', ')}`, 'success', 6000);
   if (count) await sendTelegramBroadcast(`\u{1F4DD} *Caricati ${count} documenti*`);
   } catch(e) { console.error('Upload Documento fallito:', e); showToast('Errore durante il caricamento: ' + e.message, 'error', 6000); }
