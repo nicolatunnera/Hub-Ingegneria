@@ -1,8 +1,15 @@
 const CACHE = 'eng-hub-v' + new Date().toISOString().split('T')[0].replace(/-/g, '');
 const ASSETS = [
+  './',
   'manifest.json',
+  'index.html',
+  'style.css?v=20260910g',
+  'js/config.js?v=20260910g',
+  'js/app.js?v=20260910g',
   'icon-192.png',
-  'icon-512.png'
+  'icon-512.png',
+  'robots.txt',
+  'sitemap.xml'
 ];
 
 self.addEventListener('install', (e) => {

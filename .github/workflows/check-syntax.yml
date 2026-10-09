@@ -1,0 +1,20 @@
+name: Check JS syntax
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JS syntax
+        run: |
+          set -e
+          for f in js/app.js js/config.js; do
+            echo "Checking $f"
+            node --check "$f"
+          done

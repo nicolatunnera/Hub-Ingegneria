@@ -76,7 +76,8 @@ async function extractTextFromBase64(base64Data, fileType) {
   if (!base64Data) return '';
   const upper = (fileType || '').toUpperCase();
   try {
-    if (upper === 'PDF' && typeof pdfjsLib !== 'undefined') {
+    if (upper === 'PDF') {
+      if (typeof pdfjsLib === 'undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
       const bin = atob(base64Data.split(',')[1] || base64Data);
       const arr = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
@@ -85,7 +86,8 @@ async function extractTextFromBase64(base64Data, fileType) {
       for (let i = 1; i <= Math.min(pdf.numPages, 50); i++) { const page = await pdf.getPage(i); const content = await page.getTextContent(); txt += content.items.map(it => it.str).join(' ') + '\n'; }
       return txt.substring(0, 8000);
     }
-    if ((upper === 'DOCX' || upper === 'DOC') && typeof mammoth !== 'undefined') {
+    if (upper === 'DOCX' || upper === 'DOC') {
+      if (typeof mammoth === 'undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
       const bin = atob(base64Data.split(',')[1] || base64Data);
       const arr = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
       const result = await mammoth.extractRawText({ arrayBuffer: arr.buffer });
@@ -99,7 +101,8 @@ async function extractTextFromBase64(base64Data, fileType) {
       const bin = atob(base64Data.split(',')[1] || base64Data);
       return decodeURIComponent(escape(bin)).replace(/[^\x20-\x7E\n]/g, '').substring(0, 8000);
     }
-    if ((upper === 'XLS' || upper === 'XLSX' || upper === 'CSV') && typeof XLSX !== 'undefined') {
+    if (upper === 'XLS' || upper === 'XLSX' || upper === 'CSV') {
+      if (typeof XLSX === 'undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
       const bin = atob(base64Data.split(',')[1] || base64Data);
       const arr = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
       const wb = XLSX.read(arr, { type: 'array' });
@@ -1514,9 +1517,8 @@ window.viewDocumentFile = async function(id) {
 };
 window._renderPdfRef = null;
 async function renderPdfFile(body, footer, dataUrl, title) {
-  if (typeof pdfjsLib === 'undefined') throw new Error('Libreria PDF non caricata.');
+if (typeof pdfjsLib === 'undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  fvShowLoading(body, 'Preparazione PDF...');
   const pdf = await pdfjsLib.getDocument({ data: dataUrlToArrayBuffer(dataUrl) }).promise;
   body.classList.remove('is-3d');
   body.innerHTML = `<div class="fv-scroll" data-doc="1"></div>`;
@@ -1554,7 +1556,7 @@ window.renderPdfNav = async function(dir) {
   if (span) span.textContent = `${n} / ${ref.max}`;
 };
 async function renderWordFile(body, footer, dataUrl, ext) {
-  if (typeof mammoth === 'undefined') throw new Error('Libreria Word non caricata.');
+  if (typeof mammoth === 'undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
   fvShowLoading(body, 'Conversione documento...');
   const bin = atob(dataUrl.split(',')[1] || dataUrl);
   const arr = new Uint8Array(bin.length);
@@ -1886,7 +1888,7 @@ function updateModelUI() {
     lbl.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Caricamento modello...';
     lbl.className = 'text-[10px] px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300';
   } else {
-    lbl.innerHTML = '<i class="fas fa-microchip mr-1"></i>Scarica AI locale (~500MB)';
+    lbl.innerHTML = '<i class="fas fa-microchip mr-1"></i>Scarica AI locale (~900MB)';
     lbl.className = 'text-[10px] px-2 py-0.5 rounded-full border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition cursor-pointer';
     if (st) { st.classList.add('hidden'); st.textContent = ''; }
   }
@@ -1905,8 +1907,8 @@ async function loadLocalModel() {
   try {
     if (st) { st.classList.remove('hidden'); st.textContent = 'Scaricamento transformers.js...'; }
     const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3');
-    if (st) st.textContent = 'Scaricamento modello Qwen 0.5B (~500MB, una tantum)...';
-    localGenerator = await pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B-Instruct', {
+    if (st) st.textContent = 'Scaricamento modello Qwen 1.5B (~860MB, una tantum)...';
+    localGenerator = await pipeline('text-generation', 'onnx-community/Qwen2.5-1.5B-Instruct', {
       dtype: 'q4',
       device: 'wasm',
       progress_callback: p => {
@@ -2069,7 +2071,7 @@ window.askAI = async () => {
   };
 if (localModelReady && localGenerator) {
     const topDocs = results.slice(0, 3);
-    const context = topDocs.map(d => `[FILE: ${d.name}]\n${d.text.substring(0, 2500)}`).join('\n\n');
+    const context = topDocs.map(d => `[FILE: ${d.name}]\n${d.text.substring(0, 3000)}`).join('\n\n');
     const here = typeof window.location !== 'undefined' && window.location.href;
     const siteKB = `SITO: Engineering Cloud Hub (${here || 'https://nicolatunnera.github.io/Hub-Ingegneria'}). Piattaforma cloud ingegneristica per la gestione di documenti tecnici, preventivi, relazioni e certificazioni.\nFUNZIONALITÀ: Dashboard con 5 sezioni (Excel, Documenti, Note, Archivio, Registro Attività) e contatori per sezione; Excel Viewer che visualizza .xlsx, .xls, .csv navigando i fogli; Viewer integrato che apre PDF, Word .docx, disegni 2D DXF e DWG, modelli 3D STEP/STP interattivi direttamente nello schedario; Note Rapide sincronizzate nel cloud (massimo 10 note); Archivio con cartelle (max 100), filtri per categoria e ricerca per nome file; Registro Attività che tiene lo storico di tutte le operazioni (upload, download, modifiche); Calcolatore Pesi per barre d'acciaio; MTBF Calculator per il calcolo dell'affidabilità e del Mean Time Between Failures; AI Co-Pilot locale integrato nella chat; Telegram Bot per notifiche; tema scuro/chiaro/sepia; multilingua italiano/inglese.
     REGOLE SITO: il login e la registrazione avvengono tramite Firebase; il 'remember me' salva la sessione; ogni utente può caricare fino a 100 file in totale; gli ospiti (guest) non possono aprire l'Archivio né eliminare file.`;
@@ -2151,10 +2153,11 @@ document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key
   let currentIndex = 0;
   let wishlist = JSON.parse(localStorage.getItem('ev_wishlist') || '[]');
 
-  function parseExcel(f) {
+  async function parseExcel(f) {
     let rows = [], sheets = [];
     try {
-      if (f.fileData && typeof XLSX !== 'undefined') {
+      if (f.fileData) {
+        if (typeof XLSX === 'undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
         const bin = atob(f.fileData.split(',')[1] || f.fileData);
         const arr = new Uint8Array(bin.length);
         for (let j = 0; j < bin.length; j++) arr[j] = bin.charCodeAt(j);
@@ -2226,7 +2229,7 @@ document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key
     const parsed = [];
     for (const f of selected) {
       const withData = await loadFileData(f);
-      parsed.push(parseExcel(withData));
+      parsed.push(await parseExcel(withData));
     }
     viewFiles = parsed;
     currentIndex = 0;
