@@ -1888,7 +1888,7 @@ function updateModelUI() {
     lbl.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Caricamento modello...';
     lbl.className = 'text-[10px] px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300';
   } else {
-    lbl.innerHTML = '<i class="fas fa-microchip mr-1"></i>Scarica AI locale (~900MB)';
+    lbl.innerHTML = '<i class="fas fa-microchip mr-1"></i>Scarica AI locale (~1.2GB)';
     lbl.className = 'text-[10px] px-2 py-0.5 rounded-full border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition cursor-pointer';
     if (st) { st.classList.add('hidden'); st.textContent = ''; }
   }
@@ -1907,9 +1907,9 @@ async function loadLocalModel() {
   try {
     if (st) { st.classList.remove('hidden'); st.textContent = 'Scaricamento transformers.js...'; }
     const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3');
-    if (st) st.textContent = 'Scaricamento modello Qwen 1.5B (~860MB, una tantum)...';
+    if (st) st.textContent = 'Scaricamento modello Qwen 1.5B (~1.2GB, una tantum)...';
     localGenerator = await pipeline('text-generation', 'onnx-community/Qwen2.5-1.5B-Instruct', {
-      dtype: 'q4',
+      dtype: 'q4f16',
       device: 'wasm',
       progress_callback: p => {
         if (p.status === 'progress' && p.file && st) {
