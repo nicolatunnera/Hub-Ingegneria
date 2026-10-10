@@ -65,6 +65,7 @@ button { cursor: pointer; touch-action: manipulation; }
   #statsBarTop { display: none !important; }
   nav .w-2\/4 .text-sm { font-size: 0.75rem !important; }
   #searchCloud { width: 8rem !important; }
+  #lang-it, #lang-en { padding: 0.25rem 0.45rem !important; font-size: 0.6rem !important; }
   #calcModal > div { max-width: calc(100vw - 2rem) !important; margin: 0 1rem; }
   .dash-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
   .dash-card { padding: 1rem 0.75rem; }
@@ -100,8 +101,9 @@ button { cursor: pointer; touch-action: manipulation; }
   #hubTitleBtn .hidden { display: none !important; }
   nav .gap-1 { gap: 0.25rem !important; }
   nav .px-2 { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
-  nav button[id^="toggle"], nav #newsBtn, nav #themeToggle { padding: 0.25rem !important; }
-  nav button[id^="toggle"] i, nav #newsBtn i, nav #themeToggle i { font-size: 0.7rem !important; }
+  nav button[id^="toggle"], nav #newsBtn, nav #themeToggle, nav #globalSearchBtn { padding: 0.25rem !important; }
+  nav button[id^="toggle"] i, nav #newsBtn i, nav #themeToggle i, nav #globalSearchBtn i { font-size: 0.7rem !important; }
+  #lang-it, #lang-en { padding: 0.2rem 0.35rem !important; font-size: 0.55rem !important; }
   #hubFooter { padding: 0.375rem 0.5rem !important; gap: 0.5rem !important; justify-content: center !important; }
   #hubFooter button { padding: 0.25rem 0.5rem !important; font-size: 0.6rem !important; white-space: nowrap !important; }
   #hubFooter button i { font-size: 0.5rem !important; }

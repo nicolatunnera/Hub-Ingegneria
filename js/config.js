@@ -67,7 +67,7 @@ window.i18n = {
     evSheetEmpty:"Foglio vuoto", evNoPreview:"Anteprima non disponibile", evEyeProtection:"Protezione Occhi",
     searchGlobal:"Cerca nel sito", chatClear:"Azzera chat", modelFast:"Veloce (0.5B)", modelSmart:"Completo (1.5B)",
     sortBy:"Ordina:", sortNewest:"Pi\u00f9 recenti", sortOldest:"Pi\u00f9 vecchi", sortNameAZ:"Nome A\u2192Z", sortNameZA:"Nome Z\u2192A", sortAuthor:"Autore",
-    searchInContent:"Nel contenuto", exportBackup:"Esporta Backup", appearance:"Aspetto", themeAccentTitle:"Colore principale", resetAccent:"Blu originale", navHome:"Home", navArchive:"Archivio", navNotes:"Note", navAI:"AI", navMenu:"Menu",
+    searchInContent:"Nel contenuto", exportBackup:"Esporta Backup", navHome:"Home", navArchive:"Archivio", navNotes:"Note", navAI:"AI", navMenu:"Menu",
     filterAll:"Tutto", filterExcel:"Excel", filterDoc:"Documenti"
   },
   en: {
@@ -126,7 +126,7 @@ window.i18n = {
     evSheetEmpty:"Empty sheet", evNoPreview:"Preview not available", evEyeProtection:"Eye Protection",
     searchGlobal:"Search site", chatClear:"Clear chat", modelFast:"Fast (0.5B)", modelSmart:"Full (1.5B)",
     sortBy:"Sort:", sortNewest:"Newest first", sortOldest:"Oldest first", sortNameAZ:"Name A\u2192Z", sortNameZA:"Name Z\u2192A", sortAuthor:"Author",
-    searchInContent:"In content", exportBackup:"Export Backup", appearance:"Appearance", themeAccentTitle:"Accent color", resetAccent:"Original blue", navHome:"Home", navArchive:"Archive", navNotes:"Notes", navAI:"AI", navMenu:"Menu",
+    searchInContent:"In content", exportBackup:"Export Backup", navHome:"Home", navArchive:"Archive", navNotes:"Notes", navAI:"AI", navMenu:"Menu",
     filterAll:"All", filterExcel:"Excel", filterDoc:"Documents"
   }
 };
