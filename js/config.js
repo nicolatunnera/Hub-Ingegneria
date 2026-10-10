@@ -68,6 +68,7 @@ window.i18n = {
     searchGlobal:"Cerca nel sito", chatClear:"Azzera chat", modelFast:"Veloce (0.5B)", modelSmart:"Completo (1.5B)",
     sortBy:"Ordina:", sortNewest:"Pi\u00f9 recenti", sortOldest:"Pi\u00f9 vecchi", sortNameAZ:"Nome A\u2192Z", sortNameZA:"Nome Z\u2192A", sortAuthor:"Autore",
     searchInContent:"Nel contenuto", exportBackup:"Esporta Backup", navHome:"Home", navArchive:"Archivio", navNotes:"Note", navAI:"AI", navMenu:"Menu",
+    chartFilesCat:"File per categoria", chartTypes:"Excel vs Documenti", chartNoFiles:"Nessun file da mostrare.",
     filterAll:"Tutto", filterExcel:"Excel", filterDoc:"Documenti"
   },
   en: {
@@ -127,6 +128,7 @@ window.i18n = {
     searchGlobal:"Search site", chatClear:"Clear chat", modelFast:"Fast (0.5B)", modelSmart:"Full (1.5B)",
     sortBy:"Sort:", sortNewest:"Newest first", sortOldest:"Oldest first", sortNameAZ:"Name A\u2192Z", sortNameZA:"Name Z\u2192A", sortAuthor:"Author",
     searchInContent:"In content", exportBackup:"Export Backup", navHome:"Home", navArchive:"Archive", navNotes:"Notes", navAI:"AI", navMenu:"Menu",
+    chartFilesCat:"Files by category", chartTypes:"Excel vs Documents", chartNoFiles:"No files to show.",
     filterAll:"All", filterExcel:"Excel", filterDoc:"Documents"
   }
 };

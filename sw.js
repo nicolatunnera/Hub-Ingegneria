@@ -1,11 +1,11 @@
 const CACHE = 'eng-hub-v' + new Date().toISOString().split('T')[0].replace(/-/g, '');
 const ASSETS = [
   './',
-  'manifest.json',
+  'manifest.webmanifest',
   'index.html',
-  'style.css?v=20260910h',
-  'js/config.js?v=20260910h',
-  'js/app.js?v=20260910h',
+  'style.css?v=20260910i',
+  'js/config.js?v=20260910i',
+  'js/app.js?v=20260910i',
   'icon-192.png',
   'icon-512.png',
   'robots.txt',

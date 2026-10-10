@@ -186,8 +186,17 @@ html.eye-protect #evSelectModal, html.eye-protect #evViewerModal, html.eye-prote
 .dark .fv-toolbar button { background: #334155; color: #e2e8f0; }
 .dark .fv-toolbar button:hover { background: #475569; }
 #fileViewerModal .fv-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 0.75rem; color: #64748b; font-size: 0.75rem; }
+.fv-btn { padding: 0.35rem 0.6rem; font-size: 0.75rem; font-weight: 700; border-radius: 6px; cursor: pointer; background: #e2e8f0; color: #334155; border: 1px solid #cbd5e1; transition: background 0.2s; line-height: 1; }
+.fv-btn:hover { background: #cbd5e1; }
+.dark .fv-btn { background: #334155; color: #e2e8f0; border-color: #475569; }
+.dark .fv-btn:hover { background: #475569; }
+.fv-img-stage { background: #f1f5f9 !important; }
+.dark .fv-img-stage { background: #0f172a !important; }
+#fileViewerBody .fv-img-stage img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 14px rgba(15,23,42,0.25); background: #fff; display: block; margin: 0 auto; }
+.dark #fileViewerBody .fv-img-stage img { box-shadow: 0 2px 14px rgba(0,0,0,0.6); }
 @media (max-width: 640px) {
   #fileViewerBody .fv-doc-content { padding: 0.75rem; }
+  #fileViewerBody .fv-img-stage { padding: 0.5rem; }
 }
 
 /* ── Accent theme (variabile) ── */

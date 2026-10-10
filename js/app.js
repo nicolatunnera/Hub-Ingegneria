@@ -242,7 +242,11 @@ window.openAccountModal = () => {
 window.openMtbfModal = () => document.getElementById('mtbfModal')?.classList.remove('hidden');
 window.openSubscribersModal = () => document.getElementById('subscribersModal')?.classList.remove('hidden');
 window.openNewsHistoryModal = () => document.getElementById('newsHistoryModal')?.classList.remove('hidden');
-window.openStatsModal = () => document.getElementById('statsModal')?.classList.remove('hidden');
+window.openStatsModal = async () => {
+  document.getElementById('statsModal')?.classList.remove('hidden');
+  const ok = await ensureChartsLoaded();
+  if (ok) buildHubCharts();
+};
 window.toggleCalcModal = () => document.getElementById('calcModal')?.classList.toggle('hidden');
 window.toggleHubInfo = () => {
   const p = document.getElementById('hubInfoPanel');
@@ -302,6 +306,7 @@ window.toggleArchiveModal = () => {
   const opening = modal.classList.contains('hidden');
   modal.classList.toggle('hidden');
   if (opening) {
+    window.archivePage = 0;
     const inp = document.getElementById('searchCloud');
     if (inp) {
       inp.value = '';
@@ -325,7 +330,7 @@ window.toggleHistoryModal = () => document.getElementById('historyModal')?.class
   const ver = document.getElementById('hubInfoVersion');
   if (uptime) uptime.textContent = '01/02/2025';
   if (update) update.textContent = new Date().toLocaleDateString(locale(), { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-  if (ver) ver.textContent = '3.5.0';
+  if (ver) ver.textContent = '3.6.0';
 })();
 
 // ─── HUB INFO CLOCK ──────────────────────────────────────────────────
@@ -1237,14 +1242,15 @@ function renderFolderIcons() {
 window.searchQuery = '';
 const searchInput = document.getElementById('searchCloud');
 searchInput?.addEventListener('focus', () => {
-  if (window.username && searchInput.value === window.username) { searchInput.value = ''; window.searchQuery = ''; combineAndRenderArchive(); }
+  if (window.username && searchInput.value === window.username) { searchInput.value = ''; window.searchQuery = ''; window.archivePage = 0; combineAndRenderArchive(); }
 });
 searchInput?.addEventListener('blur', () => {
-  if (window.username && searchInput.value === window.username) { searchInput.value = ''; window.searchQuery = ''; combineAndRenderArchive(); }
+  if (window.username && searchInput.value === window.username) { searchInput.value = ''; window.searchQuery = ''; window.archivePage = 0; combineAndRenderArchive(); }
 });
-document.getElementById('typeFilter')?.addEventListener('change', combineAndRenderArchive);
-document.getElementById('folderFilter')?.addEventListener('change', combineAndRenderArchive);
+document.getElementById('typeFilter')?.addEventListener('change', () => { window.archivePage = 0; combineAndRenderArchive(); });
+document.getElementById('folderFilter')?.addEventListener('change', () => { window.archivePage = 0; combineAndRenderArchive(); });
 document.getElementById('searchCloud')?.addEventListener('input', e => {
+  window.archivePage = 0;
   if (!e.target.value) { window.searchQuery = ''; document.getElementById('clearSearch')?.classList.add('hidden'); combineAndRenderArchive(); return; }
   window.searchQuery = e.target.value.toLowerCase();
   const clearBtn = document.getElementById('clearSearch');
@@ -1255,6 +1261,7 @@ document.getElementById('clearSearch')?.addEventListener('click', () => {
   const input = document.getElementById('searchCloud');
   if (input) { input.value = ''; input.focus(); }
   window.searchQuery = '';
+  window.archivePage = 0;
   document.getElementById('clearSearch')?.classList.add('hidden');
   combineAndRenderArchive();
 });
@@ -1299,6 +1306,7 @@ function updateBulkActions() {
     const icon = e.target.closest('.folder-icon');
     if (!icon) return;
     document.getElementById('folderFilter').value = icon.dataset.folderId || '';
+    window.archivePage = 0;
     combineAndRenderArchive();
   });
   bar.addEventListener('dragover', e => { if (e.target.closest('.folder-icon')) e.preventDefault(); });
@@ -1349,12 +1357,17 @@ function combineAndRenderArchive() {
   else if (sortKey === 'nameAZ') items.sort((a, b) => fileLabel(a).localeCompare(fileLabel(b)));
   else if (sortKey === 'nameZA') items.sort((a, b) => fileLabel(b).localeCompare(fileLabel(a)));
   else if (sortKey === 'author') items.sort((a, b) => (a.uploadedBy || '').localeCompare(b.uploadedBy || ''));
+  const ROWS = 20;
+  const totalPages = Math.max(1, Math.ceil(items.length / ROWS));
+  window.archivePage = Math.max(0, Math.min(window.archivePage || 0, totalPages - 1));
+  const pageItems = items.slice(window.archivePage * ROWS, window.archivePage * ROWS + ROWS);
   if (!items.length) {
     body.innerHTML = '<tr><td colspan="6" class="p-6"><div class="empty-state"><div class="es-icon">\u{1F50D}</div><div class="es-text">' + (window.searchQuery ? 'Nessun file corrisponde alla ricerca' : 'Nessun file ancora caricato') + '</div><div class="es-sub">' + (window.searchQuery ? 'Prova a cambiare parole chiave o disattiva "Nel contenuto".' : 'Carica un Excel o un documento per iniziare.') + '</div></div></td></tr>';
+    renderArchivePagination(0, 0);
     updateBulkActions();
     return;
   }
-  items.forEach(f => {
+  pageItems.forEach(f => {
     const isGuest = window.userRole === 'guest';
     const folder = f.folderId ? getFolder(f.folderId) : null;
     const color = folder?.color || '#6b7280';
@@ -1405,9 +1418,46 @@ function combineAndRenderArchive() {
       }
     });
   });
+  renderArchivePagination(items.length, totalPages);
   updateBulkActions();
 }
 window.combineAndRenderArchive = combineAndRenderArchive;
+
+let _archiveTotalPages = 1;
+function renderArchivePagination(total, totalPages) {
+  _archiveTotalPages = Math.max(1, totalPages);
+  const el = document.getElementById('archivePagination');
+  if (!el) return;
+  if (!total) { el.classList.add('hidden'); el.innerHTML = ''; return; }
+  const page = window.archivePage || 0;
+  const from = total ? (page * 20) + 1 : 0;
+  const to = Math.min(total, (page + 1) * 20);
+  const nums = [];
+  for (let i = 0; i < totalPages; i++) {
+    if (totalPages <= 7 || i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1) {
+      nums.push(i);
+    } else if (nums[nums.length - 1] !== '…') {
+      nums.push('…');
+    }
+  }
+  const btn = (label, n, disabled, active) =>
+    `<button onclick="window.renderArchivePage(${n})" class="arch-page-btn px-2.5 py-1 rounded-lg border transition text-[11px] ${active ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-blue-900/20'} ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}" ${disabled ? 'disabled' : ''}>${label}</button>`;
+  const numsHtml = nums.map(n => n === '…' ? '<span class="px-1 text-gray-400">…</span>' : btn(n + 1, n, false, n === page)).join('');
+  el.innerHTML =
+    `<span>${from}–${to} di ${total}</span>` +
+    `<div class="flex items-center gap-1">` +
+    btn('\u00AB', 0, page === 0, false) +
+    btn('\u2039', page - 1, page === 0, false) +
+    numsHtml +
+    btn('\u203A', page + 1, page >= totalPages - 1, false) +
+    btn('\u00BB', totalPages - 1, page >= totalPages - 1, false) +
+    `</div>`;
+  el.classList.remove('hidden');
+}
+window.renderArchivePage = function(n) {
+  window.archivePage = Math.max(0, Math.min(n, _archiveTotalPages - 1));
+  combineAndRenderArchive();
+};
 
 window.downloadDocument = async function(id) {
   if (window.userRole === 'guest') { showToast('Accesso ai file non consentito per gli ospiti.', 'error'); return; }
@@ -1494,6 +1544,114 @@ function dataUrlToText(dataUrl) {
     return decodeURIComponent(escape(bin));
   } catch(e) { return bin; }
 }
+let fvImgScale = 1;
+function renderImageFile(body, footer, dataUrl, title, ext) {
+  body.classList.remove('is-3d');
+  fvImgScale = 1;
+  body.innerHTML = `<div class="fv-scroll fv-img-stage" data-doc="1"><img id="fvImage" src="${dataUrl}" alt="${escapeHtml(title)}" style="transform:scale(1);transform-origin:top center" /></div>`;
+  fvSetFooter(footer,
+    '<button onclick="window.fvImgZoom(-0.25)" class="fv-btn" title="Riduci" aria-label="Zoom out">\u2212</button>' +
+    '<button onclick="window.fvImgZoom(0.25)" class="fv-btn" title="Ingrandisci" aria-label="Zoom in">\u002B</button>' +
+    '<button onclick="window.fvImgFit()" class="fv-btn" title="Adatta" aria-label="Fit">\u2261</button>' +
+    '<span id="fvImgPct" class="text-[10px] text-gray-400 dark:text-gray-500 font-mono">100%</span>' +
+    '<span class="text-[10px] text-gray-400 dark:text-gray-500 font-mono max-w-[50%] truncate">\u{1F5BC}\uFE0F ' + escapeHtml(title) + ' (' + escapeHtml(ext) + ')</span>');
+}
+window.fvImgZoom = function(delta) {
+  const img = document.getElementById('fvImage');
+  if (!img) return;
+  fvImgScale = Math.max(0.25, Math.min(6, fvImgScale + delta));
+  img.style.transform = 'scale(' + fvImgScale + ')';
+  img.style.transformOrigin = 'top center';
+  const pct = document.getElementById('fvImgPct');
+  if (pct) pct.textContent = Math.round(fvImgScale * 100) + '%';
+};
+window.fvImgFit = function() {
+  const img = document.getElementById('fvImage');
+  if (!img) return;
+  fvImgScale = 1;
+  img.style.transform = 'scale(1)';
+  img.style.transformOrigin = 'top center';
+  const pct = document.getElementById('fvImgPct');
+  if (pct) pct.textContent = '100%';
+};
+let _chartsLoaded = false;
+async function ensureChartsLoaded() {
+  if (_chartsLoaded) return true;
+  if (typeof window.Chart !== 'undefined') { _chartsLoaded = true; return true; }
+  try {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js');
+    _chartsLoaded = true;
+    return true;
+  } catch (e) { console.error('Chart.js non caricato:', e); return false; }
+}
+let _hubCharts = [];
+function _killHubCharts() {
+  (_hubCharts || []).forEach(c => { try { c.destroy(); } catch (e) {} });
+  _hubCharts = [];
+}
+function buildHubCharts() {
+  if (typeof window.Chart === 'undefined') return;
+  _killHubCharts();
+  const items = [...allExcelFiles, ...allTextFiles];
+  const byCat = {};
+  let exc = 0, docs = 0;
+  items.forEach(f => {
+    const c = f.category || 'Senza categoria';
+    byCat[c] = (byCat[c] || 0) + 1;
+    if (f.isExcel) exc++; else docs++;
+  });
+  const isDark = document.documentElement.classList.contains('dark');
+  const grid = isDark ? 'rgba(148,163,184,0.12)' : 'rgba(100,116,139,0.2)';
+  const tick = isDark ? '#94a3b8' : '#64748b';
+  const catEl = document.getElementById('chartCategories');
+  const catEmpty = document.getElementById('chartCategoriesEmpty');
+  if (catEl) {
+    const labels = Object.keys(byCat);
+    if (!labels.length) {
+      catEl.style.display = 'none';
+      if (catEmpty) catEmpty.classList.remove('hidden');
+    } else {
+      catEl.style.display = '';
+      if (catEmpty) catEmpty.classList.add('hidden');
+      _hubCharts.push(new Chart(catEl, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{ label: labels.length ? (window.currentLang === 'en' ? 'Files' : 'File') : '', data: Object.values(byCat), backgroundColor: labels.map(() => 'rgba(99,102,241,0.75)'), borderRadius: 4, maxBarThickness: 34 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: tick, font: { size: 9 } }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { color: tick, font: { size: 9 }, precision: 0 }, grid: { color: grid } }
+          }
+        }
+      }));
+    }
+  }
+  const typeEl = document.getElementById('chartTypes');
+  const typeEmpty = document.getElementById('chartTypesEmpty');
+  if (typeEl) {
+    if (!items.length) {
+      typeEl.style.display = 'none';
+      if (typeEmpty) typeEmpty.classList.remove('hidden');
+    } else {
+      typeEl.style.display = '';
+      if (typeEmpty) typeEmpty.classList.add('hidden');
+      _hubCharts.push(new Chart(typeEl, {
+        type: 'doughnut',
+        data: {
+          labels: ['Excel', window.currentLang === 'en' ? 'Documents' : 'Documenti'],
+          datasets: [{ data: [exc, docs], backgroundColor: ['#10b981', '#3b82f6'], borderWidth: 0 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: tick, font: { size: 10 }, boxWidth: 10, boxHeight: 10 } } } }
+      }));
+    }
+  }
+}
+window.buildHubCharts = buildHubCharts;
 window.viewDocumentFile = async function(id) {
   if (window.userRole === 'guest') { showToast('Anteprima non disponibile per gli ospiti.', 'error'); return; }
   const file = allTextFiles.find(f => f.id === id);
@@ -1526,6 +1684,8 @@ window.viewDocumentFile = async function(id) {
       await renderDxfFile(body, footer, rawData, file.title);
     } else if (ext === 'DWG') {
       await renderDwgFile(body, footer, rawData, file.title);
+    } else if (['JPG','JPEG','PNG','GIF','WEBP','BMP','SVG','ICO','AVIF'].indexOf(ext) >= 0) {
+      renderImageFile(body, footer, rawData, file.title || file.fileName || 'Immagine', ext);
     } else {
       const content = file.extractedText || '';
       if (content && content.trim()) {
@@ -1963,12 +2123,74 @@ window.clearChat = function() {
   container.innerHTML = '<div class="bg-white dark:bg-gray-800 p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 shadow-sm"><span>' + lang + '</span></div>';
   window.aiMemory = [];
   try { localStorage.removeItem('ai_memory'); } catch (e) {}
+  if (typeof db !== 'undefined' && db && window.username && window.username !== 'Ospite') {
+    try { db.collection('chatHub').doc(window.username).delete().catch(() => {}); } catch (e) {}
+  }
   setTimeout(() => {
     const ai = document.getElementById('aiInput');
     if (ai) ai.focus();
   }, 100);
   showToast(window.currentLang === 'en' ? 'Conversation cleared.' : 'Conversazione azzerata.', 'success');
 };
+
+function rememberChatTurn(query, reply) {
+  window.aiMemory = window.aiMemory || [];
+  window.aiMemory.push({ role: 'user', content: query });
+  window.aiMemory.push({ role: 'assistant', content: String(reply || '').replace(/<[^>]+>/g, '') });
+  if (window.aiMemory.length > 10) window.aiMemory = window.aiMemory.slice(-10);
+  try { localStorage.setItem('ai_memory', JSON.stringify(window.aiMemory)); } catch (e) {}
+}
+window.saveChatToCloud = async function() {
+  if (typeof db === 'undefined' || !db || !window.username || window.username === 'Ospite') return;
+  try {
+    await db.collection('chatHub').doc(window.username).set({
+      messages: (window.aiMemory || []).map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: String(m.content || '').slice(0, 12000) })),
+      updatedAt: Date.now()
+    });
+  } catch (e) { console.warn('[AI] Salvataggio chat nel cloud non riuscito:', e); }
+};
+window.renderChatFromMemory = function() {
+  const container = document.getElementById('chat-container');
+  if (!container || !window.aiMemory || !window.aiMemory.length) return;
+  container.innerHTML = '';
+  window.aiMemory.forEach(m => {
+    if (m.role === 'user') {
+      container.innerHTML += `<div class="bg-blue-100 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-700/50 p-2.5 rounded-lg text-blue-900 dark:text-blue-100 font-medium text-right max-w-[85%] ml-auto">\u{1F464} ${escapeHtml(String(m.content || ''))}</div>`;
+    } else {
+      const d = document.createElement('div');
+      d.className = 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-lg text-gray-800 dark:text-gray-200 max-w-[90%] text-xs font-normal shadow-sm';
+      d.innerHTML = typeof marked !== 'undefined' ? marked.parse(m.content) : String(m.content || '').replace(/\n/g, '<br>');
+      container.appendChild(d);
+    }
+  });
+  container.scrollTop = container.scrollHeight;
+};
+window.loadChatFromCloud = async function() {
+  if (typeof db === 'undefined' || !db || !window.username || window.username === 'Ospite') return false;
+  try {
+    const snap = await db.collection('chatHub').doc(window.username).get();
+    const msgs = snap.exists && snap.data() && Array.isArray(snap.data().messages) ? snap.data().messages : null;
+    if (msgs && msgs.length) {
+      window.aiMemory = msgs.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content })).slice(-10);
+      try { localStorage.setItem('ai_memory', JSON.stringify(window.aiMemory)); } catch (e) {}
+      window.renderChatFromMemory();
+      return true;
+    }
+  } catch (e) { console.warn('[AI] Ripristino chat dal cloud non riuscito:', e); }
+  return false;
+};
+(function tryLoadCloudChat() {
+  let tries = 0;
+  const attempt = async () => {
+    tries++;
+    if (window.username && window.username !== 'Ospite' && typeof db !== 'undefined' && db) {
+      await window.loadChatFromCloud();
+      return;
+    }
+    if (tries < 20) setTimeout(attempt, 600);
+  };
+  setTimeout(attempt, 1500);
+})();
 
 async function loadLocalModel() {
   if (localModelLoading || localModelReady) return;
@@ -2185,12 +2407,6 @@ if (localModelReady && localGenerator) {
     liveEl.remove();
     if (replyText === 'ERR' || !replyText.trim()) {
       replyText = 'Il modello locale ha avuto un problema, quindi mostro i risultati della ricerca:\n\n' + keywordReply();
-    } else {
-      window.aiMemory = window.aiMemory || [];
-      window.aiMemory.push({ role: 'user', content: queryText });
-      window.aiMemory.push({ role: 'assistant', content: replyText.replace(/<[^>]+>/g, '') });
-      if (window.aiMemory.length > 10) window.aiMemory = window.aiMemory.slice(-10);
-      try { localStorage.setItem('ai_memory', JSON.stringify(window.aiMemory)); } catch (e) {}
     }
   } else {
     replyText = keywordReply();
@@ -2213,6 +2429,8 @@ if (localModelReady && localGenerator) {
   replyDiv.className = 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-lg text-gray-800 dark:text-gray-200 max-w-[90%] text-xs font-normal shadow-sm';
   replyDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(replyText) : replyText.replace(/\n/g, '<br>');
   container.appendChild(replyDiv);
+  rememberChatTurn(queryText, replyText);
+  saveChatToCloud();
 
   inputEl.disabled = false;
   sendBtn.disabled = false;
@@ -2540,6 +2758,30 @@ function showSkeleton(el, rows) {
     el.innerHTML = Array.from({ length: rows }, () => '<div class="skel-row">' + cells.map(w => '<span class="skel" style="height:14px;width:' + w + '"></span>').join('') + '</div>').join('');
   }
 }
+// ─── ESC CHIUDE MODALI (accessibilità) ───────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const fv = document.getElementById('fileViewerModal');
+  if (fv && !fv.classList.contains('hidden')) { closeFileViewer(); return; }
+  const ids = ['archiveModal', 'notesModal', 'teamModal', 'userModal', 'historyModal', 'statsModal', 'mtbfModal', 'newsModal', 'newsHistoryModal', 'subscribersModal', 'calcModal', 'folderManagerModal', 'hubInfoModal'];
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    if (el && !el.classList.contains('hidden')) { el.classList.add('hidden'); return; }
+  }
+  const evV = document.getElementById('evViewerModal');
+  const evS = document.getElementById('evSelectModal');
+  if (evV && !evV.classList.contains('hidden')) { evV.classList.add('hidden'); return; }
+  if (evS && !evS.classList.contains('hidden')) { evS.classList.add('hidden'); return; }
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar && !sidebar.classList.contains('hidden')) { sidebar.classList.add('hidden'); return; }
+  const ce = document.getElementById('chat-expanded');
+  if (ce && !ce.classList.contains('hidden')) {
+    ce.classList.add('hidden');
+    const fab = document.getElementById('chat-fab');
+    if (fab) fab.classList.remove('hidden');
+  }
+});
+
 (function extraInit() {
   const ab = document.getElementById('archiveTableBody');
   if (ab) showSkeleton(ab, 5);
@@ -2547,8 +2789,8 @@ function showSkeleton(el, rows) {
   if (nc) showSkeleton(nc, 4);
   const hb = document.getElementById('historyTableBody');
   if (hb) showSkeleton(hb, 4);
-  document.getElementById('sortFilter')?.addEventListener('change', combineAndRenderArchive);
-  document.getElementById('contentSearchToggle')?.addEventListener('change', combineAndRenderArchive);
+  document.getElementById('sortFilter')?.addEventListener('change', () => { window.archivePage = 0; combineAndRenderArchive(); });
+  document.getElementById('contentSearchToggle')?.addEventListener('change', () => { window.archivePage = 0; combineAndRenderArchive(); });
 })();
 
 // ─── BACKUP COMPLETO (export JSON) ────────────────────────────────────
