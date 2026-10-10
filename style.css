@@ -66,6 +66,8 @@ button { cursor: pointer; touch-action: manipulation; }
   nav .w-2\/4 .text-sm { font-size: 0.75rem !important; }
   #searchCloud { width: 8rem !important; }
   #lang-it, #lang-en { padding: 0.25rem 0.45rem !important; font-size: 0.6rem !important; }
+  #hubNavGrid { grid-template-columns: auto minmax(0, 1fr) auto !important; }
+  #hubNavGrid > div { min-width: 0; }
   #calcModal > div { max-width: calc(100vw - 2rem) !important; margin: 0 1rem; }
   .dash-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
   .dash-card { padding: 1rem 0.75rem; }
