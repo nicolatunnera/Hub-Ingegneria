@@ -64,7 +64,11 @@ window.i18n = {
     evSelectTitle:"Seleziona file da visualizzare", evSelectAll:"Tutti", evView:"Visualizza", evSelected:"selezionati",
     evBack:"Indietro", evWishlist:"Preferiti", evWishEmpty:"Nessun file preferito.", evDownloadAll:"Scarica tutti",
     evClearWish:"Svuota", evEmpty:"Nessun file Excel caricato.", evSheet:"Foglio", evSheets:"fogli",
-    evSheetEmpty:"Foglio vuoto", evNoPreview:"Anteprima non disponibile", evEyeProtection:"Protezione Occhi"
+    evSheetEmpty:"Foglio vuoto", evNoPreview:"Anteprima non disponibile", evEyeProtection:"Protezione Occhi",
+    searchGlobal:"Cerca nel sito", chatClear:"Azzera chat", modelFast:"Veloce (0.5B)", modelSmart:"Completo (1.5B)",
+    sortBy:"Ordina:", sortNewest:"Pi\u00f9 recenti", sortOldest:"Pi\u00f9 vecchi", sortNameAZ:"Nome A\u2192Z", sortNameZA:"Nome Z\u2192A", sortAuthor:"Autore",
+    searchInContent:"Nel contenuto", exportBackup:"Esporta Backup", appearance:"Aspetto", themeAccentTitle:"Colore principale", resetAccent:"Blu originale", navHome:"Home", navArchive:"Archivio", navNotes:"Note", navAI:"AI", navMenu:"Menu",
+    filterAll:"Tutto", filterExcel:"Excel", filterDoc:"Documenti"
   },
   en: {
     hubName:"Engineering Cloud Hub", search:"Search", calcTitle:"Calculator", newsTitle:"News",
@@ -119,6 +123,10 @@ window.i18n = {
     evSelectTitle:"Select files to view", evSelectAll:"All", evView:"View", evSelected:"selected",
     evBack:"Back", evWishlist:"Favorites", evWishEmpty:"No favorite files.", evDownloadAll:"Download all",
     evClearWish:"Clear", evEmpty:"No Excel files uploaded.", evSheet:"Sheet", evSheets:"sheets",
-    evSheetEmpty:"Empty sheet", evNoPreview:"Preview not available", evEyeProtection:"Eye Protection"
+    evSheetEmpty:"Empty sheet", evNoPreview:"Preview not available", evEyeProtection:"Eye Protection",
+    searchGlobal:"Search site", chatClear:"Clear chat", modelFast:"Fast (0.5B)", modelSmart:"Full (1.5B)",
+    sortBy:"Sort:", sortNewest:"Newest first", sortOldest:"Oldest first", sortNameAZ:"Name A\u2192Z", sortNameZA:"Name Z\u2192A", sortAuthor:"Author",
+    searchInContent:"In content", exportBackup:"Export Backup", appearance:"Appearance", themeAccentTitle:"Accent color", resetAccent:"Original blue", navHome:"Home", navArchive:"Archive", navNotes:"Notes", navAI:"AI", navMenu:"Menu",
+    filterAll:"All", filterExcel:"Excel", filterDoc:"Documents"
   }
 };

@@ -1028,6 +1028,13 @@ function renderNotes(docs) {
   container.innerHTML = '';
   const role = window.userRole;
   const user = window.username;
+  if (!visible.length) {
+    container.innerHTML = '<div class="empty-state"><div class="es-icon">\u{1F4DD}</div><div class="es-text">Nessuna nota</div><div class="es-sub">' + (window.currentLang === 'en' ? 'Write your first quick note above.' : 'Scrivi la tua prima nota rapida qua sopra.') + '</div></div>';
+    const ba2 = document.getElementById('noteBulkActions');
+    if (ba2) ba2.classList.add('hidden');
+    updateSelectAllNotes();
+    return;
+  }
   visible.forEach(d => {
     const div = document.createElement('div');
     div.className = 'bg-gray-50/80 dark:bg-slate-800/80 p-2 rounded border border-gray-200 dark:border-slate-700 text-xs text-gray-700 dark:text-gray-300 shadow-2xs';
@@ -1315,17 +1322,35 @@ function combineAndRenderArchive() {
   renderFolderIcons();
   const filterFolder = document.getElementById('folderFilter')?.value || '';
   const typeFilter = document.getElementById('typeFilter')?.value || 'all';
+  const sortKey = document.getElementById('sortFilter')?.value || 'newest';
+  const searchContent = document.getElementById('contentSearchToggle')?.checked || false;
   let items = [...allExcelFiles, ...allTextFiles].filter(f => {
     if (!isPrivateVisible(f)) return false;
     if (typeFilter === 'excel' && !f.isExcel) return false;
     if (typeFilter === 'doc' && f.isExcel) return false;
     if (!window.searchQuery) return true;
-    const haystack = f.isExcel ? `${f.name || ''} ${f.category || ''}` : `${f.title || ''} ${f.fileType || ''} ${f.extractedText ? f.extractedText.substring(0, 200) : ''}`;
-    return haystack.toLowerCase().includes(window.searchQuery);
+    const base = f.isExcel ? `${f.name || ''} ${f.category || ''}` : `${f.title || ''} ${f.fileType || ''}`;
+    const txt = f.isExcel ? '' : (f.extractedText || '');
+    if (searchContent) {
+      return (base + ' ' + txt.substring(0, 8000)).toLowerCase().includes(window.searchQuery);
+    }
+    return (base + ' ' + txt.substring(0, 200)).toLowerCase().includes(window.searchQuery);
   });
   if (filterFolder) items = items.filter(f => f.folderId === filterFolder);
+  const fileTime = f => {
+    const t = f.uploadedAt;
+    if (t && t.toDate) return t.toDate().getTime();
+    if (t && t.seconds) return t.seconds * 1000;
+    return 0;
+  };
+  const fileLabel = f => (f.isExcel ? (f.name || '') : (f.title || '')) || '';
+  if (sortKey === 'newest') items.sort((a, b) => fileTime(b) - fileTime(a));
+  else if (sortKey === 'oldest') items.sort((a, b) => fileTime(a) - fileTime(b));
+  else if (sortKey === 'nameAZ') items.sort((a, b) => fileLabel(a).localeCompare(fileLabel(b)));
+  else if (sortKey === 'nameZA') items.sort((a, b) => fileLabel(b).localeCompare(fileLabel(a)));
+  else if (sortKey === 'author') items.sort((a, b) => (a.uploadedBy || '').localeCompare(b.uploadedBy || ''));
   if (!items.length) {
-    body.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-xs text-gray-400 italic">Nessun file trovato</td></tr>';
+    body.innerHTML = '<tr><td colspan="6" class="p-6"><div class="empty-state"><div class="es-icon">\u{1F50D}</div><div class="es-text">' + (window.searchQuery ? 'Nessun file corrisponde alla ricerca' : 'Nessun file ancora caricato') + '</div><div class="es-sub">' + (window.searchQuery ? 'Prova a cambiare parole chiave o disattiva "Nel contenuto".' : 'Carica un Excel o un documento per iniziare.') + '</div></div></td></tr>';
     updateBulkActions();
     return;
   }
@@ -1811,6 +1836,11 @@ if (!db) { console.warn('Firestore non disponibile — history snapshot non regi
   const b = document.getElementById('historyTableBody');
   if (!b) return;
   b.innerHTML = '';
+  if (snap.empty) {
+    b.innerHTML = '<tr><td colspan="5" class="p-6"><div class="empty-state"><div class="es-icon">\u{1F4CB}</div><div class="es-text">' + (window.currentLang === 'en' ? 'No activity recorded yet' : 'Nessuna attivit\u00e0 registrata') + '</div><div class="es-sub">' + (window.currentLang === 'en' ? 'Cloud operations will appear here.' : 'Le operazioni sul cloud compariranno qui.') + '</div></div></td></tr>';
+    updateSelectAllHistory();
+    return;
+  }
   snap.forEach(d => {
     const data = d.data();
     const dStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString(locale()) : 'In sincro...';
@@ -1875,21 +1905,30 @@ function cleanLatex(s) {
 let localGenerator = null;
 let localModelReady = false;
 let localModelLoading = false;
+let aiModelChoice = localStorage.getItem('ai_model_id') === '0.5B' ? '0.5B' : '1.5B';
 
 function updateModelUI() {
   const lbl = document.getElementById('aiModelLabel');
   const st = document.getElementById('aiModelStatus');
+  const fBtn = document.getElementById('aiModelFast');
+  const sBtn = document.getElementById('aiModelSmart');
+  if (fBtn) fBtn.classList.toggle('active', aiModelChoice === '0.5B');
+  if (sBtn) sBtn.classList.toggle('active', aiModelChoice === '1.5B');
   if (!lbl) return;
   if (localModelReady) {
-    lbl.innerHTML = '<i class="fas fa-check-circle text-emerald-500 mr-1"></i>AI locale attiva';
-    lbl.className = 'text-[10px] px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300';
+    lbl.innerHTML = '<i class="fas fa-check-circle mr-1"></i>' + aiModelChoice + ' attiva';
+    lbl.className = 'ai-model-label badge-ready text-[9px] px-2 py-1 rounded-full flex items-center';
+    lbl.onclick = null;
     if (st) { st.classList.add('hidden'); st.textContent = ''; }
   } else if (localModelLoading) {
-    lbl.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Caricamento modello...';
-    lbl.className = 'text-[10px] px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300';
+    lbl.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Caricamento ' + aiModelChoice + '...';
+    lbl.className = 'ai-model-label badge-loading text-[9px] px-2 py-1 rounded-full flex items-center';
+    lbl.onclick = null;
   } else {
-    lbl.innerHTML = '<i class="fas fa-microchip mr-1"></i>Scarica AI locale (~1.2GB)';
-    lbl.className = 'text-[10px] px-2 py-0.5 rounded-full border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition cursor-pointer';
+    lbl.innerHTML = '<i class="fas fa-microchip mr-1"></i>' + (aiModelChoice === '0.5B' ? '0.5B (~483MB)' : '1.5B (~1.2GB)');
+    lbl.className = 'ai-model-label badge-idle text-[9px] px-2 py-1 rounded-full flex items-center';
+    lbl.title = window.currentLang === 'en' ? 'Click to download the AI model' : 'Clicca per scaricare il modello AI';
+    lbl.onclick = window.toggleLocalAI;
     if (st) { st.classList.add('hidden'); st.textContent = ''; }
   }
 }
@@ -1899,22 +1938,57 @@ window.toggleLocalAI = async () => {
   await loadLocalModel();
 };
 
+window.selectAIModel = async (size) => {
+  size = size === '0.5B' ? '0.5B' : '1.5B';
+  if (aiModelChoice === size && (localModelReady || localModelLoading)) { showToast(size + ' ' + (window.currentLang === 'en' ? 'is active' : 'è il modello attivo'), 'info'); return; }
+  aiModelChoice = size;
+  localStorage.setItem('ai_model_id', size);
+  if (localModelReady || localModelLoading) {
+    localModelReady = false;
+    localGenerator = null;
+    localModelLoading = false;
+    updateModelUI();
+    showToast('Cambio modello: ' + size, 'info');
+    await loadLocalModel();
+  } else {
+    updateModelUI();
+    await loadLocalModel();
+  }
+};
+
+window.clearChat = function() {
+  const container = document.getElementById('chat-container');
+  if (!container) return;
+  const lang = window.i18n && i18n[window.currentLang] ? i18n[window.currentLang].chatWelcome : 'Ciao! Sono il tuo assistente. Chiedimi documenti, file Excel, note o altro.';
+  container.innerHTML = '<div class="bg-white dark:bg-gray-800 p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 shadow-sm"><span>' + lang + '</span></div>';
+  window.aiMemory = [];
+  try { localStorage.removeItem('ai_memory'); } catch (e) {}
+  setTimeout(() => {
+    const ai = document.getElementById('aiInput');
+    if (ai) ai.focus();
+  }, 100);
+  showToast(window.currentLang === 'en' ? 'Conversation cleared.' : 'Conversazione azzerata.', 'success');
+};
+
 async function loadLocalModel() {
   if (localModelLoading || localModelReady) return;
   localModelLoading = true;
   updateModelUI();
   const st = document.getElementById('aiModelStatus');
+  const modelId = aiModelChoice === '0.5B' ? 'onnx-community/Qwen2.5-0.5B-Instruct' : 'onnx-community/Qwen2.5-1.5B-Instruct';
+  const sizeLabel = aiModelChoice === '0.5B' ? '483MB' : '1.2GB';
   try {
     if (st) { st.classList.remove('hidden'); st.textContent = 'Scaricamento transformers.js...'; }
     const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3');
-    if (st) st.textContent = 'Scaricamento modello Qwen 1.5B (~1.2GB, una tantum)...';
-    localGenerator = await pipeline('text-generation', 'onnx-community/Qwen2.5-1.5B-Instruct', {
+    if (st) st.textContent = 'Scaricamento modello Qwen ' + aiModelChoice + ' (' + sizeLabel + ', una tantum)...';
+    localGenerator = await pipeline('text-generation', modelId, {
       dtype: 'q4f16',
       device: 'wasm',
       progress_callback: p => {
         if (p.status === 'progress' && p.file && st) {
           const pct = p.progress || 0;
-          st.textContent = `Scaricamento: ${Math.round(pct)}% (${p.file.split('/').pop()})`;
+          const fname = (p.file || '').split('/').pop();
+          st.textContent = 'Scaricamento: ' + Math.round(pct) + '%' + (fname ? ' (' + fname + ')' : '');
         }
       }
     });
@@ -1922,7 +1996,8 @@ async function loadLocalModel() {
     localModelLoading = false;
     updateModelUI();
     localStorage.setItem('ai_local_model', '1');
-    console.log('[AI] Modello locale caricato con successo');
+    localStorage.setItem('ai_model_id', aiModelChoice);
+    console.log('[AI] Modello locale caricato con successo:', modelId);
   } catch (e) {
     console.error('[AI] Errore caricamento modello:', e);
     localModelLoading = false;
@@ -1936,6 +2011,7 @@ if (localStorage.getItem('ai_local_model') === '1') {
   loadLocalModel();
 }
 try { window.aiMemory = JSON.parse(localStorage.getItem('ai_memory') || '[]'); } catch (e) { window.aiMemory = []; }
+updateModelUI();
 
 window.askAI = async () => {
   const inputEl = document.getElementById('aiInput');
@@ -2424,4 +2500,188 @@ document.getElementById('aiInput')?.addEventListener('keydown', e => { if (e.key
   evUpdateBadge();
 })();
 // ═══════ END EXCEL VIEWER ═══════
+
+// ─── GLOBAL SEARCH (header) ───────────────────────────────────────────
+window.openArchiveSearch = function() {
+  if (window.userRole === 'guest') { showToast('Archivio non disponibile per gli ospiti.', 'error'); return; }
+  const modal = document.getElementById('archiveModal');
+  if (!modal) return;
+  if (modal.classList.contains('hidden')) window.toggleArchiveModal();
+  setTimeout(() => { const inp = document.getElementById('searchCloud'); if (inp) inp.focus(); }, 350);
+};
+
+// ─── GO HOME (mobile bottom nav) ──────────────────────────────────────
+window.goHome = function() {
+  ['excelModal', 'docModal', 'notesModal', 'historyModal', 'archiveModal'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.classList.contains('hidden')) {
+      const fn = window['toggle' + id.charAt(0).toUpperCase() + id.slice(1)];
+      if (typeof fn === 'function') fn();
+    }
+  });
+  if (window.closeFileViewer) closeFileViewer();
+  if (window.evClose) evClose();
+  const ce = document.getElementById('chat-expanded');
+  if (ce) ce.classList.add('hidden');
+  const fab = document.getElementById('chat-fab');
+  if (fab) fab.classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// ─── ACCENT THEME (colore principale personalizzabile) ────────────────
+const ACCENT_PRESETS = [
+  { c: '#2563eb', n: 'Blu' }, { c: '#4f46e5', n: 'Indigo' }, { c: '#7c3aed', n: 'Viola' },
+  { c: '#059669', n: 'Smeraldo' }, { c: '#e11d48', n: 'Rosa' }, { c: '#d97706', n: 'Ambra' },
+  { c: '#0891b2', n: 'Ciano' }, { c: '#0f766e', n: 'Teal' }
+];
+function shadeHex(hex, pct) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, Math.min(255, (n >> 16) + pct));
+  const g = Math.max(0, Math.min(255, ((n >> 8) & 0xff) + pct));
+  const b = Math.max(0, Math.min(255, (n & 0xff) + pct));
+  return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+function accentInject(color) {
+  const dark = shadeHex(color, -28);
+  const soft = color + '1a';
+  const softer = color + '33';
+  let el = document.getElementById('accentStyle');
+  if (!el) { el = document.createElement('style'); el.id = 'accentStyle'; document.head.appendChild(el); }
+  el.textContent =
+ ':root{--accent:' + color + ';--accent-strong:' + dark + ';--accent-soft:' + soft + ';}' +
+ '.bg-blue-600{background-color:var(--accent)!important;}' +
+ '.bg-blue-700{background-color:var(--accent-strong)!important;}' +
+ '.bg-blue-50{background-color:' + soft + '!important;}' +
+ '.bg-blue-100{background-color:' + soft + '!important;}' +
+ '.text-blue-500{color:var(--accent)!important;}' +
+ '.text-blue-600{color:var(--accent)!important;}' +
+ '.text-blue-700{color:var(--accent)!important;}' +
+ '.border-blue-300,.border-blue-400,.border-blue-600{border-color:var(--accent)!important;}' +
+ '.hover\\:bg-blue-600:hover{background-color:var(--accent)!important;}' +
+ '.hover\\:bg-blue-700:hover{background-color:var(--accent-strong)!important;}' +
+ '.hover\\:bg-blue-50:hover{background-color:' + soft + '!important;}' +
+ '.hover\\:border-blue-400:hover,.hover\\:border-blue-500:hover{border-color:var(--accent)!important;}' +
+ '.from-blue-500,.from-blue-600,.from-blue-700{--tw-gradient-from:var(--accent)!important;--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to,rgba(255,255,255,0))!important;}' +
+ '.from-indigo-500,.from-indigo-600,.to-indigo-500,.to-indigo-600,.to-indigo-700{--tw-gradient-from:var(--accent)!important;--tw-gradient-to:var(--accent-strong)!important;--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)!important;}' +
+ '.to-blue-600,.to-blue-700,.to-blue-800{--tw-gradient-to:var(--accent-strong)!important;--tw-gradient-stops:var(--tw-gradient-from,var(--accent)),var(--tw-gradient-to)!important;}' +
+ '.focus\\:ring-blue-400:focus,.focus\\:ring-blue-500:focus{--tw-ring-color:var(--accent)!important;}' +
+ '.focus\\:border-blue-400:focus,.focus\\:border-blue-500:focus{border-color:var(--accent)!important;}' +
+ '.dark\\:bg-blue-900\\/40,.dark\\:bg-blue-950\\/20{background-color:' + softer + '!important;}' +
+ '.dark\\:text-blue-400,.dark\\:text-blue-300{color:var(--accent)!important;}' +
+ '.ring-blue-500\\/20{--tw-ring-color:' + softer + ';}';
+}
+window.setAccent = function(color) {
+  if (!/^#[0-9a-fA-F]{6}$/.test(color)) return;
+  localStorage.setItem('hub_accent', color);
+  accentInject(color);
+  const wrap = document.getElementById('accentSwatches');
+  if (wrap) wrap.querySelectorAll('[data-color]').forEach(b => b.classList.toggle('border-gray-900/60', b.dataset.color === color));
+  const pk = document.getElementById('accentPicker');
+  if (pk && pk.value !== color) pk.value = color;
+};
+window.resetAccent = function() {
+  localStorage.removeItem('hub_accent');
+  accentInject('#2563eb');
+  const pk = document.getElementById('accentPicker');
+  if (pk) pk.value = '#2563eb';
+  const wrap = document.getElementById('accentSwatches');
+  if (wrap) wrap.querySelectorAll('[data-color]').forEach(b => b.classList.toggle('border-gray-900/60', b.dataset.color === '#2563eb'));
+  showToast(window.currentLang === 'en' ? 'Original color restored.' : 'Colore ripristinato.', 'success');
+};
+(function accentInit() {
+  const saved = localStorage.getItem('hub_accent') || '#2563eb';
+  const wrap = document.getElementById('accentSwatches');
+  if (wrap) {
+    wrap.innerHTML = ACCENT_PRESETS.map(p => '<button type="button" onclick="window.setAccent(\'' + p.c + '\')" class="accent-dot w-6 h-6 rounded-full border-2 border-transparent transition hover:scale-110' + (saved === p.c ? ' border-gray-900/60' : '') + '" style="background:' + p.c + '" title="' + p.n + '" data-color="' + p.c + '"></button>').join('');
+  }
+  const pk = document.getElementById('accentPicker');
+  if (pk) {
+    pk.addEventListener('input', function() { window.setAccent(pk.value); });
+    pk.value = saved;
+  }
+  accentInject(saved);
+})();
+
+// ─── SKELETON LOADERS + EXTRA FILTER LISTENERS ────────────────────────
+function showSkeleton(el, rows) {
+  if (!el || el.children.length) return;
+  const inTable = el.closest && el.closest('table');
+  if (inTable) {
+    const cells = ['46px', '1fr', '70px', '88px', '80px', '60px'];
+    el.innerHTML = Array.from({ length: rows }, () => '<tr>' + cells.map(w => '<td class="p-2.5"><span class="skel" style="display:block;height:13px;width:' + w + '"></span></td>').join('') + '</tr>').join('');
+  } else {
+    const cells = ['1fr', '90px', '60px'];
+    el.innerHTML = Array.from({ length: rows }, () => '<div class="skel-row">' + cells.map(w => '<span class="skel" style="height:14px;width:' + w + '"></span>').join('') + '</div>').join('');
+  }
+}
+(function extraInit() {
+  const ab = document.getElementById('archiveTableBody');
+  if (ab) showSkeleton(ab, 5);
+  const nc = document.getElementById('notesContainer');
+  if (nc) showSkeleton(nc, 4);
+  const hb = document.getElementById('historyTableBody');
+  if (hb) showSkeleton(hb, 4);
+  document.getElementById('sortFilter')?.addEventListener('change', combineAndRenderArchive);
+  document.getElementById('contentSearchToggle')?.addEventListener('change', combineAndRenderArchive);
+})();
+
+// ─── BACKUP COMPLETO (export JSON) ────────────────────────────────────
+window.exportBackup = async function() {
+  if (window.userRole === 'guest') return showToast('Accesso non consentito agli ospiti.', 'error');
+  if (window.userRole !== 'owner') return showToast('Solo il proprietario può esportare il backup completo.', 'error');
+  showToast(window.currentLang === 'en' ? 'Preparing backup...' : 'Preparazione backup...', 'info');
+  const iso = ts => {
+    if (!ts) return null;
+    try { return ts.toDate ? ts.toDate().toISOString() : (ts.seconds ? new Date(ts.seconds * 1000).toISOString() : ts); } catch (e) { return null; }
+  };
+  const pack = [];
+  const files = allExcelFiles.map(f => ({ ...f, isExcel: true })).concat(allTextFiles.map(x => ({ ...x, isExcel: false })));
+  for (const f of files) {
+    try {
+      let data = f.fileData || '';
+      if (!data && f.chunks) {
+        const full = await loadLargeFile(f.isExcel ? 'excelHub' : 'textHub', f.id, f.chunks);
+        if (full) data = full;
+      }
+      pack.push({
+        id: f.id, kind: f.isExcel ? 'excel' : 'doc',
+        title: f.title || null, name: f.name || null, fileName: f.fileName || null,
+        fileType: f.fileType || null, fileMime: f.fileMime || null,
+        category: f.category || '', folderId: f.folderId || '',
+        uploadedBy: f.uploadedBy || '', private: !!f.private,
+        uploadedAt: iso(f.uploadedAt), expiresAt: iso(f.expiresAt),
+        hasFileData: !!data, fileData: data, extractedText: f.extractedText || ''
+      });
+    } catch (e) { console.error('Backup file fallito:', f.id, e); }
+  }
+  const payload = {
+    _meta: {
+      app: 'Engineering Cloud Hub', version: '3.6.0',
+      exportedAt: new Date().toISOString(), exportedBy: window.username || '',
+      counts: {
+        files: pack.length,
+        excel: pack.filter(p => p.kind === 'excel').length,
+        docs: pack.filter(p => p.kind === 'doc').length,
+        folders: allFolders.length, categories: allCategories.length, notes: lastNoteDocs.length
+      }
+    },
+    folders: allFolders.map(f => ({ id: f.id, name: f.name, color: f.color, createdBy: f.createdBy || '', createdAt: iso(f.createdAt) })),
+    categories: allCategories.map(c => ({ id: c.id, name: c.name, emoji: c.emoji || '\u{1F4C1}', createdAt: iso(c.createdAt) })),
+    notes: lastNoteDocs.map(d => ({ id: d.id, content: d.data().content || '', createdBy: d.data().createdBy || '', private: !!d.data().private, createdAt: iso(d.data().createdAt) })),
+    files: pack
+  };
+  const json = JSON.stringify(payload);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const d = new Date();
+  const stamp = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'backup_hub_' + stamp + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  showToast(window.currentLang === 'en'
+    ? 'Backup completed: ' + pack.length + ' files (' + (json.length / 1048576).toFixed(2) + ' MB).'
+    : 'Backup completato: ' + pack.length + ' file (' + (json.length / 1048576).toFixed(2) + ' MB).', 'success');
+};
 

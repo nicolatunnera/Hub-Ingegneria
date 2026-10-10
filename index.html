@@ -25,7 +25,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260910g" />
+  <link rel="stylesheet" href="style.css?v=20260910h" />
   <link rel="icon" type="image/png" href="icon-192.png?v=20250718" />
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors">
@@ -106,6 +106,7 @@
         </div>
       </div>
       <div class="flex items-center justify-end gap-1 sm:gap-2">
+        <button id="globalSearchBtn" onclick="window.openArchiveSearch()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" data-i18n="searchGlobal" title="Cerca nel sito"><i class="fas fa-search text-sm"></i></button>
         <button id="newsBtn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400" data-i18n="titleNews" title="Notizie"><i class="fas fa-newspaper text-sm"></i></button>
         <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
           <button id="lang-it" onclick="changeLanguage('it')" class="px-2.5 py-1 text-xs font-bold bg-blue-600 text-white transition-all">IT</button>
@@ -232,8 +233,10 @@
           <button id="clearSearch" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hidden text-sm leading-none cursor-pointer">&times;</button>
         </div>
         <div class="flex flex-wrap items-center gap-2 mb-3">
-          <select id="typeFilter" class="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="all">Tutto</option><option value="excel">Excel</option><option value="doc">Documenti</option></select>
+          <select id="typeFilter" class="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="all" data-i18n="filterAll">Tutto</option><option value="excel" data-i18n="filterExcel">Excel</option><option value="doc" data-i18n="filterDoc">Documenti</option></select>
           <select id="folderFilter" class="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="" data-i18n="allFolders">Tutte le cartelle</option></select>
+          <label class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 cursor-pointer select-none" title="Cerca anche dentro il contenuto dei documenti"><span data-i18n="sortBy">Ordina:</span><select id="sortFilter" class="px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition"><option value="newest" data-i18n="sortNewest">Pi&#249; recenti</option><option value="oldest" data-i18n="sortOldest">Pi&#249; vecchi</option><option value="nameAZ" data-i18n="sortNameAZ">Nome A&#8594;Z</option><option value="nameZA" data-i18n="sortNameZA">Nome Z&#8594;A</option><option value="author" data-i18n="sortAuthor">Autore</option></select></label>
+          <label class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 cursor-pointer select-none" title="Cerca anche nel testo estratto dei file"><input type="checkbox" id="contentSearchToggle" class="rounded border-gray-300 dark:border-gray-600" /><span data-i18n="searchInContent">Nel contenuto</span></label>
           <div id="bulkActions" class="hidden flex items-center gap-2 ml-2 requires-write">
             <button id="downloadSelectedArchive" class="px-2 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded transition shadow-sm"><i class="fas fa-download mr-1"></i><span data-i18n="downloadSelected">Scarica selezionati</span></button>
             <button id="deleteSelectedArchive" class="px-2 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded transition shadow-sm"><i class="fas fa-trash-alt mr-1"></i><span data-i18n="deleteSelected">Elimina selezionati</span></button>
@@ -797,12 +800,23 @@
       </div>
       <span class="text-white/70 hover:text-white font-bold text-xs cursor-pointer">_</span>
     </div>
+    <div class="ai-model-bar flex items-center justify-between gap-2 px-3 py-1.5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <div class="flex items-center gap-1.5">
+        <button id="aiModelFast" onclick="window.selectAIModel('0.5B')" class="ai-model-btn text-[9px] font-bold px-2 py-1 rounded-full border transition"><i class="fa-solid fa-bolt mr-0.5 text-[8px]"></i><span data-i18n="modelFast">Veloce (0.5B)</span></button>
+        <button id="aiModelSmart" onclick="window.selectAIModel('1.5B')" class="ai-model-btn text-[9px] font-bold px-2 py-1 rounded-full border transition"><i class="fa-solid fa-brain mr-0.5 text-[8px]"></i><span data-i18n="modelSmart">Completo (1.5B)</span></button>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span id="aiModelLabel" class="ai-model-label hidden text-[9px] px-2 py-1 rounded-full border"></span>
+        <button id="aiClearChat" onclick="window.clearChat()" title="Azzera conversazione" class="text-[10px] px-2 py-1 rounded-full border border-gray-200 dark:border-gray-600 text-gray-400 hover:text-red-500 hover:border-red-300 transition"><i class="fas fa-eraser mr-0.5"></i><span data-i18n="chatClear">Azzera chat</span></button>
+      </div>
+    </div>
     <div class="flex flex-col flex-grow">
       <div id="chat-container" class="h-[260px] overflow-y-auto overflow-x-hidden flex flex-col p-4 bg-gray-50 dark:bg-gray-900 gap-3 text-xs leading-relaxed chat-scroll-container">
         <div class="bg-white dark:bg-gray-800 p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 shadow-sm">
           <span data-i18n="chatWelcome">Ciao! Sono il tuo assistente. Chiedimi documenti, file Excel, note o altro.</span>
         </div>
       </div>
+      <div class="px-3 pb-1 -mt-1.5" id="aiModelStatusWrap"><span id="aiModelStatus" class="hidden text-[9px] text-amber-600 dark:text-amber-400 font-mono"></span></div>
       <div class="border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800">
         <div class="flex gap-2">
           <input type="text" id="aiInput" placeholder="Interroga l'archivio dei file..." class="flex-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 outline-none focus:ring-2 focus:ring-blue-400 dark:text-white transition placeholder-gray-400" data-i18n="aiPlaceholder" />
@@ -858,6 +872,14 @@
           <p><span class="font-medium" data-i18n="localTime">Ora locale:</span> <span id="hubInfoTimeDisplay">--</span></p>
         </div>
       </div>
+      <div class="sidebar-section mb-3">
+        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5" data-i18n="appearance">Aspetto</p>
+        <div class="flex items-center gap-1.5 flex-wrap" id="accentSwatches"></div>
+        <div class="flex items-center gap-2 mt-1.5">
+          <label class="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-gray-400 cursor-pointer"><i class="fas fa-palette text-[10px]"></i><span data-i18n="themeAccentTitle">Colore principale</span><input type="color" id="accentPicker" value="#2563eb" class="w-7 h-7 rounded cursor-pointer border border-gray-300 dark:border-gray-600 p-0.5 bg-white dark:bg-gray-700" /></label>
+          <button id="accentReset" onclick="window.resetAccent()" class="text-[10px] text-gray-400 hover:text-blue-500 transition px-1.5 py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20" data-i18n="resetAccent">Blu originale</button>
+        </div>
+      </div>
       <hr class="my-3 border-gray-200 dark:border-gray-700" />
       <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition flex items-center gap-2 text-red-500 requires-write" onclick="if(confirm('Eliminare definitivamente il tuo account? I tuoi dati rimarranno. Questa azione è irreversibile.'))deleteMyAccount()"><i class="fas fa-trash-alt w-4"></i><span data-i18n="deleteMyAccount">Elimina il mio account</span></button>
     </div>
@@ -897,6 +919,10 @@
     </div>
 
     <div class="mt-3 flex justify-center">
+      <button onclick="window.exportBackup()" class="requires-write px-3 py-1.5 text-[11px] bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-lg transition shadow-sm flex items-center gap-1.5"><i class="fas fa-download text-[10px]"></i><span data-i18n="exportBackup">Esporta Backup</span></button>
+    </div>
+
+    <div class="mt-3 flex justify-center">
       <button onclick="evOpen()" class="ev-viewer-trigger requires-write">
         <span class="ev-viewer-pulse"></span>
         <i class="fas fa-chart-bar text-sm"></i>
@@ -927,9 +953,18 @@
   </div><!-- /hubMainContent -->
 
   <!-- FOOTER / BOTTOM BAR -->
-  <footer id="hubFooter" class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50 px-4 py-2 flex items-center justify-center gap-4 shadow-lg hidden">
-    <button onclick="openAccountModal()" class="px-3 py-1.5 text-xs bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm"><i class="fas fa-user-edit text-[10px]"></i><span data-i18n="myAccount">Il Mio Account</span></button>
-    <span class="text-xs text-gray-400 dark:text-gray-500 ml-4" data-i18n="footerCopyright">&copy; 2025 Engineering Cloud Hub</span>
+  <footer id="hubFooter" class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50 shadow-lg hidden">
+    <div class="hidden sm:flex items-center justify-center gap-4 px-4 py-2">
+      <button onclick="openAccountModal()" class="px-3 py-1.5 text-xs bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm"><i class="fas fa-user-edit text-[10px]"></i><span data-i18n="myAccount">Il Mio Account</span></button>
+      <span class="text-xs text-gray-400 dark:text-gray-500 ml-4" data-i18n="footerCopyright">&copy; 2025 Engineering Cloud Hub</span>
+    </div>
+    <nav id="bottomNav" class="sm:hidden flex items-stretch justify-around border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <button onclick="window.goHome()" class="bottom-nav-btn" title="Home"><i class="fas fa-home text-sm"></i><span data-i18n="navHome">Home</span></button>
+      <button onclick="toggleArchiveModal()" class="bottom-nav-btn" title="Archivio"><i class="fas fa-archive text-sm"></i><span data-i18n="navArchive">Archivio</span></button>
+      <button onclick="toggleNotesModal()" class="bottom-nav-btn" title="Note"><i class="fas fa-sticky-note text-sm"></i><span data-i18n="navNotes">Note</span></button>
+      <button onclick="toggleChatCollapse()" class="bottom-nav-btn" title="AI"><i class="fas fa-robot text-sm"></i><span data-i18n="navAI">AI</span></button>
+      <button onclick="openSidebar()" class="bottom-nav-btn" title="Menu"><i class="fas fa-bars text-sm"></i><span data-i18n="navMenu">Menu</span></button>
+    </nav>
   </footer>
 
   <!-- FILE VIEWER MODAL (PDF / Word / STEP / DXF) -->
@@ -1098,7 +1133,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-  <script src="js/config.js?v=20260910g"></script>
-  <script src="js/app.js?v=20260910g"></script>
+  <script src="js/config.js?v=20260910h"></script>
+  <script src="js/app.js?v=20260910h"></script>
 </body>
 </html>

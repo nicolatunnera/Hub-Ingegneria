@@ -188,3 +188,58 @@ html.eye-protect #evSelectModal, html.eye-protect #evViewerModal, html.eye-prote
   #fileViewerBody .fv-doc-content { padding: 0.75rem; }
 }
 
+/* ── Accent theme (variabile) ── */
+:root { --accent: #2563eb; --accent-strong: #1d4ed8; --accent-soft: rgba(37,99,235,0.1); }
+
+/* ── Skeletons ── */
+@keyframes skelShimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+.skel { background: linear-gradient(90deg, rgba(148,163,184,0.12) 25%, rgba(148,163,184,0.28) 37%, rgba(148,163,184,0.12) 63%); background-size: 800px 100%; animation: skelShimmer 1.4s ease-in-out infinite; border-radius: 6px; }
+.dark .skel { background: linear-gradient(90deg, rgba(148,163,184,0.06) 25%, rgba(148,163,184,0.18) 37%, rgba(148,163,184,0.06) 63%); background-size: 800px 100%; }
+.skel-row { display: flex; gap: 0.75rem; padding: 0.55rem 0.75rem; align-items: center; }
+.skel-inline { display: inline-block; }
+
+/* ── Empty states ── */
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 2rem 1rem; text-align: center; color: #94a3b8; }
+.empty-state .es-icon { font-size: 2rem; line-height: 1; filter: grayscale(0.4); }
+.empty-state .es-text { font-size: 0.7rem; font-weight: 600; color: #94a3b8; }
+.empty-state .es-sub { font-size: 0.65rem; color: #94a3b8; opacity: 0.8; }
+
+/* ── Dashboard micro-animations ── */
+.dash-card { position: relative; overflow: hidden; animation: fadeScaleIn 0.4s ease both; }
+.dash-grid .dash-card:nth-child(1) { animation-delay: 0s; }
+.dash-grid .dash-card:nth-child(2) { animation-delay: 0.05s; }
+.dash-grid .dash-card:nth-child(3) { animation-delay: 0.1s; }
+.dash-grid .dash-card:nth-child(4) { animation-delay: 0.15s; }
+.dash-grid .dash-card:nth-child(5) { animation-delay: 0.2s; }
+.dash-card::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,0.4) 50%, transparent 65%); background-size: 250% 100%; }
+.dark .dash-card::after { background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,0.08) 50%, transparent 65%); background-size: 250% 100%; }
+.dash-card:hover::after { animation: dashShine 0.9s ease; }
+@keyframes dashShine { 0% { background-position: 200% 0; opacity: 1; } 100% { background-position: -200% 0; opacity: 0; } }
+.dash-card .dash-icon { transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+.dash-card:hover .dash-icon { transform: scale(1.18) rotate(-4deg); }
+.dash-card .dash-count { transition: opacity 0.3s; }
+
+/* ── AI model bar ── */
+.ai-model-btn { color: #64748b; border-color: #e2e8f0; background: transparent; cursor: pointer; white-space: nowrap; }
+.dark .ai-model-btn { color: #cbd5e1; border-color: #475569; }
+.ai-model-btn:hover { border-color: #93c5fd; color: var(--accent); }
+.ai-model-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.dark .ai-model-btn.active { background: rgba(37,99,235,0.18); }
+.ai-model-label.badge-ready { color: #059669; border-color: #a7f3d0; background: #ecfdf5; }
+.dark .ai-model-label.badge-ready { background: rgba(5,150,105,0.15); border-color: rgba(5,150,105,0.4); }
+.ai-model-label.badge-loading { color: #d97706; border-color: #fde68a; background: #fffbeb; }
+.dark .ai-model-label.badge-loading { background: rgba(217,119,6,0.15); border-color: rgba(217,119,6,0.4); }
+.ai-model-label.badge-idle { color: #64748b; border-color: #cbd5e1; background: #f1f5f9; cursor: pointer; }
+.dark .ai-model-label.badge-idle { background: #334155; border-color: #475569; color: #cbd5e1; }
+.ai-model-label.badge-idle:hover { color: var(--accent); border-color: var(--accent); }
+#aiClearChat { white-space: nowrap; cursor: pointer; }
+
+/* ── Bottom nav (mobile) ── */
+.bottom-nav-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem; padding: 0.45rem 0.3rem; font-size: 0.55rem; font-weight: 600; color: #64748b; background: transparent; min-width: 0; flex: 1; transition: color 0.2s, background 0.2s; }
+.bottom-nav-btn:hover, .bottom-nav-btn:active { color: var(--accent); background: var(--accent-soft); }
+.bottom-nav-btn i { line-height: 1; }
+@media (max-width: 640px) {
+  #hubFooter { padding: 0 !important; }
+  #hubMainContent { padding-bottom: 3.5rem !important; }
+}
+
