@@ -66,9 +66,10 @@ window.i18n = {
     evClearWish:"Svuota", evEmpty:"Nessun file Excel caricato.", evSheet:"Foglio", evSheets:"fogli",
     evSheetEmpty:"Foglio vuoto", evNoPreview:"Anteprima non disponibile", evEyeProtection:"Protezione Occhi",
     searchGlobal:"Cerca nel sito", chatClear:"Azzera chat", modelFast:"Veloce (0.5B)", modelSmart:"Completo (1.5B)",
-    sortBy:"Ordina:", sortNewest:"Pi\u00f9 recenti", sortOldest:"Pi\u00f9 vecchi", sortNameAZ:"Nome A\u2192Z", sortNameZA:"Nome Z\u2192A", sortAuthor:"Autore",
+    sortBy:"Ordina:", sortNewest:"Pi\u00f9 recenti", sortOldest:"Pi\u00f9 vecchi", sortNameAZ:"Nome A\u2192Z", sortNameZA:"Nome Z\u2192A", sortAuthor:"Autore", sortExpiry:"Scadenza",
     searchInContent:"Nel contenuto", exportBackup:"Esporta Backup", navHome:"Home", navArchive:"Archivio", navNotes:"Note", navAI:"AI", navMenu:"Menu",
     chartFilesCat:"File per categoria", chartTypes:"Excel vs Documenti", chartNoFiles:"Nessun file da mostrare.",
+    quickC1:"Quanti file Excel ci sono?", quickC2:"Elenca i documenti", quickC3:"Quanto fa 145*3?", quickC4:"Come funziona l'archivio?",
     filterAll:"Tutto", filterExcel:"Excel", filterDoc:"Documenti"
   },
   en: {
@@ -126,9 +127,10 @@ window.i18n = {
     evClearWish:"Clear", evEmpty:"No Excel files uploaded.", evSheet:"Sheet", evSheets:"sheets",
     evSheetEmpty:"Empty sheet", evNoPreview:"Preview not available", evEyeProtection:"Eye Protection",
     searchGlobal:"Search site", chatClear:"Clear chat", modelFast:"Fast (0.5B)", modelSmart:"Full (1.5B)",
-    sortBy:"Sort:", sortNewest:"Newest first", sortOldest:"Oldest first", sortNameAZ:"Name A\u2192Z", sortNameZA:"Name Z\u2192A", sortAuthor:"Author",
+    sortBy:"Sort:", sortNewest:"Newest first", sortOldest:"Oldest first", sortNameAZ:"Name A\u2192Z", sortNameZA:"Name Z\u2192A", sortAuthor:"Author", sortExpiry:"Expiry",
     searchInContent:"In content", exportBackup:"Export Backup", navHome:"Home", navArchive:"Archive", navNotes:"Notes", navAI:"AI", navMenu:"Menu",
     chartFilesCat:"Files by category", chartTypes:"Excel vs Documents", chartNoFiles:"No files to show.",
+    quickC1:"How many Excel files?", quickC2:"List documents", quickC3:"What is 145*3?", quickC4:"How does the archive work?",
     filterAll:"All", filterExcel:"Excel", filterDoc:"Documents"
   }
 };

@@ -209,6 +209,12 @@ html.eye-protect #evSelectModal, html.eye-protect #evViewerModal, html.eye-prote
 .skel-row { display: flex; gap: 0.75rem; padding: 0.55rem 0.75rem; align-items: center; }
 .skel-inline { display: inline-block; }
 
+/* ── Expiry badges ── */
+.exp-badge { display: inline-block; margin-left: 0.3rem; padding: 0.05rem 0.35rem; border-radius: 9999px; font-size: 0.6rem; font-weight: 700; vertical-align: middle; background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.dark .exp-badge { background: rgba(217,119,6,0.18); color: #fbbf24; border-color: rgba(217,119,6,0.4); }
+.exp-badge-expired { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+.dark .exp-badge-expired { background: rgba(220,38,38,0.18); color: #fca5a5; border-color: rgba(220,38,38,0.4); }
+
 /* ── Empty states ── */
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 2rem 1rem; text-align: center; color: #94a3b8; }
 .empty-state .es-icon { font-size: 2rem; line-height: 1; filter: grayscale(0.4); }
@@ -253,4 +259,9 @@ html.eye-protect #evSelectModal, html.eye-protect #evViewerModal, html.eye-prote
   #hubFooter { padding: 0 !important; }
   #hubMainContent { padding-bottom: 3.5rem !important; }
 }
+
+/* ── Chat quick chips ── */
+.chat-chip { font-size: 0.62rem; line-height: 1.1; padding: 0.22rem 0.5rem; border-radius: 9999px; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; white-space: nowrap; }
+.chat-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.dark .chat-chip { background: #1e293b; border-color: #334155; color: #cbd5e1; }
 

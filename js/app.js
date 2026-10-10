@@ -264,8 +264,47 @@ document.getElementById('sidebarContent')?.addEventListener('click', e => {
 });
 window.toggleNewsSidebar = () => document.getElementById('newsModal')?.classList.toggle('hidden');
 document.getElementById('newsBtn')?.addEventListener('click', () => window.toggleNewsSidebar());
-window.toggleTheme = () => document.documentElement.classList.toggle('dark');
+const THEME_MODES = ['light', 'dark', 'auto'];
+function getThemeMode() {
+  const m = localStorage.getItem('hub_theme');
+  return THEME_MODES.indexOf(m) === -1 ? 'light' : m;
+}
+function isAutoDark() {
+  const h = new Date().getHours();
+  return h < 7 || h >= 19;
+}
+window.applyTheme = function() {
+  const mode = getThemeMode();
+  const dark = mode === 'dark' || (mode === 'auto' && isAutoDark());
+  document.documentElement.classList.toggle('dark', dark);
+  const btn = document.getElementById('themeToggle');
+  if (btn) {
+    const ic = btn.querySelector('i');
+    if (ic) ic.className = 'fas ' + (mode === 'dark' ? 'fa-moon' : mode === 'auto' ? 'fa-circle-half-stroke' : 'fa-sun');
+    const l = window.currentLang === 'en';
+    const titles = l
+      ? { light: 'Theme: light', dark: 'Theme: dark', auto: 'Theme: automatic' }
+      : { light: 'Tema: chiaro', dark: 'Tema: scuro', auto: 'Tema: automatico' };
+    btn.title = titles[mode];
+    btn.setAttribute('aria-label', titles[mode]);
+  }
+  const stats = document.getElementById('statsModal');
+  if (stats && !stats.classList.contains('hidden') && typeof window.Chart !== 'undefined') buildHubCharts();
+};
+window.setThemeMode = function(mode) {
+  if (THEME_MODES.indexOf(mode) === -1) mode = 'light';
+  localStorage.setItem('hub_theme', mode);
+  window.applyTheme();
+};
+window.toggleTheme = function() {
+  const cur = getThemeMode();
+  const next = THEME_MODES[(THEME_MODES.indexOf(cur) + 1) % THEME_MODES.length];
+  localStorage.setItem('hub_theme', next);
+  window.applyTheme();
+};
 document.getElementById('themeToggle')?.addEventListener('click', () => window.toggleTheme());
+setInterval(() => { if (getThemeMode() === 'auto') window.applyTheme(); }, 300000);
+applyTheme();
 
 window.toggleEyeProtection = () => {
   document.documentElement.classList.toggle('eye-protect');
@@ -413,6 +452,8 @@ function refreshDynamicContent() {
   if (modalDate) modalDate.textContent = now.toLocaleDateString(locale(), { day:'2-digit', month:'short', year:'numeric' });
   const modalTime = document.getElementById('hubInfoTimeDisplayModal');
   if (modalTime) modalTime.textContent = now.toLocaleTimeString(locale(), { hour:'2-digit', minute:'2-digit' });
+  if (window.applyTheme) window.applyTheme();
+  if (window.renderChatChips) window.renderChatChips();
 }
 
 // ─── DRAG & DROP ──────────────────────────────────────────────────────
@@ -961,7 +1002,11 @@ document.getElementById('btnUploadExcel').onclick = async () => {
   document.getElementById('excelFileList').innerHTML = '';
   document.getElementById('textDropExcel').textContent = 'Trascina qui i file Excel o clicca per selezionare';
   showToast(`${count} file Excel caricati: ${uploadedNames.join(', ')}`, 'success', 6000);
-  if (count) await sendTelegramBroadcast(`\u2699\uFE0F *Caricati ${count} file Excel*`);
+  if (count) {
+    const shown = uploadedNames.slice(0, 6).map(n => '\u2022 ' + escapeMarkdown(n)).join('\n');
+    const more = uploadedNames.length > 6 ? `\n… +${uploadedNames.length - 6}` : '';
+    await sendTelegramBroadcast(`\u2699\uFE0F *Nuovi file Excel caricati (${count})*\nDa: ${escapeMarkdown(window.username || '?')}${catLog.length ? '\nCategorie: ' + escapeMarkdown([...new Set(catLog)].join(', ')) : ''}\n${shown}${more}`);
+  }
   } catch(e) { console.error('Upload Excel fallito:', e); showToast('Errore durante il caricamento: ' + e.message, 'error', 6000); }
   finally { btn.disabled = false; btn.innerHTML = btnHtml; }
 };
@@ -1007,7 +1052,11 @@ document.getElementById('btnUploadDoc').onclick = async () => {
   document.getElementById('docFileList').innerHTML = '';
   document.getElementById('textDropDoc').textContent = 'Trascina qui i file o clicca per selezionare (PDF, DOC, TXT, DWG, DXF, STEP, APK)';
   showToast(`${count} documenti caricati: ${uploadedNames.join(', ')}`, 'success', 6000);
-  if (count) await sendTelegramBroadcast(`\u{1F4DD} *Caricati ${count} documenti*`);
+  if (count) {
+    const shown = uploadedNames.slice(0, 6).map(n => '\u2022 ' + escapeMarkdown(n)).join('\n');
+    const more = uploadedNames.length > 6 ? `\n… +${uploadedNames.length - 6}` : '';
+    await sendTelegramBroadcast(`\u{1F4C4} *Nuovi documenti caricati (${count})*\nDa: ${escapeMarkdown(window.username || '?')}\n${shown}${more}`);
+  }
   } catch(e) { console.error('Upload Documento fallito:', e); showToast('Errore durante il caricamento: ' + e.message, 'error', 6000); }
   finally { btn.disabled = false; btn.innerHTML = btnHtml; }
 };
@@ -1287,7 +1336,49 @@ document.getElementById('deleteSelectedArchive')?.addEventListener('click', asyn
 document.getElementById('downloadSelectedArchive')?.addEventListener('click', async () => {
   const checked = document.querySelectorAll('.archive-checkbox:checked');
   if (!checked.length) return;
-  for (const cb of checked) window.downloadDocument(cb.dataset.id);
+  const btn = document.getElementById('downloadSelectedArchive');
+  const oldHtml = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>' + checked.length; }
+  try {
+    if (typeof JSZip === 'undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+    const zip = new JSZip();
+    let done = 0;
+    for (const cb of checked) {
+      const id = cb.dataset.id;
+      const isExcel = cb.dataset.excel === 'true';
+      const file = [...allExcelFiles, ...allTextFiles].find(f => f.id === id);
+      if (!file) continue;
+      let dataUrl = file.fileData || '';
+      if (!dataUrl && file.chunks) {
+        try { dataUrl = await loadLargeFile(isExcel ? 'excelHub' : 'textHub', id, file.chunks); } catch (e) { console.warn('ZIP chunk:', id, e); }
+      }
+      const base = file.fileName || ((file.title || file.name || 'file') + (file.fileType ? '.' + String(file.fileType).toLowerCase() : (isExcel ? '.xlsx' : '.txt')));
+      const safeName = base.replace(/[\\/:*?"<>|]+/g, '_');
+      if (dataUrl && dataUrl.indexOf('base64,') !== -1) {
+        zip.file(safeName, dataUrl.split('base64,')[1], { base64: true });
+      } else if (dataUrl) {
+        zip.file(safeName, dataUrl);
+      } else if (!isExcel && file.extractedText) {
+        zip.file((file.title || 'documento').replace(/[\\/:*?"<>|]+/g, '_') + '.txt', file.extractedText);
+      } else {
+        zip.file(safeName + '.txt', 'Contenuto non disponibile lato client per: ' + (file.title || file.name || id));
+      }
+      done++;
+    }
+    if (!done) { showToast(window.currentLang === 'en' ? 'No files to zip.' : 'Nessun file da comprimere.', 'error'); return; }
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'archivio_hub_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '.zip';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    showToast(window.currentLang === 'en' ? ('ZIP with ' + done + ' files created.') : ('ZIP creato con ' + done + ' file.'), 'success');
+  } catch (e) {
+    console.error('ZIP fallito:', e);
+    showToast(window.currentLang === 'en' ? 'Error creating ZIP.' : 'Errore durante la creazione dello ZIP.', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = oldHtml; }
+  }
 });
 document.addEventListener('change', e => {
   if (e.target.classList.contains('archive-checkbox')) updateBulkActions();
@@ -1332,6 +1423,8 @@ function combineAndRenderArchive() {
   const typeFilter = document.getElementById('typeFilter')?.value || 'all';
   const sortKey = document.getElementById('sortFilter')?.value || 'newest';
   const searchContent = document.getElementById('contentSearchToggle')?.checked || false;
+  const normX = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const nq = normX(window.searchQuery);
   let items = [...allExcelFiles, ...allTextFiles].filter(f => {
     if (!isPrivateVisible(f)) return false;
     if (typeFilter === 'excel' && !f.isExcel) return false;
@@ -1340,9 +1433,9 @@ function combineAndRenderArchive() {
     const base = f.isExcel ? `${f.name || ''} ${f.category || ''}` : `${f.title || ''} ${f.fileType || ''}`;
     const txt = f.isExcel ? '' : (f.extractedText || '');
     if (searchContent) {
-      return (base + ' ' + txt.substring(0, 8000)).toLowerCase().includes(window.searchQuery);
+      return normX(base + ' ' + txt.substring(0, 8000)).includes(nq);
     }
-    return (base + ' ' + txt.substring(0, 200)).toLowerCase().includes(window.searchQuery);
+    return normX(base + ' ' + txt.substring(0, 200)).includes(nq);
   });
   if (filterFolder) items = items.filter(f => f.folderId === filterFolder);
   const fileTime = f => {
@@ -1351,12 +1444,20 @@ function combineAndRenderArchive() {
     if (t && t.seconds) return t.seconds * 1000;
     return 0;
   };
+  const fileExpiry = f => {
+    const t = f.expiresAt;
+    if (!t) return Infinity;
+    if (t.toDate) return t.toDate().getTime();
+    if (t.seconds) return t.seconds * 1000;
+    return Infinity;
+  };
   const fileLabel = f => (f.isExcel ? (f.name || '') : (f.title || '')) || '';
   if (sortKey === 'newest') items.sort((a, b) => fileTime(b) - fileTime(a));
   else if (sortKey === 'oldest') items.sort((a, b) => fileTime(a) - fileTime(b));
   else if (sortKey === 'nameAZ') items.sort((a, b) => fileLabel(a).localeCompare(fileLabel(b)));
   else if (sortKey === 'nameZA') items.sort((a, b) => fileLabel(b).localeCompare(fileLabel(a)));
   else if (sortKey === 'author') items.sort((a, b) => (a.uploadedBy || '').localeCompare(b.uploadedBy || ''));
+  else if (sortKey === 'expiry') items.sort((a, b) => fileExpiry(a) - fileExpiry(b));
   const ROWS = 20;
   const totalPages = Math.max(1, Math.ceil(items.length / ROWS));
   window.archivePage = Math.max(0, Math.min(window.archivePage || 0, totalPages - 1));
@@ -1385,10 +1486,18 @@ function combineAndRenderArchive() {
     const catSelectHtml = isGuest || !canDel
       ? `<td class="p-3 text-gray-500 text-[10px] truncate max-w-[80px] sm:max-w-none">${escapeHtml(f.category || '—')}</td>`
       : `<td class="p-3"><select data-file-id="${escapeHtml(f.id)}" data-is-excel="${f.isExcel}" class="cat-edit-select bg-transparent border border-gray-200 dark:border-gray-600 rounded px-1 py-0.5 text-[10px] text-gray-600 dark:text-gray-400 outline-none focus:border-blue-400 cursor-pointer max-w-[120px]">${catOptsHtml}</select></td>`;
+    const expMs = fileExpiry(f);
+    let expBadge = '';
+    if (expMs !== Infinity) {
+      const days = Math.ceil((expMs - Date.now()) / 86400000);
+      const dstr = new Date(expMs).toLocaleDateString(locale(), { day: '2-digit', month: '2-digit' });
+      if (days < 0) expBadge = `<span class="exp-badge exp-badge-expired" title="Scaduto">\u26D4 ${escapeHtml(dstr)}</span>`;
+      else if (days <= 3) expBadge = `<span class="exp-badge" title="Scade il ${escapeHtml(dstr)}">\u23F3 ${days}${window.currentLang === 'en' ? 'd' : 'g'}</span>`;
+    }
     if (f.isExcel) {
-      tr.innerHTML = `${checkbox}<td class="p-3 font-medium text-xs">${f.private ? '<span class="text-purple-500 mr-0.5">\u{1F512}</span>' : ''}${escapeHtml(f.name || 'File Excel')}</td><td class="p-3"><span class="px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 rounded font-bold text-[9px]">EXCEL</span></td>${folderCell}${catSelectHtml}${actionsCell}`;
+      tr.innerHTML = `${checkbox}<td class="p-3 font-medium text-xs">${f.private ? '<span class="text-purple-500 mr-0.5">\u{1F512}</span>' : ''}${escapeHtml(f.name || 'File Excel')} ${expBadge}</td><td class="p-3"><span class="px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 rounded font-bold text-[9px]">EXCEL</span></td>${folderCell}${catSelectHtml}${actionsCell}`;
     } else {
-      tr.innerHTML = `${checkbox}<td class="p-3 font-medium text-xs">${f.private ? '<span class="text-purple-500 mr-0.5">\u{1F512}</span>' : ''}${escapeHtml(f.title || 'Documento')}</td><td class="p-3"><span class="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 rounded font-bold text-[9px]">${escapeHtml(f.fileType || '')}</span></td>${folderCell}${catSelectHtml}${actionsCell}`;
+      tr.innerHTML = `${checkbox}<td class="p-3 font-medium text-xs">${f.private ? '<span class="text-purple-500 mr-0.5">\u{1F512}</span>' : ''}${escapeHtml(f.title || 'Documento')} ${expBadge}</td><td class="p-3"><span class="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 rounded font-bold text-[9px]">${escapeHtml(f.fileType || '')}</span></td>${folderCell}${catSelectHtml}${actionsCell}`;
     }
     body.appendChild(tr);
   });
@@ -2192,6 +2301,28 @@ window.loadChatFromCloud = async function() {
   setTimeout(attempt, 1500);
 })();
 
+window.renderChatChips = function() {
+  const wrap = document.getElementById('chatChips');
+  if (!wrap) return;
+  const t = (typeof i18n !== 'undefined' && i18n[window.currentLang]) ? i18n[window.currentLang] : (typeof i18n !== 'undefined' ? i18n.it : {});
+  const items = [t.quickC1, t.quickC2, t.quickC3, t.quickC4, '/help'].filter(Boolean);
+  wrap.innerHTML = '';
+  items.forEach(txt => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chat-chip';
+    b.textContent = txt;
+    b.addEventListener('click', () => {
+      const inp = document.getElementById('aiInput');
+      if (!inp) return;
+      inp.value = txt;
+      window.askAI();
+    });
+    wrap.appendChild(b);
+  });
+};
+renderChatChips();
+
 async function loadLocalModel() {
   if (localModelLoading || localModelReady) return;
   localModelLoading = true;
@@ -2262,6 +2393,29 @@ window.askAI = async () => {
       container.scrollTop = container.scrollHeight;
       return;
     }
+  }
+
+  const cmd = queryText.trim().toLowerCase();
+  const mkReply = (md) => {
+    const d = document.createElement('div');
+    d.className = 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-lg text-gray-800 dark:text-gray-200 max-w-[90%] text-xs shadow-sm';
+    d.innerHTML = typeof marked !== 'undefined' ? marked.parse(md) : escapeHtml(md).replace(/\n/g, '<br>');
+    container.appendChild(d);
+    inputEl.disabled = false; sendBtn.disabled = false; inputEl.focus();
+    container.scrollTop = container.scrollHeight;
+  };
+  if (/^\/(help|aiuto|comandi|commands)\b/.test(cmd)) {
+    const h = window.currentLang === 'en'
+      ? '**Available commands**\n- `/help` — this list\n- `/stato` — hub statistics\n- `scarica <name>` — download a file\n- `/key <key>` — set the AI key\n- direct math (e.g. `145*3`)\n\nYou can also ask me about your files and notes.'
+      : '**Comandi disponibili**\n- `/help` — questo elenco\n- `/stato` — statistiche del hub\n- `scarica <nome>` — scarica un file\n- `/key <chiave>` — imposta la chiave AI\n- calcoli diretti (es. `145*3`)\n\nPuoi anche chiedermi informazioni su file e note.';
+    mkReply(h); return;
+  }
+  if (/^\/(stato|stats|status)\b/.test(cmd)) {
+    const excel = allExcelFiles.length, docs = allTextFiles.length, notes = (lastNoteDocs || []).length, subs = (lastSubscriberDocs || []).length;
+    const s = window.currentLang === 'en'
+      ? `**Hub status**\n- Excel files: **${excel}**\n- Documents: **${docs}**\n- Notes: **${notes}**\n- Telegram subscribers: **${subs}**`
+      : `**Stato del hub**\n- File Excel: **${excel}**\n- Documenti: **${docs}**\n- Note: **${notes}**\n- Iscritti Telegram: **${subs}**`;
+    mkReply(s); return;
   }
 
   const calcResult = (() => {
