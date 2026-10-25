@@ -187,20 +187,35 @@ e tiene il token in una variabile d'ambiente.
 
 ```bash
 cd server
-npm init -y && npm install express firebase-admin
-export TELEGRAM_BOT_TOKEN="<nuovo token da @BotFather>"
-export FIRESTORE_PROJECT_ID="hub-ingegneria"
+npm install                 # dependencies già dichiarate in server/package.json
+TELEGRAM_BOT_TOKEN="<nuovo token da @BotFather>" \
+FIREBASE_KEY="$(cat ../firebase-key.json)" \
 node telegram-proxy.js
 ```
 
 Poi in `js/config.js` imposta `window.TELEGRAM_PROXY_URL = "https://<host>/telegram"`.
 
+### Variabili d'ambiente del proxy
+
+| KEY | VALUE | Note |
+| --- | --- | --- |
+| `TELEGRAM_BOT_TOKEN` | il token nuovo dato da @BotFather (`123456789:AA...`) | obbligatoria; senza, il processo si ferma |
+| `FIREBASE_KEY` | il **contenuto** del JSON del service account, tutto in una riga | il modo più semplice su Render: "Add Environment Variable" e incolla il file |
+| `FIREBASE_KEY_JSON` | il **path** del file (es. env di tipo *Secret File* su Render) | alternativa a `FIREBASE_KEY`; ha la precedenza `FIREBASE_KEY` |
+| `TELEGRAM_ALLOWED_ORIGINS` | `https://nicolatunnera.github.io` (più valori separati da virgola) | facoltativa: se vuota vale la lista di default (`*.github.io`, `*.onrender.com`, `localhost`) |
+| `PORT` | — | la imposta il hosting; non crearla a mano |
+
+Il service account JSON si prende da **Firebase Console → ⚙ Project settings → Service
+accounts → Generate new private key**. Dà accesso **amministrativo** al progetto: va solo
+dentro le variabili d'ambiente del server, mai nel repo (`.gitignore` lo esclude e il
+workflow *Leak scan* blocca il deploy se viene committato).
+
 Note:
-- Serve un **service account JSON** (`Firebase Console → Settings → Service Accounts`)
-  da passare con `GOOGLE_APPLICATION_CREDENTIALS`. Non committarlo: `.gitignore` lo esclude.
 - Il proxy spinge solo chat id già presenti nella collezione `subscribers`: un attaccante
   non può usarlo come spam relay verso indirizzi scelti da lui.
 - Limite di 10 richieste/minuto per IP e 3000 caratteri per messaggio.
+- Verifica dopo il deploy: apri `https://<host>/health` nel browser, deve rispondere
+  `{"ok":true,"service":"telegram-proxy"}`.
 - Se `TELEGRAM_PROXY_URL` è vuoto, il client salta l'invio e mostra un avviso invece di
   chiamare Telegram direttamente.
 - **Il token vecchio è compromesso e va revocato**: @BotFather → `/revoke` (o

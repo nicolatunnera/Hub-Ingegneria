@@ -1,0 +1,17 @@
+{
+  "name": "hub-telegram-proxy",
+  "version": "1.0.0",
+  "description": "Endpoint notifiche Telegram per Engineering Cloud Hub (il token resta fuori dal browser)",
+  "private": true,
+  "main": "telegram-proxy.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node telegram-proxy.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "firebase-admin": "^13.10.0"
+  }
+}
