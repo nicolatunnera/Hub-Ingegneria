@@ -42,12 +42,23 @@ function serviceAccount() {
   return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'firebase-key.json'), 'utf8'));
 }
 
+// Solo nomi e lunghezze: il contenuto della chiave non deve finire nei log.
+function envSummary() {
+  const inline = process.env.FIREBASE_KEY;
+  const keyPath = process.env.FIREBASE_KEY_JSON;
+  return 'FIREBASE_KEY ' + (inline && inline.trim() ? 'impostata (' + inline.trim().length + ' caratteri)' : 'vuota') +
+    ' · FIREBASE_KEY_JSON ' + (keyPath ? '= ' + keyPath : 'vuota');
+}
+
+console.log('Cerco la chiave service account: ' + envSummary());
+
 try {
   admin.initializeApp({ credential: admin.credential.cert(serviceAccount()) });
 } catch (e) {
   console.error('Chiave service account mancante o non leggibile (' + e.message + ').');
+  console.error('Cosa ho visto: ' + envSummary());
   console.error('Metti il contenuto del file JSON nella variabile FIREBASE_KEY,');
-  console.error('oppure il path del file in FIREBASE_KEY_JSON.');
+  console.error('oppure il path del file in FIREBASE_KEY_JSON (su Render: "Add Secret File").');
   process.exit(1);
 }
 const db = admin.firestore();
