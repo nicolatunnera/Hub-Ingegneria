@@ -262,6 +262,21 @@ html.eye-protect #evSelectModal, html.eye-protect #evViewerModal, html.eye-prote
   #hubMainContent { padding-bottom: 3.5rem !important; }
 }
 
+/* ── Finestre (modal-manager) ── */
+html.modal-lock, html.modal-lock body { overflow: hidden; }
+[id$="Modal"].fixed.inset-0:not(.hidden) { animation: hubWindowIn 0.16s ease-out; }
+[data-modal-panel] { animation: hubPanelIn 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+[id$="Modal"].fixed.inset-0:focus { outline: none; }
+@keyframes hubWindowIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes hubPanelIn { from { opacity: 0; transform: scale(0.97) translateY(6px); } to { opacity: 1; } }
+/* Con una finestra aperta il chrome fluttuante non deve stare sopra il velo:
+   FAB 🤖 e barra in bassa spariscono, così nessun pannello si può aprire
+   "sopra" alla finestra già visibile. */
+html.window-open #chat-fab, html.window-open #hubFooter { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  [id$="Modal"].fixed.inset-0:not(.hidden), [data-modal-panel] { animation: none; }
+}
+
 /* ── Chat quick chips ── */
 .chat-chip { font-size: 0.62rem; line-height: 1.1; padding: 0.22rem 0.5rem; border-radius: 9999px; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; white-space: nowrap; }
 .chat-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }

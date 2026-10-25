@@ -25,7 +25,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20260910k" />
+  <link rel="stylesheet" href="style.css?v=20261024f" />
   <link rel="icon" type="image/png" href="icon-192.png?v=20250718" />
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#2563eb" />
@@ -45,7 +45,7 @@
   </div>
 
   <!-- LOGIN BLOCKER -->
-  <div id="loginBlocker" class="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 z-50 flex items-center justify-center p-4 transition-opacity duration-500" style="z-index:9999">
+  <div id="loginBlocker" data-modal-sticky class="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 z-50 flex items-center justify-center p-4 transition-opacity duration-500" style="z-index:9999">
     <div class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm p-6 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700/50 max-w-sm w-full text-center animate-[fadeScaleIn_0.3s_ease-out]">
       <img src="icon-192.png" alt="" class="w-14 h-14 mx-auto mb-2 rounded-2xl shadow-lg ring-2 ring-blue-500/20" onerror="this.remove()">
       <h2 class="text-sm font-bold text-gray-900 dark:text-white tracking-wide">Engineering Cloud Hub</h2>
@@ -101,7 +101,7 @@
   <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-2 sm:px-4 py-2 grid grid-cols-3 items-center" id="hubNavGrid">
       <div class="flex items-center gap-1 sm:gap-2">
-        <button onclick="openSidebar()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400 flex-shrink-0" data-i18n="titleMenu" title="Menu"><i class="fas fa-bars text-sm"></i></button>
+        <button onclick="openSidebar()" data-overlay="sidebar" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 dark:text-gray-400 flex-shrink-0" data-i18n="titleMenu" title="Menu" aria-label="Menu" aria-controls="sidebar" aria-expanded="false"><i class="fas fa-bars text-sm"></i></button>
       </div>
       <div class="flex justify-center">
         <div class="flex items-center gap-2 cursor-pointer select-none shrink-0" id="hubTitleBtn" onclick="toggleHubInfoModal()">
@@ -272,7 +272,7 @@
   <!-- ═══════ EXCEL VIEWER — REMOVABLE BLOCK ═══════ -->
 
   <!-- STEP 1: FILE SELECTION -->
-  <div id="evSelectModal" class="fixed inset-0 z-[60] hidden" onclick="if(event.target===this)evClose()">
+  <div id="evSelectModal" data-modal-close="evClose" class="fixed inset-0 z-[60] hidden" onclick="if(event.target===this)evClose()">
     <div class="ev-bg absolute inset-0"></div>
     <div class="relative z-10 w-full h-full flex flex-col p-4 sm:p-6 overflow-hidden">
       <div class="flex items-center justify-between mb-4 shrink-0">
@@ -291,7 +291,7 @@
   </div>
 
   <!-- STEP 2: FULL VIEWER -->
-  <div id="evViewerModal" class="fixed inset-0 z-[60] hidden">
+  <div id="evViewerModal" data-modal-close="evClose" class="fixed inset-0 z-[60] hidden">
     <div class="ev-bg absolute inset-0"></div>
     <div class="relative z-10 w-full h-full flex flex-col overflow-hidden">
       <!-- Top bar -->
@@ -777,7 +777,7 @@
   </div>
 
   <!-- ===== FOLDER MANAGER MODAL ===== -->
-  <div id="folderManagerModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleFolderManager()">
+  <div id="folderManagerModal" data-modal-layer="58" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleFolderManager()">
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm mx-4 max-h-[85vh] flex flex-col">
       <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
         <h2 class="text-base font-bold"><i class="fas fa-folder-open mr-2 text-blue-500"></i> Gestione Cartelle</h2>
@@ -795,7 +795,7 @@
   </div>
 
   <!-- CATEGORY MANAGER MODAL -->
-  <div id="categoryManagerModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleCategoryManager()">
+  <div id="categoryManagerModal" data-modal-layer="58" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)toggleCategoryManager()">
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm mx-4 max-h-[85vh] flex flex-col">
       <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
         <h2 class="text-base font-bold"><i class="fas fa-tags mr-2 text-purple-500"></i> Gestione Categorie</h2>
@@ -845,7 +845,7 @@
       </div>
     </div>
   </div>
-  <button id="chat-fab" onclick="toggleChatCollapse()" class="fixed bottom-28 right-4 w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-700 hover:from-blue-500 hover:to-purple-600 rounded-full shadow-2xl border-2 border-white/20 flex items-center justify-center text-2xl cursor-pointer transition-all duration-300 z-[55]">🤖</button>
+  <button id="chat-fab" data-overlay="chat-expanded" onclick="toggleChatCollapse()" class="fixed bottom-28 right-4 w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-700 hover:from-blue-500 hover:to-purple-600 rounded-full shadow-2xl border-2 border-white/20 flex items-center justify-center text-2xl cursor-pointer transition-all duration-300 z-[55]">🤖</button>
 
 
   <!-- SIDEBAR -->
@@ -974,13 +974,13 @@
       <button onclick="window.goHome()" class="bottom-nav-btn" title="Home"><i class="fas fa-home text-sm"></i><span data-i18n="navHome">Home</span></button>
       <button onclick="toggleArchiveModal()" class="bottom-nav-btn" title="Archivio"><i class="fas fa-archive text-sm"></i><span data-i18n="navArchive">Archivio</span></button>
       <button onclick="toggleNotesModal()" class="bottom-nav-btn" title="Note"><i class="fas fa-sticky-note text-sm"></i><span data-i18n="navNotes">Note</span></button>
-      <button onclick="toggleChatCollapse()" class="bottom-nav-btn" title="AI"><i class="fas fa-robot text-sm"></i><span data-i18n="navAI">AI</span></button>
-      <button onclick="openSidebar()" class="bottom-nav-btn" title="Menu"><i class="fas fa-bars text-sm"></i><span data-i18n="navMenu">Menu</span></button>
+      <button onclick="toggleChatCollapse()" data-overlay="chat-expanded" class="bottom-nav-btn" title="AI"><i class="fas fa-robot text-sm"></i><span data-i18n="navAI">AI</span></button>
+      <button onclick="openSidebar()" data-overlay="sidebar" class="bottom-nav-btn" title="Menu"><i class="fas fa-bars text-sm"></i><span data-i18n="navMenu">Menu</span></button>
     </nav>
   </footer>
 
   <!-- FILE VIEWER MODAL (PDF / Word / STEP / DXF) -->
-  <div id="fileViewerModal" class="fixed inset-0 bg-black/70 z-[70] flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeFileViewer()">
+  <div id="fileViewerModal" data-modal-close="closeFileViewer" class="fixed inset-0 bg-black/70 z-[70] flex items-center justify-center hidden transition-opacity" onclick="if(event.target===this)closeFileViewer()">
     <div class="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-6xl mx-2 sm:mx-4 h-[92vh] flex flex-col overflow-hidden">
       <div class="flex items-center justify-between px-3 sm:px-4 py-2.5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         <div class="flex items-center gap-2 min-w-0">
@@ -1013,7 +1013,8 @@
       if (!c) return;
       var t = document.createElement('div');
       t.className = 'pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-lg shadow-lg text-xs font-medium transition-all duration-300 translate-x-4 opacity-0 ' + (type === 'error' ? 'bg-red-600 text-white' : type === 'success' ? 'bg-emerald-600 text-white' : 'bg-gray-800 dark:bg-gray-700 text-white');
-      t.innerHTML = (type === 'error' ? '\u26a0\ufe0f ' : type === 'success' ? '\u2705 ' : '\u2139\ufe0f ') + msg;
+      t.appendChild(document.createTextNode(type === 'error' ? '\u26a0\ufe0f ' : type === 'success' ? '\u2705 ' : '\u2139\ufe0f '));
+      t.appendChild(document.createTextNode(String(msg == null ? '' : msg)));
       c.appendChild(t);
       requestAnimationFrame(function() { t.classList.remove('translate-x-4','opacity-0'); });
       setTimeout(function() { t.classList.add('translate-x-4','opacity-0'); setTimeout(function() { t.remove(); }, 300); }, duration || 3500);
@@ -1044,54 +1045,6 @@
       var f = document.getElementById('registerForm');
       f.classList.toggle('hidden');
       document.getElementById('showRegisterBtn').classList.toggle('hidden', !f.classList.contains('hidden'));
-    };
-    window.verifyHubLogin = window.verifyHubLogin || function() {
-      const btn = document.getElementById('loginBtn');
-      const spinner = document.getElementById('loginSpinner');
-      const btnText = document.getElementById('loginBtnText');
-      btn.disabled = true; spinner.classList.remove('hidden'); btnText.textContent = 'Verifica...';
-      setTimeout(function() {
-        var u = document.getElementById('loginUser')?.value?.trim();
-        var p = document.getElementById('loginPass')?.value?.trim();
-        if (u === 'Ing' && p === 'Ing') {
-          window.userRole = 'owner';
-          window.username = 'Ing';
-          if (document.getElementById('rememberMe')?.checked) { localStorage.setItem('hub-user', u); localStorage.setItem('hub-pass', p); }
-          else { localStorage.removeItem('hub-user'); localStorage.removeItem('hub-pass'); }
-          enterApp();
-        } else if (u && p && typeof db !== 'undefined' && db) {
-          db.collection('accountsHub').where('username', '==', u).get().then(function(snap) {
-            if (!snap.empty) {
-              var doc = snap.docs[0].data();
-              var hash = 0; for (var i = 0; i < p.length; i++) { hash = ((hash << 5) - hash) + p.charCodeAt(i); hash |= 0; }
-              var pwdHash = hash.toString(36);
-              if (doc.password === pwdHash) {
-                window.userRole = doc.role || 'user';
-                window.username = u;
-                if (document.getElementById('rememberMe')?.checked) { localStorage.setItem('hub-user', u); localStorage.setItem('hub-pass', '__acct__'); }
-                else { localStorage.removeItem('hub-user'); localStorage.removeItem('hub-pass'); }
-                enterApp();
-                return;
-              }
-            }
-            var err = document.getElementById('loginError');
-            err.classList.remove('hidden');
-            setTimeout(function() { err.classList.add('hidden'); }, 4000);
-          }).catch(function() {
-            var err = document.getElementById('loginError');
-            err.textContent = '\u26a0\ufe0f Errore di connessione. Verifica il backend.';
-            err.classList.remove('hidden');
-          }).then(function() {
-            btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Accedi';
-          });
-          return;
-        } else {
-          var err = document.getElementById('loginError');
-          err.classList.remove('hidden');
-          setTimeout(function() { err.classList.add('hidden'); }, 4000);
-        }
-        btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Accedi';
-      }, 600);
     };
     window.registerAccount = function() {
       var u = document.getElementById('regUsername').value.trim();
@@ -1145,7 +1098,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-  <script src="js/config.js?v=20260910k"></script>
-  <script src="js/app.js?v=20260910k"></script>
+  <script src="js/config.js?v=20261024f"></script>
+  <script src="js/modal-manager.js?v=20261024f"></script>
+  <script src="js/app.js?v=20261024f"></script>
 </body>
 </html>

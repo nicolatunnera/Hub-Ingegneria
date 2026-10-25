@@ -68,6 +68,88 @@ async function loadFileDataSafe(f, coll) {
 }
 
 function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
+// HTML che arriva da file caricati o dal modello: il template è inerte, quindi
+// si ripulisce prima di inserirlo nella pagina.
+function sanitizeHtml(html) {
+  const tpl = document.createElement('template');
+  tpl.innerHTML = String(html || '');
+  tpl.content.querySelectorAll('script,iframe,frame,frameset,object,embed,form,link,meta,base,style').forEach(node => node.remove());
+  tpl.content.querySelectorAll('*').forEach(node => {
+    Array.from(node.attributes).forEach(attr => {
+      const name = attr.name.toLowerCase();
+      const value = attr.value.replace(/\s/g, '');
+      if (name.startsWith('on') || ((name === 'href' || name === 'src' || name === 'xlink:href' || name === 'formaction') && /^(javascript|data|vbscript):/i.test(value))) {
+        node.removeAttribute(attr.name);
+      }
+    });
+  });
+  return tpl.innerHTML;
+}
+function safeColor(color) { return /^#[0-9a-fA-F]{3,8}$/.test(String(color || '')) ? color : '#6b7280'; }
+// Valuta solo numeri, + - * / % ** e parentesi. Sostituisce new Function: niente
+// codice generato dalle stringhe, così una CSP senza unsafe-eval resta possibile.
+function safeArithmetic(src) {
+  const s = String(src || '');
+  if (s.length > 200) return null;
+  let i = 0, steps = 0;
+  const ws = () => { while (s[i] === ' ') i++; };
+  const eat = c => { ws(); if (s[i] === c) { i++; return true; } return false; };
+  function number() {
+    ws();
+    const start = i;
+    while (i < s.length && s[i] >= '0' && s[i] <= '9') i++;
+    if (s[i] === '.') { i++; while (i < s.length && s[i] >= '0' && s[i] <= '9') i++; }
+    return i === start ? null : parseFloat(s.slice(start, i));
+  }
+  function primary() {
+    if (++steps > 500) throw new Error('espressione troppo complessa');
+    if (eat('-')) { const v = primary(); return v === null ? null : -v; }
+    if (eat('+')) return primary();
+    if (eat('(')) { const v = addSub(); return v === null || !eat(')') ? null : v; }
+    return number();
+  }
+  function power() {
+    const base = primary();
+    if (base === null) return null;
+    ws();
+    if (s[i] === '*' && s[i + 1] === '*') { i += 2; const e = power(); return e === null ? null : Math.pow(base, e); }
+    return base;
+  }
+  function mulDiv() {
+    let v = power();
+    if (v === null) return null;
+    for (;;) {
+      ws();
+      const c = s[i];
+      if (c !== '*' && c !== '/' && c !== '%') break;
+      i++;
+      const r = power();
+      if (r === null) return null;
+      v = c === '*' ? v * r : c === '/' ? v / r : v % r;
+    }
+    return v;
+  }
+  function addSub() {
+    let v = mulDiv();
+    if (v === null) return null;
+    for (;;) {
+      ws();
+      const c = s[i];
+      if (c !== '+' && c !== '-') break;
+      i++;
+      const r = mulDiv();
+      if (r === null) return null;
+      v = c === '+' ? v + r : v - r;
+    }
+    return v;
+  }
+  try {
+    const v = addSub();
+    ws();
+    return v === null || i !== s.length ? null : v;
+  } catch (e) { return null; }
+}
+window.sanitizeHtml = sanitizeHtml;
 window.currentLang = 'it';
 function locale() { return window.currentLang === 'en' ? 'en-US' : 'it-IT'; }
 function cap(s) { return s.replace(/(^|\s)([a-z])/g, function(m){ return m.toUpperCase(); }); }
@@ -120,11 +202,16 @@ async function extractTextFromBase64(base64Data, fileType) {
 
 // ─── LOGIN ────────────────────────────────────────────────────────────
 function DJB2(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; } return h.toString(36); }
+// Credenziali del proprietario: in un sito statico sono visibili a chiunque legga
+// il bundle. Vanno sostituite dall'autenticazione Firebase (README → "Migrazione auth").
+const OWNER_USER = 'Ing';
+const OWNER_PASS = 'Ing';
+const REMEMBER_KEY = 'hub-cred';
 function showWelcomeSplash() {
   const splash = document.getElementById('welcomeSplash');
   if (!splash) return;
   const greeting = document.getElementById('welcomeGreeting');
-  if (greeting) greeting.textContent = window.username && window.username !== 'Ing' ? `Benvenuto, ${window.username}` : 'Benvenuto';
+  if (greeting) greeting.textContent = window.username && window.username !== OWNER_USER ? `Benvenuto, ${window.username}` : 'Benvenuto';
   splash.style.opacity = '1';
   splash.style.pointerEvents = 'auto';
   splash.onclick = () => {
@@ -147,8 +234,8 @@ window.verifyHubLogin = () => {
       showWelcomeSplash();
       if (document.getElementById('rememberMe')?.checked) {
         localStorage.setItem('hub-user', u);
-        localStorage.setItem('hub-pass', role === 'owner' ? p : '__acct__');
-      } else { localStorage.removeItem('hub-user'); localStorage.removeItem('hub-pass'); }
+        localStorage.setItem(REMEMBER_KEY, role === 'owner' ? DJB2(p) : '__acct__');
+      } else { localStorage.removeItem('hub-user'); localStorage.removeItem(REMEMBER_KEY); }
       const lb = document.getElementById('loginBlocker'); lb.style.opacity = '0';
       setTimeout(() => { lb.remove(); document.getElementById('hubMainContent').classList.remove('hidden'); document.getElementById('hubFooter')?.classList.remove('hidden'); }, 400);
       btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Accedi';
@@ -162,7 +249,7 @@ window.verifyHubLogin = () => {
         });
       }
     }
-    if (u === 'Ing' && p === 'Ing') { login('owner'); return; }
+    if (u === OWNER_USER && p === OWNER_PASS) { login('owner'); return; }
     if (!u || !p) { fail(); return; }
     if (!db) { fail(); return; }
     db.collection('accountsHub').where('username', '==', u).get().then(snap => {
@@ -178,11 +265,15 @@ window.verifyHubLogin = () => {
   }, 600);
 };
 (function autoLogin() {
+  if (localStorage.getItem('hub-pass') !== null) {
+    localStorage.removeItem('hub-pass');
+    localStorage.removeItem('hub-user');
+  }
   const u = localStorage.getItem('hub-user');
-  const p = localStorage.getItem('hub-pass');
-  if (u && p) {
-    if (u === 'Ing' && p === 'Ing') {
-      window.userRole = 'owner'; window.username = 'Ing';
+  const cred = localStorage.getItem(REMEMBER_KEY);
+  if (u && cred) {
+    if (u === OWNER_USER && cred === DJB2(OWNER_PASS)) {
+      window.userRole = 'owner'; window.username = OWNER_USER;
       showWelcomeSplash();
       const lb = document.getElementById('loginBlocker'); if (lb) lb.style.opacity = '0';
       setTimeout(() => { if (lb) lb.remove(); document.getElementById('hubMainContent').classList.remove('hidden'); document.getElementById('hubFooter')?.classList.remove('hidden'); setupPermissions();
@@ -253,9 +344,13 @@ window.toggleHubInfo = () => {
   p?.classList.toggle('hidden');
   if (!p?.classList.contains('hidden')) updateHubInfoClock();
 };
-window.openSidebar = () => document.getElementById('sidebar')?.classList.remove('hidden');
-window.closeSidebar = () => document.getElementById('sidebar')?.classList.add('hidden');
-window.toggleSidebar = () => document.getElementById('sidebar')?.classList.toggle('hidden');
+function setSidebar(open) {
+  document.getElementById('sidebar')?.classList.toggle('hidden', !open);
+  document.querySelectorAll('[data-overlay="sidebar"]').forEach(btn => btn.setAttribute('aria-expanded', String(open)));
+}
+window.openSidebar = () => setSidebar(true);
+window.closeSidebar = () => setSidebar(false);
+window.toggleSidebar = () => setSidebar(document.getElementById('sidebar')?.classList.contains('hidden'));
 document.getElementById('sidebarContent')?.addEventListener('click', e => {
   const btn = e.target.closest('.sidebar-btn');
   if (btn && btn.id !== 'hubInfoToggle') {
@@ -323,10 +418,21 @@ if (localStorage.getItem('eyeProtect') === '1') {
   if (icon) { icon.classList.remove('text-green-500'); icon.classList.add('text-amber-500'); }
 }
 let isChatCollapsed = true;
+window.closeChatPanel = () => {
+  const expanded = document.getElementById('chat-expanded');
+  if (!expanded || expanded.classList.contains('hidden')) return;
+  isChatCollapsed = true;
+  expanded.classList.add('hidden');
+  document.getElementById('chat-fab')?.classList.remove('hidden');
+};
 window.toggleChatCollapse = () => {
-  isChatCollapsed = !isChatCollapsed;
-  document.getElementById('chat-expanded').classList.toggle('hidden', isChatCollapsed);
-  document.getElementById('chat-fab').classList.toggle('hidden', !isChatCollapsed);
+  const expanded = document.getElementById('chat-expanded');
+  const fab = document.getElementById('chat-fab');
+  if (!expanded || !fab) return;
+  // Lo stato si legge dal DOM: il pannello può averlo nascosto modal-manager o goHome().
+  isChatCollapsed = !expanded.classList.contains('hidden');
+  expanded.classList.toggle('hidden', isChatCollapsed);
+  fab.classList.toggle('hidden', !isChatCollapsed);
 };
 
 window.toggleExcelModal = () => {
@@ -495,18 +601,34 @@ setupDropzone('dropzoneDoc', 'docFile', 'textDropDoc', 'docFileList');
 function escapeMarkdown(text) { return text.replace(/[_*`\[]/g, '\\$&'); }
 window.escapeMarkdown = escapeMarkdown;
 
+// Il token non deve mai viaggiare nel bundle: si passa da un endpoint proprio
+// (README → "Notifiche Telegram"). Il richiamo diretto resta solo per chi lo configura.
+async function sendTelegramMessage(payload) {
+  if (window.TELEGRAM_PROXY_URL) {
+    const res = await fetch(window.TELEGRAM_PROXY_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    });
+    return res.json().catch(() => ({ ok: false, description: 'Risposta non leggibile dal proxy' }));
+  }
+  if (window.TELEGRAM_BOT_TOKEN) {
+    const res = await fetch(`https://api.telegram.org/bot${window.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    });
+    return res.json().catch(() => ({ ok: false, description: 'Risposta non leggibile' }));
+  }
+  return { ok: false, description: 'Notifiche non configurate' };
+}
+window.sendTelegramMessage = sendTelegramMessage;
+
 async function sendTelegramBroadcast(text, targetRole) {
-  if (!TELEGRAM_BOT_TOKEN) return;
+  if (!window.TELEGRAM_PROXY_URL && !window.TELEGRAM_BOT_TOKEN) return;
   try {
     let query = db.collection('subscribers');
     if (targetRole) query = query.where('role', '==', targetRole);
     const snap = await query.get();
     await Promise.all(snap.docs.map(uDoc => {
       if (!uDoc.data().chatId) return;
-      return fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: uDoc.data().chatId, text, parse_mode: 'Markdown' })
-      }).catch(() => {});
+      return sendTelegramMessage({ chat_id: uDoc.data().chatId, text, parse_mode: 'Markdown' }).catch(() => {});
     }));
   } catch (e) { console.error('Telegram broadcast error:', e); }
 }
@@ -515,11 +637,11 @@ window.testTelegramNotification = async () => {
   const chatId = document.getElementById('telChatIdInput').value.trim();
   if (!chatId) return alert('Inserisci prima un Chat ID.');
   try {
-    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text: '\u{1F514} *Test notifica Engineering Hub*\n\nSe vedi questo messaggio, il bot funziona correttamente! \u2705', parse_mode: 'Markdown' })
+    const data = await sendTelegramMessage({
+      chat_id: chatId,
+      text: '\u{1F514} *Test notifica Engineering Hub*\n\nSe vedi questo messaggio, il bot funziona correttamente! \u2705',
+      parse_mode: 'Markdown'
     });
-    const data = await res.json();
     if (data.ok) alert('\u2705 Notifica inviata! Controlla Telegram.');
     else alert('\u274C Errore: ' + (data.description || 'Risposta sconosciuta'));
   } catch (e) { alert('\u274C Errore di rete: ' + e.message); }
@@ -817,7 +939,7 @@ window.deleteMyAccount = async function() {
     await db.collection('accountsHub').doc(snap.docs[0].id).delete();
   }
   localStorage.removeItem('hub-user');
-  localStorage.removeItem('hub-pass');
+  localStorage.removeItem(REMEMBER_KEY);
   showToast('Account eliminato. La pagina si ricaricherà.', 'success');
   setTimeout(() => location.reload(), 1500);
 };
@@ -898,7 +1020,7 @@ function renderCategoryList() {
   el.innerHTML = allCategories.map(c => {
     const used = allExcelFiles.filter(f => f.category === c.name).length;
     const canDel = window.userRole === 'owner' && used === 0;
-    return `<div class="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-lg border dark:border-slate-700 text-xs"><div class="flex items-center gap-2"><span class="text-sm">${c.emoji || '📁'}</span><span class="font-medium text-gray-700 dark:text-gray-200">${c.name}</span><span class="text-[10px] text-gray-400">${used} file</span></div>${canDel ? `<button onclick="deleteCategory('${c.id}')" class="text-gray-400 hover:text-red-500 cursor-pointer text-xs">✕</button>` : ''}</div>`;
+    return `<div class="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-lg border dark:border-slate-700 text-xs"><div class="flex items-center gap-2"><span class="text-sm">${escapeHtml(c.emoji || '📁')}</span><span class="font-medium text-gray-700 dark:text-gray-200">${escapeHtml(c.name)}</span><span class="text-[10px] text-gray-400">${used} file</span></div>${canDel ? `<button onclick="deleteCategory('${c.id}')" class="text-gray-400 hover:text-red-500 cursor-pointer text-xs">✕</button>` : ''}</div>`;
   }).join('');
 }
 setTimeout(() => { if (typeof renderCategoryList === 'function') renderCategoryList(); }, 1000);
@@ -933,7 +1055,7 @@ function renderFileList(containerId, files) {
   const container = document.getElementById(containerId);
   if (!container) return;
   if (!files || !files.length) { container.innerHTML = ''; return; }
-  const catOpts = '<option value="">— Nessuna —</option>' + allCategories.map(c => `<option value="${c.name}">${c.emoji || '📁'} ${c.name}</option>`).join('');
+  const catOpts = '<option value="">— Nessuna —</option>' + allCategories.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.emoji || '📁')} ${escapeHtml(c.name)}</option>`).join('');
   let html = '<div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1"><i class="fas fa-list"></i> File selezionati <span class="ml-auto bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full font-bold">' + files.length + '</span></div>';
   for (let i = 0; i < files.length; i++) {
     const f = files[i];
@@ -1198,19 +1320,19 @@ db.collection('categoriesHub').orderBy('createdAt', 'asc').onSnapshot(s => {
 }
 
 function populateFolderSelects() {
-  const html = '<option value="">\u2014 Nessuna \u2014</option>' + allFolders.map(f => `<option value="${f.id}" style="color:${f.color};font-weight:700">\u{1F4C1} ${f.name}</option>`).join('') + '<option value="__new__">\u2728 Nuova cartella...</option>';
+  const html = '<option value="">\u2014 Nessuna \u2014</option>' + allFolders.map(f => `<option value="${f.id}" style="color:${safeColor(f.color)};font-weight:700">\u{1F4C1} ${escapeHtml(f.name)}</option>`).join('') + '<option value="__new__">\u2728 Nuova cartella...</option>';
   ['excelFolder', 'docFolder'].forEach(id => { const el = document.getElementById(id); if (el) { const v = el.value; el.innerHTML = html; el.value = v; } });
   const filter = document.getElementById('folderFilter');
   if (filter) {
     const v = filter.value;
-    filter.innerHTML = '<option value="">\u{1F4C1} Tutte</option>' + allFolders.map(f => `<option value="${f.id}" style="color:${f.color}">\u{1F4C1} ${f.name}</option>`).join('');
+    filter.innerHTML = '<option value="">\u{1F4C1} Tutte</option>' + allFolders.map(f => `<option value="${f.id}" style="color:${safeColor(f.color)}">\u{1F4C1} ${escapeHtml(f.name)}</option>`).join('');
     filter.value = v;
   }
   renderFolderIcons();
 }
 
 function populateCategorySelects() {
-  const html = '<option value="">— Nessuna —</option>' + allCategories.map(c => `<option value="${c.name}">${c.emoji || '📁'} ${c.name}</option>`).join('');
+  const html = '<option value="">— Nessuna —</option>' + allCategories.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.emoji || '📁')} ${escapeHtml(c.name)}</option>`).join('');
   ['excelCategory'].forEach(id => { const el = document.getElementById(id); if (el) { const v = el.value; el.innerHTML = html; el.value = v; } });
 }
 
@@ -1242,7 +1364,7 @@ function renderFolderList() {
   const canEdit = id => { const f = allFolders.find(x => x.id === id); return window.userRole === 'owner' || (f && f.createdBy === window.username); };
   el.innerHTML = allFolders.map(f => `
     <div class="flex items-center gap-2 bg-gray-50 dark:bg-slate-800 p-2 rounded-lg border dark:border-slate-700">
-      <input type="color" id="fc_${f.id}" value="${f.color}" class="w-7 h-7 rounded cursor-pointer border border-gray-300 dark:border-gray-600 p-0.5 bg-white dark:bg-gray-700 shrink-0"${canEdit(f.id) ? '' : ' disabled'} />
+      <input type="color" id="fc_${f.id}" value="${safeColor(f.color)}" class="w-7 h-7 rounded cursor-pointer border border-gray-300 dark:border-gray-600 p-0.5 bg-white dark:bg-gray-700 shrink-0"${canEdit(f.id) ? '' : ' disabled'} />
       <input type="text" id="fn_${f.id}" value="${escapeHtml(f.name)}" class="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 outline-none focus:ring-1 focus:ring-blue-400 dark:text-white"${canEdit(f.id) ? '' : ' readonly'} />
       <span class="text-[10px] text-gray-400 hidden sm:block shrink-0">${escapeHtml(f.createdBy || '—')}</span>
       ${canEdit(f.id) ? `<button onclick="saveFolder('${f.id}',document.getElementById('fn_${f.id}'),document.getElementById('fc_${f.id}'))" class="text-green-500 hover:text-green-400 text-xs p-1 shrink-0" title="Salva"><i class="fas fa-check"></i></button><button onclick="deleteFolder('${f.id}')" class="text-gray-400 hover:text-red-500 text-xs p-1 shrink-0" title="Elimina"><i class="fas fa-trash-alt"></i></button>` : ''}
@@ -1471,7 +1593,7 @@ function combineAndRenderArchive() {
   pageItems.forEach(f => {
     const isGuest = window.userRole === 'guest';
     const folder = f.folderId ? getFolder(f.folderId) : null;
-    const color = folder?.color || '#6b7280';
+    const color = safeColor(folder?.color);
     const fName = folder?.name || 'Senza cartella';
     const tr = document.createElement('tr');
     tr.className = 'text-xs text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-800 hover:bg-slate-50/50';
@@ -1657,7 +1779,10 @@ let fvImgScale = 1;
 function renderImageFile(body, footer, dataUrl, title, ext) {
   body.classList.remove('is-3d');
   fvImgScale = 1;
-  body.innerHTML = `<div class="fv-scroll fv-img-stage" data-doc="1"><img id="fvImage" src="${dataUrl}" alt="${escapeHtml(title)}" style="transform:scale(1);transform-origin:top center" /></div>`;
+  body.innerHTML = '<div class="fv-scroll fv-img-stage" data-doc="1"><img id="fvImage" style="transform:scale(1);transform-origin:top center" /></div>';
+  const imgEl = body.querySelector('#fvImage');
+  imgEl.src = /^(?:data:image\/|https?:\/\/)/.test(String(dataUrl || '')) ? String(dataUrl) : '';
+  imgEl.alt = String(title || 'Immagine');
   fvSetFooter(footer,
     '<button onclick="window.fvImgZoom(-0.25)" class="fv-btn" title="Riduci" aria-label="Zoom out">\u2212</button>' +
     '<button onclick="window.fvImgZoom(0.25)" class="fv-btn" title="Ingrandisci" aria-label="Zoom in">\u002B</button>' +
@@ -1857,7 +1982,7 @@ async function renderWordFile(body, footer, dataUrl, ext) {
   for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
   const result = await mammoth.convertToHtml({ arrayBuffer: arr.buffer });
   body.classList.remove('is-3d');
-  body.innerHTML = `<div class="fv-scroll" data-doc="1"><div class="fv-doc-content">${result.value || '<p>Nessun contenuto</p>'}</div></div>`;
+  body.innerHTML = `<div class="fv-scroll" data-doc="1"><div class="fv-doc-content">${sanitizeHtml(result.value) || '<p>Nessun contenuto</p>'}</div></div>`;
   fvSetFooter(footer, `Anteprima ${ext} (${Math.round(arr.byteLength / 1024)} KB)`);
 }
 async function ensureThree() {
@@ -2066,7 +2191,7 @@ async function renderDwgFile(body, footer, dataUrl, title) {
       const svg = lib.dwg_to_svg(db);
       if (!svg || !svg.trim()) throw new Error('Nessun contenuto disegnabile trovato.');
       body.classList.remove('is-3d');
-      body.innerHTML = `<div class="fv-scroll" data-doc="1" style="display:block;text-align:center;padding:12px">${svg}</div>`;
+      body.innerHTML = `<div class="fv-scroll" data-doc="1" style="display:block;text-align:center;padding:12px">${sanitizeHtml(svg)}</div>`;
       const svgEl = body.querySelector('.fv-scroll svg');
       if (svgEl) {
         svgEl.style.maxWidth = '100%';
@@ -2268,7 +2393,7 @@ window.renderChatFromMemory = function() {
     } else {
       const d = document.createElement('div');
       d.className = 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-lg text-gray-800 dark:text-gray-200 max-w-[90%] text-xs font-normal shadow-sm';
-      d.innerHTML = typeof marked !== 'undefined' ? marked.parse(m.content) : String(m.content || '').replace(/\n/g, '<br>');
+      d.innerHTML = typeof marked !== 'undefined' ? sanitizeHtml(marked.parse(m.content)) : escapeHtml(String(m.content || '')).replace(/\n/g, '<br>');
       container.appendChild(d);
     }
   });
@@ -2399,7 +2524,7 @@ window.askAI = async () => {
   const mkReply = (md) => {
     const d = document.createElement('div');
     d.className = 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-lg text-gray-800 dark:text-gray-200 max-w-[90%] text-xs shadow-sm';
-    d.innerHTML = typeof marked !== 'undefined' ? marked.parse(md) : escapeHtml(md).replace(/\n/g, '<br>');
+    d.innerHTML = typeof marked !== 'undefined' ? sanitizeHtml(marked.parse(md)) : escapeHtml(md).replace(/\n/g, '<br>');
     container.appendChild(d);
     inputEl.disabled = false; sendBtn.disabled = false; inputEl.focus();
     container.scrollTop = container.scrollHeight;
@@ -2429,11 +2554,8 @@ window.askAI = async () => {
       let clean = raw.replace(/\s+/g, '').replace(/\^/g, '**');
       if (!/^[\d+\-*/().%^*]+$/.test(clean)) return null;
       if ((clean.match(/[+\-*/().%^]/g) || []).length > 40) return null;
-      try {
-        const v = new Function(`return (${clean})`)();
-        if (typeof v === 'number' && isFinite(v)) return v;
-      } catch (e) {}
-      return null;
+      const v = safeArithmetic(clean);
+      return (typeof v === 'number' && isFinite(v)) ? v : null;
     };
     const op = (/\d\s*[+*\/%^\-]\s*\d/).test(expr);
     if (!op) return null;
@@ -2575,13 +2697,13 @@ if (localModelReady && localGenerator) {
     const fileId = downloadMatch[1];
     const file = [...allTextFiles, ...allExcelFiles].find(f => f.id === fileId);
     if (file) {
-      replyText = replyText.replace(/\[DOWNLOAD:[^\]]+\]/, `<button onclick="window.downloadDocument('${fileId}')" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2 py-1 rounded cursor-pointer">\u{1F4E5} Scarica ${file.title || file.name}</button>`);
+      replyText = replyText.replace(/\[DOWNLOAD:[^\]]+\]/, `<button onclick="window.downloadDocument('${fileId}')" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2 py-1 rounded cursor-pointer">\u{1F4E5} Scarica ${escapeHtml(file.title || file.name || '')}</button>`);
     }
   }
 
   const replyDiv = document.createElement('div');
   replyDiv.className = 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-2.5 rounded-lg text-gray-800 dark:text-gray-200 max-w-[90%] text-xs font-normal shadow-sm';
-  replyDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(replyText) : replyText.replace(/\n/g, '<br>');
+  replyDiv.innerHTML = typeof marked !== 'undefined' ? sanitizeHtml(marked.parse(replyText)) : escapeHtml(replyText).replace(/\n/g, '<br>');
   container.appendChild(replyDiv);
   rememberChatTurn(queryText, replyText);
   saveChatToCloud();
@@ -2912,29 +3034,7 @@ function showSkeleton(el, rows) {
     el.innerHTML = Array.from({ length: rows }, () => '<div class="skel-row">' + cells.map(w => '<span class="skel" style="height:14px;width:' + w + '"></span>').join('') + '</div>').join('');
   }
 }
-// ─── ESC CHIUDE MODALI (accessibilità) ───────────────────────────────
-document.addEventListener('keydown', e => {
-  if (e.key !== 'Escape') return;
-  const fv = document.getElementById('fileViewerModal');
-  if (fv && !fv.classList.contains('hidden')) { closeFileViewer(); return; }
-  const ids = ['archiveModal', 'notesModal', 'teamModal', 'userModal', 'historyModal', 'statsModal', 'mtbfModal', 'newsModal', 'newsHistoryModal', 'subscribersModal', 'calcModal', 'folderManagerModal', 'hubInfoModal'];
-  for (const id of ids) {
-    const el = document.getElementById(id);
-    if (el && !el.classList.contains('hidden')) { el.classList.add('hidden'); return; }
-  }
-  const evV = document.getElementById('evViewerModal');
-  const evS = document.getElementById('evSelectModal');
-  if (evV && !evV.classList.contains('hidden')) { evV.classList.add('hidden'); return; }
-  if (evS && !evS.classList.contains('hidden')) { evS.classList.add('hidden'); return; }
-  const sidebar = document.getElementById('sidebar');
-  if (sidebar && !sidebar.classList.contains('hidden')) { sidebar.classList.add('hidden'); return; }
-  const ce = document.getElementById('chat-expanded');
-  if (ce && !ce.classList.contains('hidden')) {
-    ce.classList.add('hidden');
-    const fab = document.getElementById('chat-fab');
-    if (fab) fab.classList.remove('hidden');
-  }
-});
+// ─── ESC / CLIC FUORI / SOVRAPPOSIZIONE: js/modal-manager.js ──────────
 
 (function extraInit() {
   const ab = document.getElementById('archiveTableBody');
