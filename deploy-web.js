@@ -287,7 +287,7 @@ const server = http.createServer((req, res) => {
                 }
                 
                 // Run firebase deploy
-                exec(\`firebase deploy --only firestore:rules --project \${projectId}\`, 
+                exec(`firebase deploy --only firestore:rules --project ${projectId}`, 
                     (error, stdout, stderr) => {
                         res.writeHead(error ? 400 : 200, { 'Content-Type': 'application/json' });
                         

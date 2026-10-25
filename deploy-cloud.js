@@ -375,9 +375,9 @@ server.listen(PORT, () => {
     console.log('✅ Server avviato!');
     console.log('');
     console.log('📱 Apri da qualsiasi dispositivo:');
-    console.log(\`   http://localhost:\${PORT}\`);
+    console.log('   http://localhost:' + PORT);
     console.log('');
     console.log('🌍 O da telefono (stessa rete):');
-    console.log(\`   http://<IP-PC>:\${PORT}\`);
+    console.log('   http://<IP-PC>:' + PORT);
     console.log('');
 });

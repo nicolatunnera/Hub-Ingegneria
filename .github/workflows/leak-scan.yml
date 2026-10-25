@@ -1,0 +1,52 @@
+name: Leak scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cerca secret nei sorgenti committati
+        run: |
+          set -euo pipefail
+
+          git ls-files -z '*.js' '*.json' '*.html' '*.md' '*.txt' '*.rules' '*.yml' '*.yaml' '*.sh' > files.z
+
+          cat > patterns.txt <<'EOF'
+          [0-9]{8,10}:AA[A-Za-z0-9_-]{30,35}
+          AIza[0-9A-Za-z_-]{35}
+          -----BEGIN [A-Z ]*PRIVATE KEY-----
+          "type"[[:space:]]*:[[:space:]]*"service_account"
+          AKIA[0-9A-Z]{16}
+          gh[pousr]_[A-Za-z0-9]{36,}
+          EOF
+
+          # La apiKey Firebase del config web NON e' un secret: e' pubblica by design
+          # (identifica il progetto, non autorizza nulla). Ogni altra AIza e' un leak.
+          echo 'AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM' > expected-public.txt
+
+          hits=$(xargs -0 -r grep -nHE -f patterns.txt < files.z 2>/dev/null || true)
+          hits=$(echo "$hits" | grep -vF -f expected-public.txt || true)
+
+          if [ -n "$hits" ]; then
+            echo "$hits"
+            echo "::error::Possibile secret committato: ruota la chiave e spostala in una variabile d'ambiente"
+            exit 1
+          fi
+          echo "Nessun secret trovato."
+
+      - name: Controlla che i file di chiavi non siano tracciati
+        run: |
+          set -euo pipefail
+          tracked=$(git ls-files 'firebase-key.json' 'firebase-config.json' '.env' '.env.*' 'server/.env' || true)
+          if [ -n "$tracked" ]; then
+            echo "::error::File con chiavi tracciati nel repo: $tracked"
+            exit 1
+          fi
+          echo "Nessun file di chiavi tracciato."

@@ -31,6 +31,8 @@
 - 📱 **Responsive Design** - Mobile, tablet, desktop
 - 👁️ **Protezione Occhi** - Modalità sepia per ridurre l'affaticamento
 - 🔐 **Autenticazione** - Login, registrazione, "Remember Me"
+- 🪟 **Finestre** - Una finestra alla volta, click fuori o Esc per chiudere, link
+  diretti (`#archivio`, `#note`, `#stats`…) e ripristino dell'ultima finestra al refresh
 
 ---
 
@@ -44,11 +46,10 @@
 ### 1. Accesso Demo
 Visita direttamente: **https://nicolatunnera.github.io/Hub-Ingegneria**
 
-**Credenziali Demo:**
-```
-Username: Ing
-Password: Ing
-```
+> ⚠️ **Le credenziali non sono più pubblicate qui.** Fino alla versione 3.6.0 questo
+> file mostrava login e password dell'account owner, che è un controllo lato client:
+> chiunque le leggesse avrebbe avuto il ruolo `owner`. Cambiali (vedi
+> [Ruotare le credenziali owner](#ruotare-le-credenziali-owner)) e non rimetterle nel README.
 
 ### 2. Registrazione Account Personale
 Clicca su "Non hai un account? Registrati" e crea il tuo profilo
@@ -72,8 +73,11 @@ cd Hub-Ingegneria
 1. Vai su **https://console.firebase.google.com**
 2. Crea un nuovo progetto (es. "hub-ingegneria")
 3. Abilita **Firestore Database** (Modalità produzione)
-4. Abilita **Authentication** → Accesso Anonimo
+4. Abilita **Authentication** → **Email/Password** (l'accesso Anonimo è quello che
+   rende inutili le regole: vedi [Migrazione auth](#migrazione-auth))
 5. Copia la config in `js/config.js` (`window.firebaseConfig`)
+6. Se vuoi le notifiche Telegram, avvia il proxy e imposta `window.TELEGRAM_PROXY_URL`
+   (vedi [Notifiche Telegram](#notifiche-telegram))
 
 ### Aggiornare Firebase Config
 Cerca in `js/config.js` la sezione:
@@ -100,52 +104,109 @@ Attiva GitHub Pages nelle impostazioni del repo:
 
 ---
 
-## 🔒 Sicurezza Firebase
+## 🔒 Sicurezza
 
-### Firestore Rules (IMPORTANTE!)
-Vai su **Firebase Console → Firestore → Rules** e aggiorna con il contenuto di `firebase.rules` (già adattato alle collezioni reali: `accountsHub`, `excelHub`, `textHub`, `chunks`, `historyHub`, `subscribers`, `newsHub`, `notesHub`, `archiveFolders`, `categoriesHub`, `privateSpaceRequests`).
+### Stato attuale (leggere prima di tutto il resto)
 
-![Structure](https://img.shields.io/badge/collezioni-10-blue)
+`firebase.rules` oggi fa `allow read: if true` su tutte le collezioni: **chiunque,
+anche senza login, scarica file, documenti, note, storico e lista iscritti
+Telegram con la chat id**. È il problema più grosso di questo repo e non si risolve
+dal client — si risolve solo cambiando le regole, e le regole nuove hanno bisogno di
+un login vero. Per questo il lavoro è in due passi:
 
-```firestore
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    function isSignedIn() {
-      return request.auth != null && request.auth.uid != null;
-    }
-    // Lettura pubblica (login anonimo), scrittura solo autenticati
-    match /accountsHub/{docId} {
-      allow read: if true;
-      allow write: if isSignedIn();
-    }
-    match /excelHub/{fileId} {
-      allow read: if true;
-      allow write: if isSignedIn();
-      match /chunks/{chunkId} {
-        allow read: if true;
-        allow write: if isSignedIn();
-      }
-    }
-    match /textHub/{fileId} {
-      allow read: if true;
-      allow write: if isSignedIn();
-      match /chunks/{chunkId} {
-        allow read: if true;
-        allow write: if isSignedIn();
-      }
-    }
-    match /{collezioni}/{doc} {
-      allow read: if true;
-      allow write: if isSignedIn();
-    }
-  }
-}
+| File | Ruolo | Si può deployare adesso? |
+|------|-------|---------------------------|
+| `firebase.rules` | quelle in vigore: lettura pubblica, scrittura a chi ha un token (anche anonimo) | sì, sono già online |
+| `firebase.rules.auth-ready` | niente lettura pubblica, ruolo letto da `accountsHub/{uid}`, anonimi rifiutati | **no**: dopo la migrazione auth |
+
+Il pulsante "chiudi finestra" o "nascondi ai guest" nel codice **non è una protezione**:
+i dati arrivano comunque dal network. Le uniche due cose che contano sono le rules e
+il token di autenticazione.
+
+### Come verificare da soli che la lettura sia pubblica
+Apri il sito in incognito senza fare login, premi F12 e incolla:
+
+```javascript
+fetch('https://firestore.googleapis.com/v1/projects/<projectId>/databases/(default)/documents/textHub?key=<apiKey>')
+  .then(r => r.json()).then(d => console.log(d.documents ? d.documents.length + ' documenti visibili' : d));
 ```
 
-**⚠️ L'app usa Auth Anonimo**: ogni visitatore riceve un `uid` automaticamente, quindi le scritture restano sempre possibili per gli utenti reali mentre gli accessi via API non autenticata vengono bloccati.
+`<apiKey>` è quello in `js/config.js`: non è un secret, è la chiave pubblica del
+progetto Firebase. Se escono documenti, la lettura è aperta.
 
-**Nota:** non applicare le vecchie regole con `owner_uid` (erano per un modello dati diverso e romperebbero l'app).
+### Migrazione auth
+
+Obiettivo: sostituire l'accesso anonimo con un account reale, così le regole possono
+distinguere chi è dentro da chiunque apra il sito.
+
+1. **Firebase Console → Authentication → Sign-in method**
+   - Abilita **Email/Password** (o **Google** se preferisci).
+   - Lascia **Anonimo** disattivato: è quello che rende inutile `isSignedIn()`.
+2. **Authentication → Settings → Authorized domains**
+   - Aggiungi il dominio del sito (es. `nicolatunnera.github.io`) e `localhost`
+     solo per lo sviluppo.
+3. **Sostituisci il login nel client** (`js/app.js`, la funzione `verifyHubLogin` e i
+   due costanti `OWNER_USER` / `OWNER_PASS`): oggi confrontano stringhe salvate in
+   `accountsHub` e decidono il ruolo nel browser, vanno rimpiazzate da
+   `auth.createUserWithEmailAndPassword(email, pass)` e
+   `auth.signInWithEmailAndPassword(email, pass)`.
+4. **Migra gli account esistenti**: per ogni documento in `accountsHub` crea
+   l'utente in Console (Authentication → Users → Aggiungi utente) e usa il suo `uid`
+   come id del documento `accountsHub/{uid}`. Il campo `role` resta (`owner`, `user`, `guest`).
+5. **Aggiungi i campi che le regole controllano**: ogni `add()`/`set()` lato client deve
+   scrivere `ownerUid: auth.getUid()` e `createdAt: firebase.firestore.FieldValue.serverTimestamp()`.
+6. **Deploy delle regole nuove**
+   ```bash
+   cp firebase.rules.auth-ready firebase.rules
+   ./deploy-rules.sh     # oppure incolla il contenuto in Console → Firestore → Rules
+   ```
+7. **Test**: da una finestra incognito senza login la lista file deve venire vuota e
+   la console deve mostrare `Missing or insufficient permissions`; con login normale
+   tutto deve funzionare come prima.
+
+Se qualcosa si rompe, rimetti subito `firebase.rules` in Console: il sito torna
+funzionale (e di nuovo leggibile da tutti) in un click.
+
+### Ruotare le credenziali owner
+
+Il login `Ing` / `Ing` è hardcoded in `js/app.js` (`OWNER_USER` / `OWNER_PASS`) e il
+ruolo `owner` è deciso dal client, quindi è apribile da chiunque legga il bundle. Dopo
+la migrazione auth il ruolo non si indica più con una password condivisa: si toglie la
+costante e il ruolo resta solo nel documento `accountsHub/{uid}`. In attesa della
+migrazione, almeno cambia la password in `js/app.js` con una che non è pubblicata nel
+README e non è la password di qualcos'altro.
+
+### Notifiche Telegram
+
+Il bot token **non deve mai stare in `js/config.js`**: quel file viene spedito al
+browser, quindi qualsiasi token messo lì è pubblico per definizione (ed è così che il
+token di questo progetto è finito nel bundle e nella history git).
+
+Ora il flusso è: `app.js` → `POST <proxy>` → Telegram. Il proxy è in `server/telegram-proxy.js`
+e tiene il token in una variabile d'ambiente.
+
+```bash
+cd server
+npm init -y && npm install express firebase-admin
+export TELEGRAM_BOT_TOKEN="<nuovo token da @BotFather>"
+export FIRESTORE_PROJECT_ID="hub-ingegneria"
+node telegram-proxy.js
+```
+
+Poi in `js/config.js` imposta `window.TELEGRAM_PROXY_URL = "https://<host>/telegram"`.
+
+Note:
+- Serve un **service account JSON** (`Firebase Console → Settings → Service Accounts`)
+  da passare con `GOOGLE_APPLICATION_CREDENTIALS`. Non committarlo: `.gitignore` lo esclude.
+- Il proxy spinge solo chat id già presenti nella collezione `subscribers`: un attaccante
+  non può usarlo come spam relay verso indirizzi scelti da lui.
+- Limite di 10 richieste/minuto per IP e 3000 caratteri per messaggio.
+- Se `TELEGRAM_PROXY_URL` è vuoto, il client salta l'invio e mostra un avviso invece di
+  chiamare Telegram direttamente.
+- **Il token vecchio è compromesso e va revocato**: @BotFather → `/revoke` (o
+  `/token` per generarne uno nuovo). Rimuoverlo dal codice non basta, la history git lo
+  contiene ancora.
+
 
 ---
 
@@ -166,19 +227,27 @@ service cloud.firestore {
 ### Struttura Progetto
 ```
 Hub-Ingegneria/
-├── index.html          # App principale (monolitica)
-├── style.css           # Stili Tailwind + custom
-├── sw.js               # Service Worker (PWA, cache versionata per data)
-├── manifest.json       # PWA manifest
-├── firebase.rules      # Firestore security rules (collezioni reali)
-├── deploy-cloud.js     # Deployer rules da telefono (Firebase Admin)
-├── deploy-web.js       # Deployer rules via browser/CLI
-├── deploy-rules.sh     # Deployer rules via Firebase CLI
-├── icon-192.png        # App icon
-├── icon-512.png        # App icon large
+├── index.html              # App principale (monolitica)
+├── style.css               # Stili Tailwind + custom
+├── sw.js                   # Service Worker (PWA, cache versionata per data)
+├── manifest.json           # PWA manifest
+├── firebase.rules          # Regole in vigore (lettura pubblica: da sostituire)
+├── firebase.rules.auth-ready  # Regole pronte, da deployare dopo la migrazione auth
+├── deploy-cloud.js         # Deployer rules da telefono (Firebase Admin)
+├── deploy-web.js           # Deployer rules via browser/CLI
+├── deploy-rules.sh         # Deployer rules via Firebase CLI
+├── icon-192.png            # App icon
+├── icon-512.png            # App icon large
+├── .github/workflows/
+│   ├── check-syntax.yml    # node --check sui file JS principali
+│   └── leak-scan.yml       # blocca token/chiavi committati per errore
+├── server/
+│   └── telegram-proxy.js   # Proxy notifiche: qui vive il bot token, non nel bundle
 └── js/
-    ├── config.js       # Firebase config + i18n IT/EN + Telegram token
-    └── app.js          # Logica app
+    ├── config.js           # Firebase config pubblica + i18n IT/EN (con chiavi vuote)
+    ├── modal-manager.js    # Ciclo di vita finestre: sovrapposizioni, click fuori,
+    │                       #   Esc, focus trap, deep-link #finestra
+    └── app.js              # Logica app
 ```
 
 ### Tecnologie

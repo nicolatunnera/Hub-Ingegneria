@@ -1,4 +1,8 @@
-window.TELEGRAM_BOT_TOKEN = "8905574743:AAHWFbMJHflXvP07h2gSd__PpZ6ut_ZVld0";
+// Questo file viene spedito al browser: tutto quello che contiene è pubblico.
+// Non incollare qui token o password. Per le notifiche Telegram serve un endpoint
+// proprio (vedi README, sezione "Notifiche Telegram").
+window.TELEGRAM_PROXY_URL = "";
+window.TELEGRAM_BOT_TOKEN = "";
 window.AI_KEY = "";
 
 window.firebaseConfig = {

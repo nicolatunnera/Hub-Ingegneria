@@ -19,8 +19,11 @@
 └─────────────────────────────────────────────────────────────┘
 
 ┌─ LOGIN ─────────────────────────────────────────────────────┐
-│  Utente: Ing   Password: Ing                                │
-│  "Ricordami" salva in localStorage, auto-login al reload    │
+│  Utente/Password owner: in js/app.js (OWNER_USER/OWNER_PASS)│
+│  NON scriverle qui: questo file e' pubblico come il bundle  │
+│  "Ricordami" salva il digest in localStorage, non la password│
+│  Il ruolo owner deciso dal client e' aggirabile: migrazione │
+│  auth nel README -> firebase.rules.auth-ready               │
 └─────────────────────────────────────────────────────────────┘
 
 ┌─ AI (Chat Assistente) ──────────────────────────────────────┐
@@ -53,11 +56,13 @@
 └─────────────────────────────────────────────────────────────┘
 
 ┌─ TELEGRAM ──────────────────────────────────────────────────┐
-│  Bot token per notifiche broadcast:                          │
-│  GitHub Pages: hardcoded in js/config.js                     │
-│  Render: via env TELEGRAM_BOT_TOKEN → localStorage           │
+│  Bot token: NON nel bundle. Prima stava in js/config.js,    │
+│  ora sta nell'env di server/telegram-proxy.js               │
+│  Il client chiama window.TELEGRAM_PROXY_URL; se è vuoto     │
+│  le notifiche si saltano, nessuna chiamata diretta a TG.    │
+│  Token vecchio gia' compromesso: @BotFather -> /revoke      │
 │  Bot: @HubEngineerBot                                       │
-│  Broadcast: a tutti i subscribers con chatId salvato         │
+│  Broadcast: solo chatId gia' presenti in subscribers        │
 └─────────────────────────────────────────────────────────────┘
 
 ┌─ FIRESTORE (solo GitHub Pages) ─────────────────────────────┐
