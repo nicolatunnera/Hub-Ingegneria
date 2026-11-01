@@ -1,0 +1,151 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// BOZZA DI REGOLE PROPOSTA DA UN ALTRO AGENTE IL 2026-11-01 — NON DEPLOYARE
+//
+// Salvata qui per non perdere il lavoro. È la versione che è stata pubblicata
+// in console e che ha svuotato l'archivio: letture negate su excelHub, textHub,
+// notesHub, subscribers e accountsHub (permessi "insufficienti"), mentre
+// archiveFolders, categoriesHub e historyHub continuavano a leggere perché
+// chiedono solo isSignedIn().
+//
+// Perché non funziona con il client di oggi
+//   1. canSeePrivate()/isMine() leggono data.private e data.ownerUid, campi che
+//      nessun documento in cloud contiene: il client non li ha mai scritti.
+//   2. Una `list` negata anche per un solo documento fa fallire l'intera query,
+//      quindi l'archivio risulta vuoto invece di mostrare i file pubblici.
+//   3. accountsHub è leggibile solo a self/owner, ma il login cerca l'utente con
+//      where('username','==',...) → accesso impossibile per gli utenti normali.
+//   4. hasOwnerMeta() esige ownerUid+createdAt su OGNI create, categorie e
+//      cartelle comprese → nessuna creazione passa più.
+//   5. historyHub richiede ownerUid == uid, ma le voci di storico scrivono solo
+//      uploadedBy/name/timestamp → ogni upload fallisce dopo il caricamento.
+//   6. Manca chatHub: la collezione usata dalla persistenza della chat IA non è
+//      nominata in nessuna regola, quindi resta chiusa (lo è già oggi).
+//
+// Il bug che blocca anche dopo la migrazione auth
+//   userDoc(uid) = get(/accountsHub/$(uid)) presume che il documento account
+//   abbia come id l'uid. In questo database gli id sono automatici e
+//   l'identificatore umano è il campo username. myRole() quindi non trova mai il
+//   documento: isOwner() è falso sempre, anche per l'owner reale, e il get() su
+//   un documento inesistente fa fallire l'intera valutazione della regola.
+//   Con queste regole e un login Email/Password attivo nessuno, né tu né gli
+//   admin, riuscirebbe più a leggere o scrivere nulla.
+//
+// Le idee da recuperare quando il client sarà pronto
+//   - fallback deny-all su match /{document=**}
+//   - ruolo non assegnabile dal client (update che non tocca role/uid)
+//   - addio alla lettura pubblica incondizionata
+// La versione corretta e coerente è in firebase.rules.auth-ready.
+// ═══════════════════════════════════════════════════════════════════════════
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    function userDoc(uid) {
+      return get(/databases/$(database)/documents/accountsHub/$(uid));
+    }
+
+    function myRole() {
+      return isSignedIn() ? userDoc(request.auth.uid).data.role : 'guest';
+    }
+
+    function isOwner() {
+      return isSignedIn() && myRole() == 'owner';
+    }
+
+    function isMine(data) {
+      return isSignedIn() && data.ownerUid == request.auth.uid;
+    }
+
+    function canSeePrivate(data) {
+      return !data.private || isOwner() || isMine(data);
+    }
+
+    function hasOwnerMeta() {
+      return request.resource.data.keys().hasAll(['ownerUid', 'createdAt']) &&
+             request.resource.data.ownerUid == request.auth.uid;
+    }
+
+    match /accountsHub/{uid} {
+      allow read: if isOwner() || (isSignedIn() && uid == request.auth.uid);
+      allow create: if isSignedIn()
+        && uid == request.auth.uid
+        && request.resource.data.role == 'user'
+        && request.resource.data.uid == uid;
+      allow update: if isOwner()
+        || (isSignedIn() && uid == request.auth.uid
+            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'uid']));
+      allow delete: if isOwner();
+    }
+
+    match /excelHub/{fileId} {
+      allow read: if resource.data == null || canSeePrivate(resource.data);
+      allow create: if isSignedIn() && hasOwnerMeta();
+      allow update, delete: if isOwner() || isMine(resource.data);
+      match /chunks/{chunkId} {
+        allow read: if isOwner() || isMine(get(/databases/$(database)/documents/excelHub/$(fileId)).data);
+        allow write: if isOwner() || isMine(get(/databases/$(database)/documents/excelHub/$(fileId)).data);
+      }
+    }
+
+    match /textHub/{fileId} {
+      allow read: if resource.data == null || canSeePrivate(resource.data);
+      allow create: if isSignedIn() && hasOwnerMeta();
+      allow update, delete: if isOwner() || isMine(resource.data);
+      match /chunks/{chunkId} {
+        allow read: if isOwner() || isMine(get(/databases/$(database)/documents/textHub/$(fileId)).data);
+        allow write: if isOwner() || isMine(get(/databases/$(database)/documents/textHub/$(fileId)).data);
+      }
+    }
+
+    match /notesHub/{docId} {
+      allow read: if resource.data == null || canSeePrivate(resource.data);
+      allow create: if isSignedIn() && hasOwnerMeta();
+      allow update, delete: if isOwner() || isMine(resource.data);
+    }
+
+    match /historyHub/{entryId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if isOwner() || isMine(resource.data);
+    }
+
+    match /categoriesHub/{docId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && hasOwnerMeta();
+      allow update, delete: if isOwner() || isMine(resource.data);
+    }
+
+    match /archiveFolders/{docId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && hasOwnerMeta();
+      allow update, delete: if isOwner() || isMine(resource.data);
+    }
+
+    match /subscribers/{docId} {
+      allow read: if isOwner() || (isSignedIn() && resource.data.ownerUid == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if isOwner() || isMine(resource.data);
+    }
+
+    match /privateSpaceRequests/{docId} {
+      allow read: if isOwner() || (isSignedIn() && resource.data.ownerUid == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if isOwner();
+    }
+
+    match /newsHub/{docId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner() && hasOwnerMeta();
+      allow update, delete: if isOwner();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -118,10 +118,43 @@ un login vero. Per questo il lavoro è in due passi:
 |------|-------|---------------------------|
 | `firebase.rules` | quelle in vigore: lettura pubblica, scrittura a chi ha un token (anche anonimo) | sì, sono già online |
 | `firebase.rules.auth-ready` | niente lettura pubblica, ruolo letto da `accountsHub/{uid}`, anonimi rifiutati | **no**: dopo la migrazione auth |
+| `firebase.rules.agent-proposed.txt` | bozza esterna (2026-11-01), archiviata con i suoi difetti elencati in testa | **no**: romperebbe lettura e scrittura |
 
 Il pulsante "chiudi finestra" o "nascondi ai guest" nel codice **non è una protezione**:
 i dati arrivano comunque dal network. Le uniche due cose che contano sono le rules e
 il token di autenticazione.
+
+### Incidente 2026-11-01: regole pubblicate da un altro agente
+
+Sintomo: archivio e note vuoti, `Missing or insufficient permissions` su `excelHub`,
+`textHub`, `notesHub`, `subscribers`, `accountsHub`; `archiveFolders`, `categoriesHub`
+e `historyHub` continuavano a leggere perché chiedevano solo `isSignedIn()`. Nessun
+commit del repo era coinvolto: la modifica era solo nella console Firebase.
+
+Causa: regole che pretendono campi che il client non ha mai scritto (`ownerUid`,
+`createdAt`, `private`). In Firestore una `list` negate anche per un solo documento
+fa fallire **tutta** la query, quindi l'archivio appare vuoto invece di mostrare i
+file non privati.
+
+Ripristino (2 minuti, è l'unica strada finché il client non scrive quei campi):
+Console → Firestore → Regole → incolla il contenuto di `firebase.rules` → Pubblica.
+
+Due difetti delle regole dell'altro agente da non ripetere:
+- `get(/databases/$(database)/documents/accountsHub/$(uid))` presume che il documento
+  account abbia come id l'uid. Qui gli id sono automatici e l'identificatore è il campo
+  `username`: `isOwner()` risulta falso sempre, anche per l'owner vero, e il `get()` su
+  un documento inesistente fa fallire l'intera regola. Con login reale e queste regole
+  nessuno riuscirebbe più a leggere o scrivere nulla.
+- `!data.private` e `data.ownerUid == uid` su documenti che quei campi non ce l'hanno.
+
+### Buco separato: la collezione `chatHub` non è in nessuna regola
+
+`js/app.js` salva la conversazione IA in `chatHub/{username}` (`saveChatToCloud` /
+`loadChatFromCloud`), ma né `firebase.rules` né la bozza esterna nominano `chatHub`:
+senza un match esplicito l'accesso è negato, e la persistenza della chat funziona solo
+con `localStorage`. Prima di aggiungerla servono però i nomi delle collezioni usati dal
+client (`chatHub` incluso) e una decisione: tenere le trascrizioni leggibili solo al
+proprietario richiede un campo `uid` nel documento, che oggi non viene scritto.
 
 ### Come verificare da soli che la lettura sia pubblica
 Apri il sito in incognito senza fare login, premi F12 e incolla:
@@ -248,6 +281,7 @@ Hub-Ingegneria/
 ├── manifest.json           # PWA manifest
 ├── firebase.rules          # Regole in vigore (lettura pubblica: da sostituire)
 ├── firebase.rules.auth-ready  # Regole pronte, da deployare dopo la migrazione auth
+├── firebase.rules.agent-proposed.txt  # Bozza esterna 2026-11-01, NON deployabile (note in testa)
 ├── deploy-cloud.js         # Deployer rules da telefono (Firebase Admin)
 ├── deploy-web.js           # Deployer rules via browser/CLI
 ├── deploy-rules.sh         # Deployer rules via Firebase CLI
