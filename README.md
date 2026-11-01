@@ -220,10 +220,8 @@ e tiene il token in una variabile d'ambiente.
 
 ```bash
 cd server
-npm install                 # dependencies già dichiarate in server/package.json
-TELEGRAM_BOT_TOKEN="<nuovo token da @BotFather>" \
-FIREBASE_KEY="$(cat ../firebase-key.json)" \
-node telegram-proxy.js
+npm install                 # basta express: serve solo il token
+TELEGRAM_BOT_TOKEN="<nuovo token da @BotFather>" node telegram-proxy.js
 ```
 
 Poi in `js/config.js` imposta `window.TELEGRAM_PROXY_URL = "https://<host>/telegram"`.
@@ -232,28 +230,39 @@ Poi in `js/config.js` imposta `window.TELEGRAM_PROXY_URL = "https://<host>/teleg
 
 | KEY | VALUE | Note |
 | --- | --- | --- |
-| `TELEGRAM_BOT_TOKEN` | il token nuovo dato da @BotFather (`123456789:AA...`) | obbligatoria; senza, il processo si ferma |
-| `FIREBASE_KEY` | il **contenuto** del JSON del service account, tutto in una riga | il modo più semplice su Render: "Add Environment Variable" e incolla il file |
+| `TELEGRAM_BOT_TOKEN` | il token nuovo dato da @BotFather (`123456789:AA...`) | **l'unica obbligatoria**; senza, il processo si ferma |
+| `FIREBASE_KEY` | il **contenuto** del JSON del service account, tutto in una riga | facoltativa oggi; serve quando le regole Firestore diventeranno private |
 | `FIREBASE_KEY_JSON` | il **path** del file (es. env di tipo *Secret File* su Render) | alternativa a `FIREBASE_KEY`; ha la precedenza `FIREBASE_KEY` |
 | `TELEGRAM_ALLOWED_ORIGINS` | `https://nicolatunnera.github.io` (più valori separati da virgola) | facoltativa: se vuota vale la lista di default (`*.github.io`, `*.onrender.com`, `localhost`) |
 | `PORT` | — | la imposta il hosting; non crearla a mano |
 
-Il service account JSON si prende da **Firebase Console → ⚙ Project settings → Service
-accounts → Generate new private key**. Dà accesso **amministrativo** al progetto: va solo
-dentro le variabili d'ambiente del server, mai nel repo (`.gitignore` lo esclude e il
-workflow *Leak scan* blocca il deploy se viene committato).
+Il proxy legge la lista iscritti in due modi e sceglie da solo quale ha a disposizione:
+
+- **modo `rest`** (default, nessuna chiave da configurare): legge `subscribers` con l'API
+  REST di Firestore usando l'apiKey già pubblica in `js/config.js`. Funziona con le regole
+  in vigore oggi, che permettono la lettura.
+- **modo `admin`**: se trova un service account (`FIREBASE_KEY` o `FIREBASE_KEY_JSON`)
+  usa quello, e continua a funzionare anche quando le regole saranno chiuse. Il service
+  account si prende da **Firebase Console → ⚙ Project settings → Service accounts →
+  Generate new private key** e dà accesso **amministrativo** al progetto: va solo nelle
+  variabili d'ambiente del server, mai nel repo (`.gitignore` lo esclude e il workflow
+  *Leak scan* blocca il deploy se viene committato).
+
+Nota: quando metterai in vigore `firebase.rules.auth-ready`, il modo `rest` smetterà di
+leggere gli iscritti e il proxy lo dirà con un `readError` su `/health`. A quel punto
+configura `FIREBASE_KEY` per passare al modo `admin`.
 
 Note:
 - Il proxy spinge solo chat id già presenti nella collezione `subscribers`: un attaccante
   non può usarlo come spam relay verso indirizzi scelti da lui.
 - Limite di 10 richieste/minuto per IP e 3000 caratteri per messaggio.
-- Verifica dopo il deploy: apri `https://<host>/health` nel browser, deve rispondere
-  `{"ok":true,"service":"telegram-proxy"}`.
+- Verifica dopo il deploy: apri `https://<host>/health` nel browser. Risposta buona:
+  `{"ok":true,"service":"telegram-proxy","mode":"rest","subscribers":1}`.
+  Se compare `readError`, le regole Firestore non fanno leggere `subscribers`.
 - Se `TELEGRAM_PROXY_URL` è vuoto, il client salta l'invio e mostra un avviso invece di
   chiamare Telegram direttamente.
-- **Il token vecchio è compromesso e va revocato**: @BotFather → `/revoke` (o
-  `/token` per generarne uno nuovo). Rimuoverlo dal codice non basta, la history git lo
-  contiene ancora.
+- **Il token vecchio è revocato**: se le notifiche non partono e Telegram risponde
+  `401 Unauthorized`, rigeneralo con @BotFather (`/token`) e aggiorna `TELEGRAM_BOT_TOKEN`.
 
 
 ---

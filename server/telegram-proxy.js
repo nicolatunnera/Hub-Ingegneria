@@ -5,11 +5,17 @@
  * Nasconde il token del bot al browser: il client chiama questo endpoint,
  * il token resta nel server (variabile d'ambiente).
  *
- * Deploy: nuovo Web Service su Render con Root directory = server (build `npm install`,
- * start `npm start`), oppure copia questo file nell'app Render già esistente
- * (Engineering-Hub) aggiungendo express e firebase-admin.
- *   npm install
- *   TELEGRAM_BOT_TOKEN=...  FIREBASE_KEY=<contenuto della chiave.json>  node telegram-proxy.js
+ * Deploy: nuovo Web Service su Render, Root directory = server,
+ * build `npm install`, start `npm start`.
+ * Unica variabile d'ambiente obbligatoria: TELEGRAM_BOT_TOKEN.
+ *
+ * Gli iscritti alla newsletter si leggono in due modi:
+ *   - ADMIN  : service account (FIREBASE_KEY / FIREBASE_KEY_JSON), necessario
+ *              quando le regole Firestore diventeranno private;
+ *   - REST   : API pubblica di Firestore con l'apiKey del client, usata quando
+ *              il service account non c'è. Funziona finché le regole in vigore
+ *              lasciano leggere la collezione `subscribers`.
+ * Il proxy parte comunque: sceglie il modo disponibile e lo dice su /health.
  *
  * Poi nel client (js/config.js):
  *   window.TELEGRAM_PROXY_URL = "https://<host>/telegram";
@@ -22,13 +28,17 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const express = require('express');
-const admin = require('firebase-admin');
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 if (!TOKEN) {
   console.error('TELEGRAM_BOT_TOKEN non impostata');
   process.exit(1);
 }
+
+const PROJECT = process.env.FIRESTORE_PROJECT || 'hub-ingegneria';
+// apiKey già pubblica in js/config.js: serve solo come credenziale di lettura
+// REST, non è un segreto e non lo diventa qui.
+const API_KEY = process.env.FIRESTORE_API_KEY || 'AIzaSyA5nEN5QiDwSxIShJdwmpbEoHKkEkNLIxM';
 
 // La chiave service account arriva o come JSON incollato nella variabile
 // FIREBASE_KEY, o come path del file in FIREBASE_KEY_JSON (su Render:
@@ -42,6 +52,42 @@ function serviceAccount() {
   return JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'firebase-key.json'), 'utf8'));
 }
 
+// firebase-admin si carica solo se il service account esiste: senza, il
+// modulo resterebbe una dipendenza da installare e inizializzare per niente.
+let db = null;
+let mode = 'rest';
+
+function tryAdmin() {
+  let account;
+  try {
+    account = serviceAccount();
+  } catch (e) {
+    return { reason: 'service account non configurato o file non leggibile: ' + e.message };
+  }
+  let admin;
+  try {
+    admin = require('firebase-admin');
+  } catch (e) {
+    return { reason: 'pacchetto firebase-admin non installato: npm install firebase-admin' };
+  }
+  try {
+    admin.initializeApp({ credential: admin.credential.cert(account) });
+    return { db: admin.firestore() };
+  } catch (e) {
+    return { reason: 'inizializzazione Admin SDK fallita: ' + e.message };
+  }
+}
+
+const adminSetup = tryAdmin();
+if (adminSetup.db) {
+  db = adminSetup.db;
+  mode = 'admin';
+  console.log('Lettura iscritti: service account (modo admin).');
+} else {
+  console.log('Lettura iscritti: API REST pubblica di Firestore. Motivo: ' + adminSetup.reason);
+  console.log('Funziona finché le regole in vigore fanno leggere la collezione `subscribers`.');
+}
+
 // Solo nomi e lunghezze: il contenuto della chiave non deve finire nei log.
 function envSummary() {
   const inline = process.env.FIREBASE_KEY;
@@ -50,18 +96,56 @@ function envSummary() {
     ' · FIREBASE_KEY_JSON ' + (keyPath ? '= ' + keyPath : 'vuota');
 }
 
-console.log('Cerco la chiave service account: ' + envSummary());
-
-try {
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccount()) });
-} catch (e) {
-  console.error('Chiave service account mancante o non leggibile (' + e.message + ').');
-  console.error('Cosa ho visto: ' + envSummary());
-  console.error('Metti il contenuto del file JSON nella variabile FIREBASE_KEY,');
-  console.error('oppure il path del file in FIREBASE_KEY_JSON (su Render: "Add Secret File").');
-  process.exit(1);
+function restValue(v) {
+  if (!v) return '';
+  if ('stringValue' in v) return v.stringValue;
+  if ('integerValue' in v || 'doubleValue' in v) return String(v.integerValue ?? v.doubleValue);
+  if ('booleanValue' in v) return v.booleanValue ? 'true' : '';
+  return '';
 }
-const db = admin.firestore();
+
+async function subscribersFromRest() {
+  const base = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/subscribers`;
+  const rows = [];
+  let pageToken = '';
+  do {
+    const params = new URLSearchParams({ key: API_KEY, pageSize: '300' });
+    if (pageToken) params.set('pageToken', pageToken);
+    const res = await fetch(base + '?' + params);
+    if (!res.ok) {
+      const detail = (await res.text().catch(() => '')).slice(0, 160);
+      throw new Error('Firestore REST ' + res.status + ': ' + detail +
+        ' (regole troppo strette? imposta FIREBASE_KEY per usare il service account)');
+    }
+    const json = await res.json();
+    for (const doc of json.documents || []) {
+      const f = doc.fields || {};
+      rows.push({ chatId: String(restValue(f.chatId)), role: String(restValue(f.role)) });
+    }
+    pageToken = json.nextPageToken || '';
+  } while (pageToken);
+  return rows;
+}
+
+async function subscribersFromAdmin() {
+  const snapshot = await db.collection('subscribers').get();
+  return snapshot.docs.map(d => {
+    const f = d.data();
+    return { chatId: String(f.chatId || ''), role: String(f.role || '') };
+  });
+}
+
+// Breve cache: la lista iscritti cambia di rado e il REST paga un giro di rete
+// per ogni notifica. Un errore non viene messo in cache.
+const CACHE_MS = 30000;
+let cache = { at: 0, rows: null };
+
+async function subscribers() {
+  if (cache.rows && Date.now() - cache.at < CACHE_MS) return cache.rows;
+  const rows = await (db ? subscribersFromAdmin() : subscribersFromRest());
+  cache = { at: Date.now(), rows };
+  return rows;
+}
 
 const WINDOW_MS = 60000;
 const MAX_REQUESTS = 10;
@@ -77,15 +161,14 @@ function rateLimited(ip) {
 }
 
 async function resolveChatIds(body) {
+  const rows = await subscribers();
   if (body.chat_id) {
-    const snapshot = await db.collection('subscribers').where('chatId', '==', String(body.chat_id)).limit(1).get();
-    if (snapshot.empty) throw new Error('chat_id non iscritto');
-    return [String(body.chat_id)];
+    const wanted = String(body.chat_id);
+    if (!rows.some(r => r.chatId === wanted)) throw new Error('chat_id non iscritto');
+    return [wanted];
   }
-  let query = db.collection('subscribers');
-  if (body.role) query = query.where('role', '==', body.role);
-  const snapshot = await query.get();
-  return snapshot.docs.map(doc => doc.data().chatId).filter(Boolean);
+  const role = body.role ? String(body.role) : '';
+  return rows.filter(r => r.chatId && (!role || r.role === role)).map(r => r.chatId);
 }
 
 const app = express();
@@ -122,8 +205,19 @@ app.use((req, res, next) => {
   next();
 });
 
-// Controllo rapido dal browser: deve rispondere {"ok":true,"service":"telegram-proxy"}.
-app.get('/health', (req, res) => res.json({ ok: true, service: 'telegram-proxy' }));
+// Controllo rapido dal browser: apri https://<host>/health e guarda "mode" e
+// "subscribers". Se mode dice "rest" e subscribers dà un errore, le regole
+// Firestore non permettono la lettura della lista iscritti.
+app.get('/health', async (req, res) => {
+  const out = { ok: true, service: 'telegram-proxy', mode };
+  try {
+    out.subscribers = (await subscribers()).length;
+  } catch (e) {
+    out.subscribers = 0;
+    out.readError = e.message;
+  }
+  res.json(out);
+});
 
 app.use(express.json({ limit: '8kb' }));
 
@@ -134,7 +228,7 @@ app.post('/telegram', async (req, res) => {
   if (!text.trim()) return res.status(400).json({ ok: false, description: 'Testo mancante' });
   try {
     const chatIds = await resolveChatIds(body);
-    if (!chatIds.length) return res.json({ ok: true, sent: 0 });
+    if (!chatIds.length) return res.json({ ok: true, sent: 0, total: 0 });
     const results = await Promise.allSettled(chatIds.map(chatId =>
       fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
         method: 'POST',
@@ -150,4 +244,5 @@ app.post('/telegram', async (req, res) => {
   }
 });
 
+console.log('Variabili lette: ' + envSummary());
 app.listen(process.env.PORT || 3001, () => console.log('telegram-proxy in ascolto su ' + (process.env.PORT || 3001)));
