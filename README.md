@@ -178,27 +178,48 @@ distinguere chi è dentro da chiunque apra il sito.
 2. **Authentication → Settings → Authorized domains**
    - Aggiungi il dominio del sito (es. `nicolatunnera.github.io`) e `localhost`
      solo per lo sviluppo.
-3. **Sostituisci il login nel client** (`js/app.js`, la funzione `verifyHubLogin` e i
-   due costanti `OWNER_USER` / `OWNER_PASS`): oggi confrontano stringhe salvate in
-   `accountsHub` e decidono il ruolo nel browser, vanno rimpiazzate da
-   `auth.createUserWithEmailAndPassword(email, pass)` e
-   `auth.signInWithEmailAndPassword(email, pass)`.
-4. **Migra gli account esistenti**: per ogni documento in `accountsHub` crea
-   l'utente in Console (Authentication → Users → Aggiungi utente) e usa il suo `uid`
-   come id del documento `accountsHub/{uid}`. Il campo `role` resta (`owner`, `user`, `guest`).
-5. **Aggiungi i campi che le regole controllano**: ogni `add()`/`set()` lato client deve
-   scrivere `ownerUid: auth.getUid()` e `createdAt: firebase.firestore.FieldValue.serverTimestamp()`.
+3. **Client** — fatto nel commit "auth: account Firebase veri":
+   - `verifyHubLogin` prova in ordine: credenziali nel bundle (porta vecchia),
+     account Firebase, tabella `accountsHub` con hash DJB2 (account nati prima).
+   - L'email Firebase è sintetizzata dall'username: `<username>@hub-ingegneria.app`.
+     È un dominio fittizio, non ci arriva posta: serve solo perché Firebase identifica
+     gli account con un'email.
+   - `registerHubAccount` (pulsante "Registrati") crea l'utente con
+     `createUserWithEmailAndPassword` e scrive il profilo in `accountsHub/{uid}` con
+     `role: 'user'`.
+   - Le scritture si firmano da sole: `add()` e `set()` sono avvolti da `stampOwner()`,
+     che aggiunge `ownerUid` (uid dell'account vero) e `createdAt`
+     (`FieldValue.serverTimestamp()`, quindi il client non può mentire) se mancano.
+   - `hubLogout()` chiude la sessione; `onAuthStateChanged` la ripristina all'avvio e
+     ripiega sul login anonimo quando non c'è un account.
+4. **Crea il tuo account**: dal sito → *Non hai un account? Registrati*, poi promuoviti:
+   **Firebase Console → Firestore Database → `accountsHub` → il documento con il tuo uid
+   → modifica `role` da `user` a `owner`**. Da loggato con un account reale puoi anche
+   cancellare i tre documenti `accountsHub` vecchi (id random, password DJB2): non sono
+   utenti Firebase e con le regole nuove non servono.
+5. **Backfill dei documenti esistenti** (finché le regole sono ancora permissive):
+   loggato come owner, apri la console del browser e lancia
+   ```js
+   await hubBackfillOwners()
+   ```
+   Firma `ownerUid` + `createdAt` sui file caricati prima della migrazione. Senza
+   questo passaggio, dopo il punto 6 i vecchi file restano leggibili ma **non si
+   possono più cancellare o rinominare**, perché le regole nuove chiedono `ownerUid`.
 6. **Deploy delle regole nuove**
    ```bash
    cp firebase.rules.auth-ready firebase.rules
    ./deploy-rules.sh     # oppure incolla il contenuto in Console → Firestore → Rules
    ```
+   Fallo solo dopo il punto 4 e 5: con le regole chiuse l'accesso dal bundle (`Ing`/`Ing`)
+   non basta più per scrivere, serve un account Firebase. Se qualcosa si rompe, rimetti
+   subito `firebase.rules` in Console: il sito torna funzionante (e di nuovo leggibile da
+   tutti) in un click.
 7. **Test**: da una finestra incognito senza login la lista file deve venire vuota e
    la console deve mostrare `Missing or insufficient permissions`; con login normale
    tutto deve funzionare come prima.
-
-Se qualcosa si rompe, rimetti subito `firebase.rules` in Console: il sito torna
-funzionale (e di nuovo leggibile da tutti) in un click.
+8. **A migrazione avvenuta**, in Authentication → Sign-in method disattiva **Anonimo**:
+   le regole nuove lo rifiutano già, ma toglierlo chiude anche il foro delle regole
+   vecchie nel caso dovessi rideployarle.
 
 ### Ruotare le credenziali owner
 
@@ -369,6 +390,7 @@ MIT License - Vedi LICENSE file
 
 | Versione | Data | Novità |
 |----------|------|--------|
+| **3.7.0** | 2026-11-01 | 🔐 Account Firebase veri: login/registrazione con Email/Password, scritture firmate (`ownerUid` + `createdAt`), `hubBackfillOwners()`, logout, avviso quando le letture sono riservate |
 | **3.6.0** | 2026-09-10 | 💎 Viewer file integrato: PDF, Word (.docx), STEP/STP 3D (occt-import-js WASM + Three.js), DXF 2D |
 | **3.5.1** | 2026-09-10 | ✨ Supporto file STEP/STP, security rules adattate, deploy script, doc completa |
 | **3.5.0** | 2025-01-20 | Mobile-layout fixes, chunking Firestore per file grandi |

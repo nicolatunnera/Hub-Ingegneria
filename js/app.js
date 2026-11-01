@@ -1,6 +1,6 @@
 // ─── GLOBAL ERROR HANDLER ────────────────────────────────────────────
 window.onerror = function(msg, url, line) { try { if (window.showToast) window.showToast('JS: ' + msg + ' (riga ' + line + ')', 'error'); } catch(e) {} console.error(msg, url, line); };
-console.log('Engineering Cloud Hub v3.6.0');
+console.log('Engineering Cloud Hub v3.7.0');
 
 // ─── TOAST (override) ────────────────────────────────────────────────
 window.alert = window.showToast || function(msg) { console.warn('[Alert fallback]', msg); };
@@ -19,6 +19,84 @@ try {
 } catch (e) {
   console.warn('Firebase init fallito:', e);
 }
+
+// ─── AUTENTICAZIONE E PROPRIETÀ DEI DOCUMENTI ─────────────────────────
+// Le regole chiuse (firebase.rules.auth-ready) pretendono che ogni documento
+// porti ownerUid + createdAt: il uid dell'account Firebase e un timestamp del
+// server. Senza, da quelle regole non si scrive più niente.
+const HUB_EMAIL_DOMAIN = '@hub-ingegneria.app';
+
+// Firebase identifica gli account con un'email, il sito chiede uno username:
+// ne costruiamo una sintetica che non riceve posta (dominio non registrato,
+// non viene mai usata per scrivere a qualcuno).
+function hubEmail(usernameOrEmail) {
+  const v = String(usernameOrEmail || '').trim();
+  return v.includes('@') ? v : v.toLowerCase() + HUB_EMAIL_DOMAIN;
+}
+
+// uid dell'account vero; vuoto se siamo ancora nel login anonimo di fortuna.
+function hubUid() {
+  const u = auth && auth.currentUser;
+  return u && !u.isAnonymous ? u.uid : '';
+}
+
+function stampOwner(data) {
+  const out = Object.assign({}, data || {});
+  const uid = hubUid();
+  if (uid && out.ownerUid === undefined) out.ownerUid = uid;
+  if (out.createdAt === undefined && typeof firebase !== 'undefined' && firebase.firestore) {
+    out.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+  }
+  return out;
+}
+
+// Un punto solo, alla fonte: i trenta punti di scrittura sparsi nel file non
+// devono ricordarsi dei campi, e uno che se li scorda sbaglierebbe l'upload.
+try {
+  const collProto = firebase.firestore.CollectionReference.prototype;
+  const docProto = firebase.firestore.DocumentReference.prototype;
+  const origAdd = collProto.add;
+  const origSet = docProto.set;
+  collProto.add = function (data) { return origAdd.call(this, stampOwner(data)); };
+  docProto.set = function (data, options) { return origSet.call(this, stampOwner(data), options); };
+} catch (e) {
+  console.warn('Stampa ownerUid/createdAt non attiva:', e);
+}
+
+// ─── BACKFILL DEI DOCUMENTI VECCHI ────────────────────────────────────
+// I file caricati prima della migrazione non hanno ownerUid: sotto le regole
+// chiuse restano leggibili ma nessuno li cancella più. Questo passaggio li
+// cointesta mentre le regole in vigore lo permettono (solo l'owner lo lancia).
+window.hubBackfillOwners = async function () {
+  if (!db || !hubUid()) { showToast('Serve un account Firebase col ruolo owner.', 'error'); return; }
+  const FieldValue = firebase.firestore.FieldValue;
+  const report = {};
+  for (const coll of ['excelHub', 'textHub', 'notesHub', 'historyHub', 'newsHub', 'categoriesHub', 'archiveFolders', 'subscribers', 'privateSpaceRequests']) {
+    let fixed = 0, total = 0;
+    try {
+      const snap = await db.collection(coll).get();
+      total = snap.size;
+      const batch = db.batch();
+      for (const d of snap.docs) {
+        const data = d.data();
+        if (data.ownerUid && data.createdAt) continue;
+        batch.set(d.ref, {
+          ownerUid: data.ownerUid || hubUid(),
+          createdAt: data.createdAt || FieldValue.serverTimestamp()
+        }, { merge: true });
+        fixed++;
+      }
+      if (fixed) await batch.commit();
+    } catch (e) {
+      report[coll] = 'errore: ' + e.code;
+      continue;
+    }
+    report[coll] = fixed + '/' + total + ' documenti cointestati';
+  }
+  console.table(report);
+  showToast('Backfill finito: ' + JSON.stringify(report), 'success', 8000);
+  return report;
+};
 
 // ─── LARGE FILE CHUNKING (Firestore has 1MB/doc limit) ────────────────
 const CHUNK_SIZE = 600000;
@@ -220,50 +298,118 @@ function showWelcomeSplash() {
     setTimeout(() => splash.remove(), 700);
   };
 }
+// Apre l'app con un ruolo: toglie il muro di login e applica i permessi.
+function enterHub(role, username) {
+  window.userRole = role;
+  window.username = username;
+  showWelcomeSplash();
+  const lb = document.getElementById('loginBlocker');
+  if (lb) {
+    lb.style.opacity = '0';
+    setTimeout(() => {
+      lb.remove();
+      document.getElementById('hubMainContent')?.classList.remove('hidden');
+      document.getElementById('hubFooter')?.classList.remove('hidden');
+    }, 400);
+  }
+  setupPermissions();
+  if (role === 'owner') {
+    const saved = localStorage.getItem('ai_key_owner');
+    if (saved) localStorage.setItem('ai_key', saved);
+  } else if (db) {
+    // La chiave AI dell'utente sta nel suo documento: con le regole chiuse la
+    // lettura dei documenti altrui è negata, quindi si rinuncia in silenzio.
+    db.collection('accountsHub').where('username', '==', username).limit(1).get()
+      .then(snap => { if (!snap.empty && snap.docs[0].data().aiKey) localStorage.setItem('ai_key', snap.docs[0].data().aiKey); })
+      .catch(() => {});
+  }
+}
+
+function loginFail(networkError) {
+  const err = document.getElementById('loginError');
+  if (!err) return;
+  err.textContent = networkError ? '⚠️ Errore di connessione.' : '⚠️ Credenziali errate. Riprova.';
+  err.classList.remove('hidden');
+  setTimeout(() => err.classList.add('hidden'), 4000);
+}
+
 window.verifyHubLogin = () => {
   const btn = document.getElementById('loginBtn');
   const spinner = document.getElementById('loginSpinner');
   const btnText = document.getElementById('loginBtnText');
   btn.disabled = true; spinner.classList.remove('hidden'); btnText.textContent = 'Verifica...';
+  const restore = () => { btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Accedi'; };
   setTimeout(() => {
     const u = document.getElementById('loginUser').value.trim();
     const p = document.getElementById('loginPass').value.trim();
-    function fail() { const err = document.getElementById('loginError'); err.classList.remove('hidden'); setTimeout(() => err.classList.add('hidden'), 4000); btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Accedi'; }
-    function login(role) {
-      window.userRole = role; window.username = u;
-      showWelcomeSplash();
+    function login(role, name) {
       if (document.getElementById('rememberMe')?.checked) {
-        localStorage.setItem('hub-user', u);
+        localStorage.setItem('hub-user', name);
         localStorage.setItem(REMEMBER_KEY, role === 'owner' ? DJB2(p) : '__acct__');
       } else { localStorage.removeItem('hub-user'); localStorage.removeItem(REMEMBER_KEY); }
-      const lb = document.getElementById('loginBlocker'); lb.style.opacity = '0';
-      setTimeout(() => { lb.remove(); document.getElementById('hubMainContent').classList.remove('hidden'); document.getElementById('hubFooter')?.classList.remove('hidden'); }, 400);
-      btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Accedi';
-      setupPermissions();
-      if (role === 'owner') {
-        const ok = localStorage.getItem('ai_key_owner');
-        if (ok) localStorage.setItem('ai_key', ok);
-      } else {
-        db.collection('accountsHub').where('username', '==', u).get().then(snap => {
-          if (!snap.empty && snap.docs[0].data().aiKey) localStorage.setItem('ai_key', snap.docs[0].data().aiKey);
-        });
-      }
+      enterHub(role, name);
+      restore();
     }
-    if (u === OWNER_USER && p === OWNER_PASS) { login('owner'); return; }
-    if (!u || !p) { fail(); return; }
-    if (!db) { fail(); return; }
-    db.collection('accountsHub').where('username', '==', u).get().then(snap => {
-      if (!snap.empty) {
-        const d = snap.docs[0].data();
-        if (d.password === DJB2(p)) { login(d.role || 'user'); return; }
-      }
-      fail();
-    }).catch(() => {
-      const err = document.getElementById('loginError'); err.textContent = '⚠️ Errore di connessione.'; err.classList.remove('hidden');
-      btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Accedi';
+    // 1) Porta vecchia: credenziali nel bundle. Resta solo finché il progetto
+    //    non ha Email/Password attivo, altrimenti si esce dal sito statico.
+    if (u === OWNER_USER && p === OWNER_PASS) { login('owner', u); return; }
+    if (!u || !p) { loginFail(); restore(); return; }
+    if (!db || !auth) { loginFail(true); restore(); return; }
+    // 2) Account registrati prima di Firebase: tabella accountsHub + DJB2.
+    const legacyCheck = () => {
+      db.collection('accountsHub').where('username', '==', u).limit(1).get().then(snap => {
+        if (!snap.empty && snap.docs[0].data().password === DJB2(p)) { login(snap.docs[0].data().role || 'user', u); return; }
+        loginFail(); restore();
+      }).catch(() => { loginFail(true); restore(); });
+    };
+    // 3) Account Firebase: l'identità la verifica Google, il ruolo si legge dal
+    //    documento dell'utente e non da quello che dichiara il client.
+    auth.signInWithEmailAndPassword(hubEmail(u), p).then(cred =>
+      db.collection('accountsHub').doc(cred.user.uid).get().then(snap => {
+        const d = snap.exists ? snap.data() : {};
+        login(d.role || 'user', d.username || u);
+      })
+    ).catch(err => {
+      const code = (err && err.code) || '';
+      // "qui non esiste un account Firebase" → si prova la tabella precedente.
+      if (['auth/invalid-email', 'auth/user-not-found', 'auth/wrong-password',
+           'auth/invalid-credential', 'auth/operation-not-allowed'].includes(code)) { legacyCheck(); return; }
+      if (code === 'auth/network-request-failed') { loginFail(true); restore(); return; }
+      if (code === 'auth/too-many-requests') { showToast('Troppi tentativi: riprova tra qualche minuto.', 'error'); restore(); return; }
+      console.warn('Login fallito:', code, err && err.message);
+      loginFail(); restore();
     });
   }, 600);
 };
+
+// Registrazione con account Firebase vero: l'utente nasce con ruolo 'user' e
+// nessuno può assegnarsi di più (con le regole chiuse il campo role è bloccato).
+window.registerHubAccount = async function (username, password, fullName) {
+  if (!db || !auth) throw new Error('Backend non disponibile.');
+  const email = hubEmail(username);
+  const cred = await auth.createUserWithEmailAndPassword(email, password);
+  await cred.user.updateProfile({ displayName: fullName });
+  await db.collection('accountsHub').doc(cred.user.uid).set({
+    uid: cred.user.uid,
+    username,
+    name: fullName,
+    email,
+    role: 'user',
+    ownerUid: cred.user.uid,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  enterHub('user', username);
+  return cred.user;
+};
+
+window.hubLogout = async function () {
+  localStorage.removeItem('hub-user');
+  localStorage.removeItem(REMEMBER_KEY);
+  localStorage.removeItem('ai_key');
+  if (auth) await auth.signOut().catch(() => {});
+  location.reload();
+};
+
 (function autoLogin() {
   if (localStorage.getItem('hub-pass') !== null) {
     localStorage.removeItem('hub-pass');
@@ -321,14 +467,20 @@ window.openAccountModal = () => {
   const uInput = document.getElementById('myAccountUsername');
   const nInput = document.getElementById('myAccountName');
   const pwdSection = document.getElementById('myAccountPwdSection');
+  const uid = hubUid();
+  const legacyOwner = window.userRole === 'owner' && !uid;
   if (uInput) uInput.value = window.username || '';
   if (nInput) nInput.value = window.username || '';
-  if (pwdSection) pwdSection.classList.toggle('hidden', window.userRole === 'owner');
-  if (window.username && db && window.userRole !== 'owner') {
-    db.collection('accountsHub').where('username', '==', window.username).get().then(snap => {
-      if (!snap.empty && nInput) nInput.value = snap.docs[0].data().name || window.username;
-    }).catch(() => {});
-  }
+  if (pwdSection) pwdSection.classList.toggle('hidden', legacyOwner);
+  if (!db || !window.username || legacyOwner) return;
+  // Con l'account Firebase il profilo è il documento keyed dal uid: la query
+  // per username con le regole chiuse non è più dimostrabile, il doc proprio sì.
+  const read = uid
+    ? db.collection('accountsHub').doc(uid).get().then(snap => snap.exists ? snap.data() : null)
+    : db.collection('accountsHub').where('username', '==', window.username).limit(1).get().then(snap => snap.empty ? null : snap.docs[0].data());
+  read.then(d => {
+    if (d && nInput && d.name) nInput.value = d.name;
+  }).catch(() => {});
 };
 window.openMtbfModal = () => document.getElementById('mtbfModal')?.classList.remove('hidden');
 window.openSubscribersModal = () => document.getElementById('subscribersModal')?.classList.remove('hidden');
@@ -475,7 +627,7 @@ window.toggleHistoryModal = () => document.getElementById('historyModal')?.class
   const ver = document.getElementById('hubInfoVersion');
   if (uptime) uptime.textContent = '01/02/2025';
   if (update) update.textContent = new Date().toLocaleDateString(locale(), { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-  if (ver) ver.textContent = '3.6.0';
+  if (ver) ver.textContent = '3.7.0';
 })();
 
 // ─── HUB INFO CLOCK ──────────────────────────────────────────────────
@@ -694,7 +846,23 @@ function renderSubscribers(docs) {
 }
 function refreshSubscribersRender() { if (lastSubscriberDocs.length) renderSubscribers(lastSubscriberDocs); }
 if (!db) { console.warn('Firestore non disponibile — snapshot non registrati'); const fbBanner = document.getElementById('fbOfflineBanner'); if (fbBanner) fbBanner.classList.remove('hidden'); } else {
-db.collection('subscribers').onSnapshot(snap => { lastSubscriberDocs = snap.docs; renderSubscribers(lastSubscriberDocs); });
+// Le letture in tempo reale: quando le regole diventano private i visitatori
+// senza account non ricevono più niente. Se non lo si dice da qualche parte
+// l'archivio "sparisce" e sembra un guasto (è già successo su questo sito).
+let accessNoticeShown = false;
+function readDenied(err, coll) {
+  console.warn('[hub] lettura negata su ' + coll + ':', err && err.code);
+  if (!err || err.code !== 'permission-denied' || accessNoticeShown) return;
+  accessNoticeShown = true;
+  const box = document.getElementById('accessNotice');
+  if (!box) return;
+  box.textContent = (window.currentLang === 'en')
+    ? 'This workspace is private: sign in with an account to see files, notes and history.'
+    : 'Questo spazio è riservato: accedi con un account per vedere file, note e storico.';
+  box.classList.remove('hidden');
+}
+
+db.collection('subscribers').onSnapshot(snap => { lastSubscriberDocs = snap.docs; renderSubscribers(lastSubscriberDocs); }, e => readDenied(e, 'subscribers'));
 // ─── NEWS ─────────────────────────────────────────────────────────────
 document.getElementById('btnSendNews').onclick = async () => {
   const content = document.getElementById('newsContent').value.trim();
@@ -760,7 +928,7 @@ document.addEventListener('change', e => {
   if (e.target.classList.contains('news-checkbox')) updateSelectAllNews();
 });
 function refreshNewsRender() { if (lastNewsDocs.length) renderNews(lastNewsDocs); }
-db.collection('newsHub').orderBy('createdAt', 'desc').onSnapshot(snap => { lastNewsDocs = snap.docs; renderNews(lastNewsDocs); });
+db.collection('newsHub').orderBy('createdAt', 'desc').onSnapshot(snap => { lastNewsDocs = snap.docs; renderNews(lastNewsDocs); }, e => readDenied(e, 'newsHub'));
 
 // ─── MY ACCOUNT ─────────────────────────────────────────────────────────
 document.getElementById('btnSaveAccount').onclick = async () => {
@@ -769,24 +937,48 @@ document.getElementById('btnSaveAccount').onclick = async () => {
   const newPwd = document.getElementById('myAccountNewPwd').value;
   const user = window.username;
   if (!user || !db) return showToast('Non disponibile.', 'error');
-  if (window.userRole === 'owner') {
+  const uid = hubUid();
+  // L'owner "del bundle" (credenziali nel JavaScript) non ha un documento
+  // account: fino alla migrazione non può cambiare nulla da qui.
+  if (window.userRole === 'owner' && !uid) {
     if (curPwd || newPwd) return showToast('L\'account proprietario non supporta cambio password.', 'info');
     showToast('Profilo aggiornato!', 'success');
     document.getElementById('myAccountCurPwd').value = '';
     document.getElementById('myAccountNewPwd').value = '';
     return;
   }
-  const snap = await db.collection('accountsHub').where('username', '==', user).get();
-  if (snap.empty) return showToast('Account non trovato.', 'error');
-  const docRef = snap.docs[0].ref;
-  const data = snap.docs[0].data();
+  let docRef, data;
+  if (uid) {
+    docRef = db.collection('accountsHub').doc(uid);
+    const snap = await docRef.get();
+    if (!snap.exists) return showToast('Account non trovato.', 'error');
+    data = snap.data();
+  } else {
+    const snap = await db.collection('accountsHub').where('username', '==', user).limit(1).get();
+    if (snap.empty) return showToast('Account non trovato.', 'error');
+    docRef = snap.docs[0].ref;
+    data = snap.docs[0].data();
+  }
   if (name && name !== data.name) {
     await docRef.update({ name });
   }
   if (curPwd && newPwd) {
-    const curHash = DJB2(curPwd);
-    if (data.password !== curHash) { showToast('Password attuale errata.', 'error'); return; }
-    await docRef.update({ password: DJB2(newPwd) });
+    if (newPwd.length < 8) return showToast('Password troppo corta: almeno 8 caratteri.', 'error');
+    if (uid) {
+      // Con l'account Firebase la password sta in Firebase: si verifica e si
+      // aggiorna lì, non in un campo leggibile del documento.
+      try {
+        const cred = firebase.auth.EmailAuthProvider.credential(data.email || hubEmail(user), curPwd);
+        await auth.currentUser.reauthenticateWithCredential(cred);
+        await auth.currentUser.updatePassword(newPwd);
+      } catch (e) {
+        const wrong = e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential';
+        return showToast(wrong ? 'Password attuale errata.' : 'Cambio password fallito: ' + e.code, 'error');
+      }
+    } else {
+      if (data.password !== DJB2(curPwd)) return showToast('Password attuale errata.', 'error');
+      await docRef.update({ password: DJB2(newPwd) });
+    }
   }
   document.getElementById('myAccountCurPwd').value = '';
   document.getElementById('myAccountNewPwd').value = '';
@@ -821,7 +1013,7 @@ function renderAccounts(docs) {
   });
 }
 function refreshAccountsRender() { if (lastAccountDocs.length) renderAccounts(lastAccountDocs); }
-db.collection('accountsHub').orderBy('createdAt', 'desc').onSnapshot(snap => { lastAccountDocs = snap.docs; renderAccounts(lastAccountDocs); });
+db.collection('accountsHub').orderBy('createdAt', 'desc').onSnapshot(snap => { lastAccountDocs = snap.docs; renderAccounts(lastAccountDocs); }, e => { readDenied(e, 'accountsHub'); renderAccounts([]); });
 
 // ─── PRIVATE SPACE ────────────────────────────────────────────────────────
 function cleanupExpiredPrivate() {
@@ -934,9 +1126,23 @@ window.checkPrivateAccess = checkPrivateAccess;
 window.deleteMyAccount = async function() {
   if (!db || !window.username) return;
   if (window.userRole === 'owner') { showToast('Non puoi eliminare l\'account proprietario.', 'error'); return; }
-  const snap = await db.collection('accountsHub').where('username', '==', window.username).get();
-  if (!snap.empty) {
-    await db.collection('accountsHub').doc(snap.docs[0].id).delete();
+  const uid = hubUid();
+  try {
+    if (uid) {
+      // Account Firebase: prima si elimina l'utente autentificato (è ciò che
+      // davvero lo chiude fuori), poi il profilo. Nell'ordine contrario, se
+      // Firebase chiede un login recente, si resta senza profilo e dentro.
+      await auth.currentUser.delete();
+      await db.collection('accountsHub').doc(uid).delete();
+    } else {
+      const snap = await db.collection('accountsHub').where('username', '==', window.username).limit(1).get();
+      if (!snap.empty) await db.collection('accountsHub').doc(snap.docs[0].id).delete();
+    }
+  } catch (e) {
+    if (e.code === 'auth/requires-recent-login') {
+      return showToast('Esci e rientra, poi riprova: Firebase chiede un login recente.', 'error');
+    }
+    return showToast('Eliminazione fallita: ' + (e.code || e.message), 'error');
   }
   localStorage.removeItem('hub-user');
   localStorage.removeItem(REMEMBER_KEY);
@@ -1229,7 +1435,7 @@ function renderNotes(docs) {
   if (btn) btn.disabled = document.querySelectorAll('.note-checkbox:checked').length === 0;
 }
 function refreshNotesRender() { if (lastNoteDocs.length) renderNotes(lastNoteDocs); }
-db.collection('notesHub').orderBy('createdAt', 'desc').onSnapshot(snap => { lastNoteDocs = snap.docs; renderNotes(lastNoteDocs); });
+db.collection('notesHub').orderBy('createdAt', 'desc').onSnapshot(snap => { lastNoteDocs = snap.docs; renderNotes(lastNoteDocs); }, e => { readDenied(e, 'notesHub'); renderNotes([]); });
 window.deleteNote = async id => {
   if (window.userRole !== 'owner' && !document.querySelector(`.delete-note-btn[data-note-id="${escapeHtml(id)}"]`)) return;
   if (confirm('Rimuovere questa nota?')) await db.collection('notesHub').doc(id).delete();
@@ -1274,6 +1480,11 @@ db.collection('excelHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
   console.log('[AI] excelHub caricati:', allExcelFiles.length, 'file', allExcelFiles.map(f => (f.name || f.fileName) + ' (category:' + (f.category || '') + ', fileData:' + (f.fileData ? f.fileData.length : 0) + ')'));
   updateCountArchive();
   combineAndRenderArchive();
+}, e => {
+  readDenied(e, 'excelHub');
+  allExcelFiles = [];
+  updateCountArchive();
+  combineAndRenderArchive();
 });
 db.collection('textHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
   allTextFiles = [];
@@ -1304,19 +1515,24 @@ db.collection('textHub').orderBy('uploadedAt', 'desc').onSnapshot(s => {
       console.warn('[AI] NESSUN fileData per:', data.title, '— file non analizzabile');
     }
   });
+}, e => {
+  readDenied(e, 'textHub');
+  allTextFiles = [];
+  updateCountArchive();
+  combineAndRenderArchive();
 });
 db.collection('archiveFolders').orderBy('createdAt', 'asc').onSnapshot(s => {
   allFolders = [];
   s.forEach(d => allFolders.push({ id: d.id, ...d.data() }));
   populateFolderSelects();
   combineAndRenderArchive();
-});
+}, e => readDenied(e, 'archiveFolders'));
 db.collection('categoriesHub').orderBy('createdAt', 'asc').onSnapshot(s => {
   allCategories = [];
   s.forEach(d => allCategories.push({ id: d.id, ...d.data() }));
   populateCategorySelects();
   combineAndRenderArchive();
-});
+}, e => readDenied(e, 'categoriesHub'));
 }
 
 function populateFolderSelects() {
@@ -2246,7 +2462,7 @@ if (!db) { console.warn('Firestore non disponibile — history snapshot non regi
     btn.addEventListener('click', () => window.deleteHistoryItem(btn.dataset.hid));
   });
   updateSelectAllHistory();
-}); }
+}, e => readDenied(e, 'historyHub')); }
 document.getElementById('selectAllHistory')?.addEventListener('change', e => {
   document.querySelectorAll('.history-checkbox').forEach(cb => cb.checked = e.target.checked);
 });
@@ -3078,7 +3294,7 @@ window.exportBackup = async function() {
   }
   const payload = {
     _meta: {
-      app: 'Engineering Cloud Hub', version: '3.6.0',
+      app: 'Engineering Cloud Hub', version: '3.7.0',
       exportedAt: new Date().toISOString(), exportedBy: window.username || '',
       counts: {
         files: pack.length,
@@ -3106,4 +3322,23 @@ window.exportBackup = async function() {
     ? 'Backup completed: ' + pack.length + ' files (' + (json.length / 1048576).toFixed(2) + ' MB).'
     : 'Backup completato: ' + pack.length + ' file (' + (json.length / 1048576).toFixed(2) + ' MB).', 'success');
 };
+
+// ─── RIPRISTINO SESSIONE FIREBASE ──────────────────────────────────────
+// L'osservatore va registrato qui, in fondo: a questo punto tutte le funzioni
+// che enterHub chiama (setupPermissions e i suoi refresh) sono già definite.
+// Se non c'è nessun account autentificato si torna al login anonimo, che è
+// quello che le regole in vigore oggi accettano per scrivere.
+if (auth) {
+  let sessionRestoreTried = false;
+  auth.onAuthStateChanged(user => {
+    if (!user) { auth.signInAnonymously().catch(() => {}); return; }
+    if (user.isAnonymous || sessionRestoreTried || !db) return;
+    if (!document.getElementById('loginBlocker')) return;
+    sessionRestoreTried = true;
+    db.collection('accountsHub').doc(user.uid).get().then(snap => {
+      const d = snap.exists ? snap.data() : {};
+      enterHub(d.role || 'user', d.username || user.displayName || 'utente');
+    }).catch(() => {});
+  });
+}
 

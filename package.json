@@ -1,6 +1,6 @@
 {
   "name": "engineering-cloud-hub",
-  "version": "3.6.0",
+  "version": "3.7.0",
   "description": "Engineering Cloud Hub - piattaforma cloud ingegneristica (GitHub Pages)",
   "private": true,
   "devDependencies": {
