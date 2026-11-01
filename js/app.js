@@ -40,6 +40,10 @@ function hubUid() {
   return u && !u.isAnonymous ? u.uid : '';
 }
 
+// Le chat AI sono una doc per account: con l'uid non dipendono più dal nome
+// scelto, che due persone potrebbero condividere.
+function chatKey() { return hubUid() || window.username; }
+
 function stampOwner(data) {
   const out = Object.assign({}, data || {});
   const uid = hubUid();
@@ -850,8 +854,11 @@ if (!db) { console.warn('Firestore non disponibile — snapshot non registrati')
 // senza account non ricevono più niente. Se non lo si dice da qualche parte
 // l'archivio "sparisce" e sembra un guasto (è già successo su questo sito).
 let accessNoticeShown = false;
-function readDenied(err, coll) {
+// soft = pannello secondario (liste che le regole chiuse riservano all'owner):
+// si svuota in silenzio invece di far comparire l'avviso di accesso.
+function readDenied(err, coll, soft) {
   console.warn('[hub] lettura negata su ' + coll + ':', err && err.code);
+  if (soft) return;
   if (!err || err.code !== 'permission-denied' || accessNoticeShown) return;
   accessNoticeShown = true;
   const box = document.getElementById('accessNotice');
@@ -862,7 +869,7 @@ function readDenied(err, coll) {
   box.classList.remove('hidden');
 }
 
-db.collection('subscribers').onSnapshot(snap => { lastSubscriberDocs = snap.docs; renderSubscribers(lastSubscriberDocs); }, e => readDenied(e, 'subscribers'));
+db.collection('subscribers').onSnapshot(snap => { lastSubscriberDocs = snap.docs; renderSubscribers(lastSubscriberDocs); }, e => readDenied(e, 'subscribers', true));
 // ─── NEWS ─────────────────────────────────────────────────────────────
 document.getElementById('btnSendNews').onclick = async () => {
   const content = document.getElementById('newsContent').value.trim();
@@ -1013,7 +1020,7 @@ function renderAccounts(docs) {
   });
 }
 function refreshAccountsRender() { if (lastAccountDocs.length) renderAccounts(lastAccountDocs); }
-db.collection('accountsHub').orderBy('createdAt', 'desc').onSnapshot(snap => { lastAccountDocs = snap.docs; renderAccounts(lastAccountDocs); }, e => { readDenied(e, 'accountsHub'); renderAccounts([]); });
+db.collection('accountsHub').orderBy('createdAt', 'desc').onSnapshot(snap => { lastAccountDocs = snap.docs; renderAccounts(lastAccountDocs); }, e => { readDenied(e, 'accountsHub', true); renderAccounts([]); });
 
 // ─── PRIVATE SPACE ────────────────────────────────────────────────────────
 function cleanupExpiredPrivate() {
@@ -2574,7 +2581,7 @@ window.clearChat = function() {
   window.aiMemory = [];
   try { localStorage.removeItem('ai_memory'); } catch (e) {}
   if (typeof db !== 'undefined' && db && window.username && window.username !== 'Ospite') {
-    try { db.collection('chatHub').doc(window.username).delete().catch(() => {}); } catch (e) {}
+    try { db.collection('chatHub').doc(chatKey()).delete().catch(() => {}); } catch (e) {}
   }
   setTimeout(() => {
     const ai = document.getElementById('aiInput');
@@ -2593,7 +2600,7 @@ function rememberChatTurn(query, reply) {
 window.saveChatToCloud = async function() {
   if (typeof db === 'undefined' || !db || !window.username || window.username === 'Ospite') return;
   try {
-    await db.collection('chatHub').doc(window.username).set({
+    await db.collection('chatHub').doc(chatKey()).set({
       messages: (window.aiMemory || []).map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: String(m.content || '').slice(0, 12000) })),
       updatedAt: Date.now()
     });
@@ -2618,7 +2625,7 @@ window.renderChatFromMemory = function() {
 window.loadChatFromCloud = async function() {
   if (typeof db === 'undefined' || !db || !window.username || window.username === 'Ospite') return false;
   try {
-    const snap = await db.collection('chatHub').doc(window.username).get();
+    const snap = await db.collection('chatHub').doc(chatKey()).get();
     const msgs = snap.exists && snap.data() && Array.isArray(snap.data().messages) ? snap.data().messages : null;
     if (msgs && msgs.length) {
       window.aiMemory = msgs.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content })).slice(-10);

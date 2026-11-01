@@ -3,130 +3,152 @@ rules_version = '2';
 // REGOLE PRONTE PER LA MIGRAZIONE AUTH — NON DEPLOYARE QUESTO FILE ORA
 //
 // Sostituisce firebase.rules SOLO dopo aver completato la migrazione descritta
-// nel README alla sezione "Migrazione auth". Se lo deployi prima, il sito
-// smette di funzionare: le regole qui sotto rifiutano gli account anonimi.
+// nel README alla sezione "Migrazione auth". Se lo deployi prima il sito si
+// blocca: qui gli account anonimi non possono leggere niente.
 //
 // Cosa cambia rispetto alle regole attuali
-//   1. Nessuna lettura pubblica: i file, le note e gli iscritti si vedono solo
-//      da dentro un account vero.
+//   1. Nessuna lettura pubblica: file, note, account e iscritti si vedono solo
+//      da dentro un account Firebase vero.
 //   2. Il ruolo non viene più dal client (window.userRole), che chiunque può
-//      riscrivere dalla console: viene dal documento accountsHub/{uid}.
-//   3. Gli account anonimi (sign_in_provider == "anonymous") sono rifiutati
-//      explicitamente, perché il token anonimo si ottiene dalla config pubblica.
+//      riscrivere dalla console: viene dal token, dall'allowlist qui sotto.
+//   3. Gli account anonimi (sign_in_provider == "anonymous") sono rifiutati:
+//      il token anonimo si ottiene dalla config pubblica nel bundle.
 //
-// Cosa deve fare il client prima che queste regole servano
-//   - login/registrazione con Email/Password (o Google), niente createUserAnonymously
-//   - su ogni documento scritto, aggiungere ownerUid: auth.getUid() e
-//     createdAt: firebase.firestore.FieldValue.serverTimestamp()
-//     (i nomi che usi oggi — uploadedAt, subscribedAt — vanno bene in più,
-//      ma le regole controllano questi due campi)
-//   - gli utenti con ruolo owner/promuovili a mano in console: le regole non
-//     permettono a nessuno di assegnarsi un ruolo
-//   - il proxy Telegram (server/telegram-proxy.js) usa l'Admin SDK, che ignora
-//     queste regole: le notifiche continuano a funzionare
+// PERCHÉ IL RUOLO È UN'ALLOWLIST DI UID E NON UN GET() SU accountsHub
+//   Nelle query (list) Firestore valuta la regola su OGNI documento restituito e
+//   ogni get()/exists() consuma il budget di 20 letture per richiesta. Una regola
+//   tipo "leggi accountsHub/{uid} per sapere se sei owner" su un archivio con 12
+//   file fa fallire l'intera query: è il motivo per cui le regole proposte
+//   dall'esterno hanno svuotato l'archivio restando "verdi" in console.
+//   Qui isOwner() legge solo dal token: costo zero, nessuna query che può fallire.
+//   Il campo role nelle doc conta solo per l'interfaccia; il permesso vero è
+//   l'uid in ownerUids().
+//
+// Prima del deploy, una volta per tutte
+//   - mettere l'uid proprio in ownerUids() (Console → Authentication → Users → UID)
+//   - aver eseguito await hubBackfillOwners() sulla console del browser, così i
+//     documenti già esistenti hanno ownerUid e createdAt
+//   - gli account registrati col vecchio sistema (confronto su accountsHub) non
+//     potranno più leggere i loro dati: deve rifare la registrazione una volta
+//     attivo Email/Password
 // ═══════════════════════════════════════════════════════════════════════════
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function token() { return request.auth; }
-    function provider() { return token() == null ? 'none' : token().get('firebase', {}).get('sign_in_provider', 'anonymous'); }
-    function isMember() { return token() != null && token().uid != null && provider() != 'anonymous'; }
-    function myDoc() { return get(/databases/$(database)/documents/accountsHub/$(request.auth.uid)); }
-    function myRole() { return myDoc().exists() ? myDoc().data.get('role', '') : ''; }
-    function isOwner() { return isMember() && myRole() == 'owner'; }
+    function ownerUids() { return ['CAMBIA-QUI-IL-TUO-UID']; }
 
-    // Il proprietario del documento è chi l'ha creato (campo scritto dal client).
+    function provider() {
+      return request.auth == null ? 'none'
+        : request.auth.token.get('firebase', {}).get('sign_in_provider', 'anonymous');
+    }
+    function isMember() { return request.auth != null && request.auth.uid != null && provider() != 'anonymous'; }
+    function isOwner() { return isMember() && request.auth.uid in ownerUids(); }
+
+    // Proprietario del documento = chi l'ha creato (campo stampato dal client).
     function isMine(data) { return isMember() && data.get('ownerUid', '') == request.auth.uid; }
     function canEdit(data) { return isOwner() || isMine(data); }
 
-    // Documenti marcati "private" restano fuori dalla portata degli altri utenti.
-    function canSee(data) {
-      return isMember() && (data.get('private', false) != true || isOwner() || isMine(data));
+    // Un documento nuovo deve già arrivare con i campi che le regole controllano.
+    function stampedByMe() {
+      return isMember()
+        && request.resource.data.keys().hasAll(['ownerUid', 'createdAt'])
+        && request.resource.data.get('ownerUid') == request.auth.uid;
     }
 
-    function hasRequiredKeys() { return request.resource.data.keys().hasAll(['ownerUid', 'createdAt']); }
-
     // ═══ ACCOUNT ═══════════════════════════════════════════════════════════
-    // Ognuno legge e scrive il proprio; l'owner legge tutti.
-    // Nessun utente può cambiare il proprio role: si resta fuori dai privilegi.
+    // Contiene hash password e chiavi API: il documento si legge uno per uno
+    // (il proprio, o tutti da owner via query), mai da un utente sull'altro.
+    // Nessun membro può cambiare role o uid: i privilegi non si autoassegnano.
     match /accountsHub/{uid} {
-      allow read: if isOwner() || (isMember() && uid == request.auth.uid);
+      allow get: if isOwner() || (isMember() && uid == request.auth.uid);
+      allow list: if isOwner();
       allow create: if isMember() && uid == request.auth.uid
                     && request.resource.data.get('role', 'user') == 'user'
                     && request.resource.data.get('uid', '') == uid;
       allow update: if isOwner()
                     || (isMember() && uid == request.auth.uid
                         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'uid']));
-      allow delete: if isOwner();
+      allow delete: if isOwner() || (isMember() && uid == request.auth.uid);
     }
 
-    // ═══ FILE EXCEL ════════════════════════════════════════════════════════
+    // ═══ ARCHIVO: excel, documenti, categorie, cartelle ═════════════════════
+    // Lettura condivisa tra i membri: chi non ha un account approvato non vede
+    // niente. I flag "private" restano un filtro d'interfaccia, non di regola:
+    // renderli vincolati vorrebbe query con .where('private','==',false) su
+    // ogni lista, e i documenti senza quel campo sparirebbero dalla lista.
     match /excelHub/{fileId} {
-      allow read: if canSee(resource.data);
-      allow create: if isMember() && hasRequiredKeys() && request.resource.data.get('ownerUid') == request.auth.uid;
-      allow update, delete: if canEdit(resource.data) && hasRequiredKeys();
+      allow read: if isMember();
+      allow create: if stampedByMe();
+      allow update, delete: if canEdit(resource.data);
       match /chunks/{chunkId} {
-        allow read: if canSee(get(/databases/$(database)/documents/excelHub/$(fileId)).data);
+        allow read: if isMember();
         allow write: if isOwner() || isMine(get(/databases/$(database)/documents/excelHub/$(fileId)).data);
       }
     }
 
-    // ═══ DOCUMENTI (PDF, Word, STEP, DXF, DWG, immagini) ═══════════════════
     match /textHub/{fileId} {
-      allow read: if canSee(resource.data);
-      allow create: if isMember() && hasRequiredKeys() && request.resource.data.get('ownerUid') == request.auth.uid;
-      allow update, delete: if canEdit(resource.data) && hasRequiredKeys();
+      allow read: if isMember();
+      allow create: if stampedByMe();
+      allow update, delete: if canEdit(resource.data);
       match /chunks/{chunkId} {
-        allow read: if canSee(get(/databases/$(database)/documents/textHub/$(fileId)).data);
+        allow read: if isMember();
         allow write: if isOwner() || isMine(get(/databases/$(database)/documents/textHub/$(fileId)).data);
       }
+    }
+
+    match /categoriesHub/{docId} {
+      allow read: if isMember();
+      allow create: if stampedByMe();
+      allow update, delete: if canEdit(resource.data);
+    }
+
+    match /archiveFolders/{docId} {
+      allow read: if isMember();
+      allow create: if stampedByMe();
+      allow update, delete: if canEdit(resource.data);
     }
 
     // ═══ STORICO ATTIVITÀ: si scrive, non si riscrive la storia altrui ══════
     match /historyHub/{entryId} {
       allow read: if isMember();
-      allow create: if isMember() && request.resource.data.get('ownerUid') == request.auth.uid;
+      allow create: if stampedByMe();
       allow update, delete: if isOwner();
     }
 
-    // ═══ CATEGORIE E CARTELLE: condivise, le rinomina chi le ha create ══════
-    match /categoriesHub/{docId} {
-      allow read: if isMember();
-      allow create: if isMember() && hasRequiredKeys();
-      allow update, delete: if canEdit(resource.data);
-    }
-    match /archiveFolders/{docId} {
-      allow read: if isMember();
-      allow create: if isMember() && hasRequiredKeys();
-      allow update, delete: if canEdit(resource.data);
-    }
-
-    // ═══ ISCRITTI TELEGRAM: contengono chat id, non sono pubblici ═══════════
-    match /subscribers/{docId} {
-      allow read: if isOwner() || (isMember() && resource.data.get('ownerUid') == request.auth.uid);
-      allow create: if isMember() && request.resource.data.get('ownerUid') == request.auth.uid;
-      allow update, delete: if isOwner() || isMine(resource.data);
-    }
-
-    // ═══ RICHIESTE SPAZIO PRIVATO: le vede solo chi gestisce ═════════════════
-    match /privateSpaceRequests/{docId} {
-      allow read: if isOwner() || isMine(resource.data);
-      allow create: if isMember() && request.resource.data.get('ownerUid') == request.auth.uid;
-      allow update, delete: if isOwner();
-    }
-
-    // ═══ BACHECA: tutti leggono (da dentro), solo l'owner pubblica ═══════════
+    // ═══ BACHECA: tutti i membri leggono, ciascuno pubblica il proprio ═══════
     match /newsHub/{docId} {
       allow read: if isMember();
-      allow create: if isOwner() && hasRequiredKeys();
+      allow create: if stampedByMe();
+      allow update, delete: if canEdit(resource.data);
+    }
+
+    // ═══ NOTE RAPIDE ════════════════════════════════════════════════════════
+    match /notesHub/{docId} {
+      allow read: if isMember();
+      allow create: if stampedByMe();
+      allow update, delete: if canEdit(resource.data);
+    }
+
+    // ═══ ISCRITTI TELEGRAM: chat id, si vede il proprio o tutti da owner ═════
+    match /subscribers/{docId} {
+      allow get: if isOwner() || isMine(resource.data);
+      allow list: if isOwner();
+      allow create: if stampedByMe();
+      allow update, delete: if canEdit(resource.data);
+    }
+
+    // ═══ RICHIESTE SPAZIO PRIVATO ═══════════════════════════════════════════
+    // Solo nome utente e motivazione: condivise con i membri per non rompere il
+    // controllo "ho già fatto richiesta" che oggi query per username.
+    match /privateSpaceRequests/{docId} {
+      allow read: if isMember();
+      allow create: if stampedByMe();
       allow update, delete: if isOwner();
     }
 
-    // ═══ NOTE RAPIDE: private = autore o owner ══════════════════════════════
-    match /notesHub/{docId} {
-      allow read: if canSee(resource.data);
-      allow create: if isMember() && hasRequiredKeys() && request.resource.data.get('ownerUid') == request.auth.uid;
-      allow update, delete: if canEdit(resource.data);
+    // ═══ CRONAZIONI AI: una doc per account, chiave = uid ═══════════════════
+    match /chatHub/{uid} {
+      allow read, write: if isOwner() || (isMember() && uid == request.auth.uid);
     }
 
     // ═══ Tutto il resto del database è chiuso ═══════════════════════════════

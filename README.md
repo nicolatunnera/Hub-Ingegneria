@@ -117,7 +117,7 @@ un login vero. Per questo il lavoro è in due passi:
 | File | Ruolo | Si può deployare adesso? |
 |------|-------|---------------------------|
 | `firebase.rules` | quelle in vigore: lettura pubblica, scrittura a chi ha un token (anche anonimo) | sì, sono già online |
-| `firebase.rules.auth-ready` | niente lettura pubblica, ruolo letto da `accountsHub/{uid}`, anonimi rifiutati | **no**: dopo la migrazione auth |
+| `firebase.rules.auth-ready` | niente lettura pubblica, owner da allowlist di uid nel token, anonimi rifiutati | **no**: dopo la migrazione auth |
 | `firebase.rules.agent-proposed.txt` | bozza esterna (2026-11-01), archiviata con i suoi difetti elencati in testa | **no**: romperebbe lettura e scrittura |
 
 Il pulsante "chiudi finestra" o "nascondi ai guest" nel codice **non è una protezione**:
@@ -132,9 +132,13 @@ e `historyHub` continuavano a leggere perché chiedevano solo `isSignedIn()`. Ne
 commit del repo era coinvolto: la modifica era solo nella console Firebase.
 
 Causa: regole che pretendono campi che il client non ha mai scritto (`ownerUid`,
-`createdAt`, `private`). In Firestore una `list` negate anche per un solo documento
-fa fallire **tutta** la query, quindi l'archivio appare vuoto invece di mostrare i
-file non privati.
+`createdAt`, `private`). In Firestore una `list` fallisce **tutta** se anche un solo
+documento restituito non supera la regola, quindi l'archivio appare vuoto invece di
+mostrare i file non privati. Lo stesso errore si ottiene con `get()` dentro una
+regola di lista: ogni documento candidato costa una lettura e il budget è 20 per
+richiesta, quindi sopra i ~20 file la query si spegne in `permission-denied`. Le
+regole nuove evitano entrambi i modi (vedi il commento in testa a
+`firebase.rules.auth-ready`).
 
 Ripristino (2 minuti, è l'unica strada finché il client non scrive quei campi):
 Console → Firestore → Regole → incolla il contenuto di `firebase.rules` → Pubblica.
@@ -147,14 +151,15 @@ Due difetti delle regole dell'altro agente da non ripetere:
   nessuno riuscirebbe più a leggere o scrivere nulla.
 - `!data.private` e `data.ownerUid == uid` su documenti che quei campi non ce l'hanno.
 
-### Buco separato: la collezione `chatHub` non è in nessuna regola
+### `chatHub` (trascrizioni dell'assistente IA)
 
-`js/app.js` salva la conversazione IA in `chatHub/{username}` (`saveChatToCloud` /
-`loadChatFromCloud`), ma né `firebase.rules` né la bozza esterna nominano `chatHub`:
-senza un match esplicito l'accesso è negato, e la persistenza della chat funziona solo
-con `localStorage`. Prima di aggiungerla servono però i nomi delle collezioni usati dal
-client (`chatHub` incluso) e una decisione: tenere le trascrizioni leggibili solo al
-proprietario richiede un campo `uid` nel documento, che oggi non viene scritto.
+`js/app.js` salva la conversazione IA in `chatHub/{chiave}` con `saveChatToCloud` /
+`loadChatFromCloud`. La collezione non era nominata da nessuna regola, quindi l'accesso
+era negato e la persistenza funzionava solo con `localStorage`. `firebase.rules` (quelle
+in vigore) continua a non includerla: la chat resta locale, nessun dato esposto.
+`firebase.rules.auth-ready` le aggiunge un match con la doc intestata all'uid
+dell'account (`chatKey()`), così dopo la migrazione ogni membro legge e scrive solo la
+propria.
 
 ### Come verificare da soli che la lettura sia pubblica
 Apri il sito in incognito senza fare login, premi F12 e incolla:
@@ -166,6 +171,23 @@ fetch('https://firestore.googleapis.com/v1/projects/<projectId>/databases/(defau
 
 `<apiKey>` è quello in `js/config.js`: non è un secret, è la chiave pubblica del
 progetto Firebase. Se escono documenti, la lettura è aperta.
+
+### Cosa copre la migrazione e cosa no
+
+Dopo il deploy di `firebase.rules.auth-ready`:
+
+- **fuori**: chi non ha un account Firebase — non legge niente, non scrive niente, e
+  il token anonimo non basta più. Questo copre il caso "chi apre il link per sbaglio".
+- **dentro**: chi ha un account. Un membro legge l'archivio (excel, documenti, note,
+  bacheca, storico) anche se un file è marcato `private`: quel flag oggi è un filtro
+  dell'interfaccia, non della regola. Renderlo vincolato costa una query
+  `.where('private','==',false)` su ogni lista — con un backfill del campo sui
+  documenti che non ce l'hanno, altrimenti spariscono dalla vista — più una seconda
+  query vincolata a `ownerUid` per i file privati dell'utente. È il passo successivo
+  naturale, non è incluso.
+- **mai leggibili da un altro membro**: `accountsHub` (hash password e `aiKey`) e la
+  lista completa degli iscritti Telegram con le chat id — solo il proprio documento,
+  oppure tutto per l'owner.
 
 ### Migrazione auth
 
@@ -197,6 +219,7 @@ distinguere chi è dentro da chiunque apra il sito.
    → modifica `role` da `user` a `owner`**. Da loggato con un account reale puoi anche
    cancellare i tre documenti `accountsHub` vecchi (id random, password DJB2): non sono
    utenti Firebase e con le regole nuove non servono.
+   Copia intanto l'UID (Authentication → Users → colonna UID): serve al punto 6.
 5. **Backfill dei documenti esistenti** (finché le regole sono ancora permissive):
    loggato come owner, apri la console del browser e lancia
    ```js
@@ -205,7 +228,15 @@ distinguere chi è dentro da chiunque apra il sito.
    Firma `ownerUid` + `createdAt` sui file caricati prima della migrazione. Senza
    questo passaggio, dopo il punto 6 i vecchi file restano leggibili ma **non si
    possono più cancellare o rinominare**, perché le regole nuove chiedono `ownerUid`.
-6. **Deploy delle regole nuove**
+6. **Metti il tuo uid nelle regole**, poi fa il deploy. In `firebase.rules.auth-ready`:
+   ```javascript
+   function ownerUids() { return ['CAMBIA-QUI-IL-TUO-UID']; }
+   ```
+   Non è un vezzo: il ruolo letto con `get()` su `accountsHub` dentro una query costa
+   una lettura per documento e oltre il budget la query fallisce (è il punto 2
+   dell'incidente qui sopra). L'allowlist sta nel token, costo zero. Per aggiungere un
+   secondo amministratore si aggiunge il suo uid e si redeploya — `role` nel documento
+   decide solo quali pannelli vede l'interfaccia, il permesso vero è l'uid qui.
    ```bash
    cp firebase.rules.auth-ready firebase.rules
    ./deploy-rules.sh     # oppure incolla il contenuto in Console → Firestore → Rules
@@ -216,7 +247,11 @@ distinguere chi è dentro da chiunque apra il sito.
    tutti) in un click.
 7. **Test**: da una finestra incognito senza login la lista file deve venire vuota e
    la console deve mostrare `Missing or insufficient permissions`; con login normale
-   tutto deve funzionare come prima.
+   tutto deve funzionare come prima. Due cose cambiano per gli utenti non owner, ed è
+   voluto: i pannelli *account registrati* e *iscritti Telegram* si svuotano (le liste
+   di quelle collezioni sono riservate all'owner) e gli account creati col vecchio
+   confronto DJB2 non si possono più usare — chi era dentro così deve registrarsi
+   di nuovo.
 8. **A migrazione avvenuta**, in Authentication → Sign-in method disattiva **Anonimo**:
    le regole nuove lo rifiutano già, ma toglierlo chiude anche il foro delle regole
    vecchie nel caso dovessi rideployarle.
@@ -390,7 +425,7 @@ MIT License - Vedi LICENSE file
 
 | Versione | Data | Novità |
 |----------|------|--------|
-| **3.7.0** | 2026-11-01 | 🔐 Account Firebase veri: login/registrazione con Email/Password, scritture firmate (`ownerUid` + `createdAt`), `hubBackfillOwners()`, logout, avviso quando le letture sono riservate |
+| **3.7.0** | 2026-11-01 | 🔐 Account Firebase veri: login/registrazione con Email/Password, scritture firmate (`ownerUid` + `createdAt`), `hubBackfillOwners()`, logout, avviso quando le letture sono riservate. Regole `auth-ready` riscritte per reggere le query (owner da allowlist di uid, niente `get()` nelle liste), `chatHub` intestata all'uid |
 | **3.6.0** | 2026-09-10 | 💎 Viewer file integrato: PDF, Word (.docx), STEP/STP 3D (occt-import-js WASM + Three.js), DXF 2D |
 | **3.5.1** | 2026-09-10 | ✨ Supporto file STEP/STP, security rules adattate, deploy script, doc completa |
 | **3.5.0** | 2025-01-20 | Mobile-layout fixes, chunking Firestore per file grandi |
