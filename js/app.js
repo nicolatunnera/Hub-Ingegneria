@@ -1,6 +1,6 @@
 // ─── GLOBAL ERROR HANDLER ────────────────────────────────────────────
 window.onerror = function(msg, url, line) { try { if (window.showToast) window.showToast('JS: ' + msg + ' (riga ' + line + ')', 'error'); } catch(e) {} console.error(msg, url, line); };
-console.log('Engineering Cloud Hub v3.7.0');
+console.log('Engineering Cloud Hub v3.7.1');
 
 // ─── TOAST (override) ────────────────────────────────────────────────
 window.alert = window.showToast || function(msg) { console.warn('[Alert fallback]', msg); };
@@ -386,6 +386,7 @@ function enterHub(role, username) {
   window.userRole = role;
   window.username = username;
   window.userEmail = auth && auth.currentUser ? auth.currentUser.email || '' : '';
+  window.userName = auth && auth.currentUser && auth.currentUser.displayName ? auth.currentUser.displayName : username;
   showWelcomeSplash();
   const lb = document.getElementById('loginBlocker');
   if (lb) {
@@ -644,6 +645,29 @@ document.getElementById('loginUser')?.addEventListener('keydown', e => { if (e.k
 document.getElementById('loginPass')?.addEventListener('keydown', e => { if (e.key === 'Enter') window.verifyHubLogin(); });
 
 // ─── PERMISSIONS ──────────────────────────────────────────────────────
+// ─── TESTATA DEL CASSETTO ─────────────────────────────────────────────
+// Prima il tuo nome stava solo in un `<span>` della barra sopra (invisibile su
+// mobile) e l'uscita era nascosta dentro "Il mio account": da qui si vede chi
+// è entrato, con che ruolo, e si cambia account con un tocco.
+function hubInitials(name) {
+  const t = String(name || '').trim();
+  if (!t) return '?';
+  const parti = t.split(/[\s._-]+/).filter(Boolean);
+  return ((parti[0][0] || '?') + (parti[1] ? parti[1][0] : '')).toUpperCase();
+}
+function renderSidebarAccount() {
+  const en = window.currentLang === 'en';
+  const role = window.userRole || 'guest';
+  const nome = window.userName || window.username || (role === 'guest' ? (en ? 'Guest' : 'Ospite') : '');
+  const etichette = { owner: en ? 'Owner' : 'Proprietario', guest: en ? 'Guest' : 'Ospite' };
+  const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  set('sidebarAvatar', hubInitials(nome));
+  set('sidebarUserName', nome || (en ? 'Not signed in' : 'Accesso non effettuato'));
+  set('sidebarUserMail', window.userEmail || (role === 'owner' ? (en ? 'bundle account' : 'account del bundle') : en ? 'No e-mail' : 'Nessuna email'));
+  set('sidebarRoleBadge', etichette[role] || (en ? 'Member' : 'Membro'));
+  document.getElementById('sidebarLogoutBtn')?.classList.toggle('hidden', role === 'guest');
+}
+
 function setupPermissions() {
   const role = window.userRole || 'guest';
   const isOwner = role === 'owner';
@@ -651,6 +675,7 @@ function setupPermissions() {
   document.querySelectorAll('.requires-owner').forEach(el => el.classList.toggle('hidden', !isOwner));
   document.querySelectorAll('.requires-write').forEach(el => el.classList.toggle('hidden', !canWrite));
   document.querySelectorAll('.requires-guest').forEach(el => el.classList.toggle('hidden', role !== 'guest'));
+  renderSidebarAccount();
   if (role === 'guest') {
     document.querySelectorAll('.delete-btn, .delete-cloud-btn, .delete-note-btn, .delete-history-btn').forEach(el => el.remove());
     document.querySelectorAll('#btnSendNews, #btnUploadExcel, #btnUploadDoc, #btnSubscribeTelegram, #btnUnsubscribeTelegram, #testTelegramNotification').forEach(el => el.disabled = true);
@@ -705,10 +730,20 @@ window.toggleCalcModal = () => document.getElementById('calcModal')?.classList.t
 window.toggleHubInfo = () => {
   const p = document.getElementById('hubInfoPanel');
   p?.classList.toggle('hidden');
-  if (!p?.classList.contains('hidden')) updateHubInfoClock();
+  const aperto = !!p && !p.classList.contains('hidden');
+  document.getElementById('hubInfoToggle')?.classList.toggle('is-active', aperto);
+  if (aperto) updateHubInfoClock();
 };
 function setSidebar(open) {
-  document.getElementById('sidebar')?.classList.toggle('hidden', !open);
+  const drawer = document.getElementById('sidebar');
+  drawer?.classList.toggle('hidden', !open);
+  document.getElementById('sidebarScrim')?.classList.toggle('hidden', !open);
+  document.body.classList.toggle('drawer-open', !!open);
+  if (open) {
+    renderSidebarAccount();
+    const primo = drawer?.querySelector('.sidebar-btn:not(.hidden)');
+    primo?.focus({ preventScroll: true });
+  }
   document.querySelectorAll('[data-overlay="sidebar"]').forEach(btn => btn.setAttribute('aria-expanded', String(open)));
 }
 window.openSidebar = () => setSidebar(true);
@@ -716,7 +751,10 @@ window.closeSidebar = () => setSidebar(false);
 window.toggleSidebar = () => setSidebar(document.getElementById('sidebar')?.classList.contains('hidden'));
 document.getElementById('sidebarContent')?.addEventListener('click', e => {
   const btn = e.target.closest('.sidebar-btn');
-  if (btn && btn.id !== 'hubInfoToggle') {
+  // I due interruttori restano aperto il cassetto: si deve vedere l'effetto
+  // (pannello Info che si srotola, etichetta protezione occhi che cambia).
+  const KEEP_OPEN = ['hubInfoToggle', 'eyeProtectToggle'];
+  if (btn && !KEEP_OPEN.includes(btn.id)) {
     window.closeSidebar();
   }
 });
@@ -766,19 +804,25 @@ applyTheme();
 
 window.toggleEyeProtection = () => {
   document.documentElement.classList.toggle('eye-protect');
+  paintEyeProtectState();
+  localStorage.setItem('eyeProtect', document.documentElement.classList.contains('eye-protect') ? '1' : '0');
+};
+// Etichetta, icona e stato "attivo" della voce di menu: un solo punto, perché
+// il cassetto può essere ridisegnato e l'effetto deve restare leggibile.
+function paintEyeProtectState() {
   const active = document.documentElement.classList.contains('eye-protect');
-  localStorage.setItem('eyeProtect', active ? '1' : '0');
+  const en = window.currentLang === 'en';
   const label = document.getElementById('eyeProtectLabel');
-  if (label) label.textContent = active ? 'Disattiva protezione occhi' : 'Attiva protezione occhi';
+  if (label) label.textContent = active
+    ? (en ? 'Turn eye protection off' : 'Disattiva protezione occhi')
+    : (en ? 'Turn eye protection on' : 'Attiva protezione occhi');
   const icon = document.querySelector('#eyeProtectToggle i');
   if (icon) { icon.classList.toggle('text-green-500', !active); icon.classList.toggle('text-amber-500', active); }
-};
+  document.getElementById('eyeProtectToggle')?.classList.toggle('is-active', active);
+}
 if (localStorage.getItem('eyeProtect') === '1') {
   document.documentElement.classList.add('eye-protect');
-  const label = document.getElementById('eyeProtectLabel');
-  if (label) label.textContent = 'Disattiva protezione occhi';
-  const icon = document.querySelector('#eyeProtectToggle i');
-  if (icon) { icon.classList.remove('text-green-500'); icon.classList.add('text-amber-500'); }
+  paintEyeProtectState();
 }
 let isChatCollapsed = true;
 window.closeChatPanel = () => {
@@ -831,7 +875,7 @@ window.toggleHistoryModal = () => document.getElementById('historyModal')?.class
   const ver = document.getElementById('hubInfoVersion');
   if (uptime) uptime.textContent = '01/02/2025';
   if (update) update.textContent = new Date().toLocaleDateString(locale(), { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-  if (ver) ver.textContent = '3.7.0';
+  if (ver) ver.textContent = '3.7.1';
 })();
 
 // ─── HUB INFO CLOCK ──────────────────────────────────────────────────
@@ -916,6 +960,8 @@ function refreshDynamicContent() {
   if (modalTime) modalTime.textContent = now.toLocaleTimeString(locale(), { hour:'2-digit', minute:'2-digit' });
   if (window.applyTheme) window.applyTheme();
   if (window.renderChatChips) window.renderChatChips();
+  paintEyeProtectState();
+  renderSidebarAccount();
 }
 
 // ─── DRAG & DROP ──────────────────────────────────────────────────────
@@ -3521,7 +3567,7 @@ window.exportBackup = async function() {
   }
   const payload = {
     _meta: {
-      app: 'Engineering Cloud Hub', version: '3.7.0',
+      app: 'Engineering Cloud Hub', version: '3.7.1',
       exportedAt: new Date().toISOString(), exportedBy: window.username || '',
       counts: {
         files: pack.length,
@@ -3555,18 +3601,75 @@ window.exportBackup = async function() {
 // che enterHub chiama (setupPermissions e i suoi refresh) sono già definite.
 // Se non c'è nessun account autentificato si torna al login anonimo, che è
 // quello che le regole in vigore oggi accettano per scrivere.
+//
+// LA SESSIONE NON ENTRA PIÙ DA SOLA. Firebase la conserva nel browser, quindi
+// chi tornava sul sito si ritrovava dentro senza poter scegliere un altro
+// account: su un PC condiviso era impossibile provare gli accessi di prova. Ora
+// il muro di login mostra la card "sessione già aperta" con nome, email e i due
+// pulsanti (Entra / Esci-Cambia) e resta ferma finché non decidi. L'ingresso
+// automatico torna solo se lo chiedi tu spuntando la casella, e vale per
+// l'uid segnato in localStorage: un altro account sul stesso PC vede di nuovo
+// la scelta.
 if (auth) {
+  const AUTOENTER_KEY = 'hub-autoenter';
+  let restoreUser = null;
+
+  const autoEnterWanted = uid => {
+    try { return !!uid && localStorage.getItem(AUTOENTER_KEY) === uid; } catch (e) { return false; }
+  };
+  const setAutoEnter = (uid, on) => {
+    try { on ? localStorage.setItem(AUTOENTER_KEY, uid) : localStorage.removeItem(AUTOENTER_KEY); } catch (e) { /* modalità privata */ }
+  };
+
+  function showResumeBox(user, nota) {
+    restoreUser = user;
+    const en = window.currentLang === 'en';
+    const nome = user.displayName || (user.email || '').split('@')[0] || 'utente';
+    const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+    setTxt('resumeAvatar', hubInitials(nome));
+    setTxt('resumeName', nome);
+    setTxt('resumeMail', user.email || (en ? 'No e-mail on this account' : 'Nessuna email su questo account'));
+    const box = document.getElementById('resumeBox');
+    box?.classList.remove('hidden');
+    const chk = document.getElementById('resumeAutoEnter');
+    if (chk) { chk.checked = autoEnterWanted(user.uid); chk.onchange = () => setAutoEnter(user.uid, chk.checked); }
+    const enter = document.getElementById('resumeEnterBtn');
+    if (enter) enter.disabled = nota === 'notapproved';
+    document.getElementById('resumeAskBtn')?.classList.toggle('hidden', nota !== 'notapproved');
+    const note = document.getElementById('resumeNote');
+    if (note) {
+      const dict = en ? i18n.en : i18n.it;
+      note.textContent = (nota === 'notapproved' ? dict.resumeNotApproved : '');
+      note.classList.toggle('hidden', !nota);
+    }
+  }
+
+  // Dalla card: entra con l'account già autenticato. Il ruolo si rilegge da
+  // accountsHub, non da quello che dichiara il client.
+  window.resumeHubEnter = async function () {
+    const user = restoreUser || auth.currentUser;
+    if (!user || !db || user.isAnonymous) return;
+    const btn = document.getElementById('resumeEnterBtn');
+    if (btn) btn.disabled = true;
+    try {
+      const snap = await db.collection('accountsHub').doc(user.uid).get();
+      const d = snap.exists ? snap.data() : await ensureHubProfile(user);
+      enterHub(d.role || 'user', d.username || user.displayName || 'utente');
+    } catch (e) {
+      if (btn) btn.disabled = false;
+      if (e && e.code === 'permission-denied') showResumeBox(user, 'notapproved');
+      else showToast((window.currentLang === 'en' ? 'Could not open the session: ' : 'Sessione non apribile: ') + ((e && e.code) || e), 'error');
+    }
+  };
+
   let sessionRestoreTried = false;
   auth.onAuthStateChanged(user => {
     if (!user) { auth.signInAnonymously().catch(() => {}); return; }
     if (user.isAnonymous || sessionRestoreTried || !db) return;
     if (!document.getElementById('loginBlocker')) return;
     sessionRestoreTried = true;
-    db.collection('accountsHub').doc(user.uid).get().then(snap =>
-      snap.exists ? snap.data() : ensureHubProfile(user)
-    ).then(d => {
-      enterHub(d.role || 'user', d.username || user.displayName || 'utente');
-    }).catch(() => {});
+    if (autoEnterWanted(user.uid)) { window.resumeHubEnter(); return; }
+    showResumeBox(user);
   });
 }
 

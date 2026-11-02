@@ -32,7 +32,7 @@ html::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, #60
 .folder-drop-active { outline: 2px dashed currentColor; outline-offset: -2px; opacity: 0.8; }
 
 /* Dashboard cards */
-.dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; max-width: 900px; margin: 0 auto; }
+.dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); gap: 1rem; max-width: 900px; margin: 0 auto; }
 .dash-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; padding: 1.75rem 1rem; border-radius: 1rem; background: white; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); cursor: pointer; transition: all 0.2s; }
 .dash-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); transform: translateY(-2px); border-color: #93c5fd; }
 .dark .dash-card { background: #1e293b; border-color: #334155; }
@@ -43,6 +43,67 @@ html::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, #60
 
 /* Modal scrollable body */
 .modal-scroll-body { overflow-y: auto; flex: 1; }
+
+/* ── Grafici ( statistiche cloud ) ──
+   Chart.js con responsive:true e maintainAspectRatio:false prende l'altezza dal
+   contenitore: se il contenitore è alto quanto il canvas (era il caso, con il
+   solo attributo height sul canvas) ogni resize allunga il genitore e il ciclo
+   non finisce — la finestra cresceva all'infinito. Il canvas qui è assoluto
+   dentro una box a altezza determinata: non può più contribuire all'altezza. */
+.chart-box { position: relative; width: 100%; height: clamp(150px, 26vh, 220px); }
+.chart-box > canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
+
+/* ── Cassetto laterale ──
+   Si apre con una translate, ha uno scrim che chiude con un tocco e gli item
+   attivi si vedono. Su mobile occupa l'86% dello schermo (max 20rem) invece
+   del 100%, così resta un bordo a cui appoggiarsi per capire che è un pannello. */
+#sidebar { transform: translateX(-100%); transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.22s; visibility: hidden; width: min(86vw, 20rem); }
+#sidebar:not(.hidden) { transform: translateX(0); visibility: visible; }
+#sidebarScrim { opacity: 0; transition: opacity 0.2s; }
+#sidebarScrim:not(.hidden) { opacity: 1; }
+/* La barra in fondo (z-50) e il FAB della chat (z-55) stavano SOPRA il cassetto
+   (z-40) e sopra il suo scrim: aperti insieme, il pulsante "Il Mio Account"
+   restava illuminato in fondo al menu e si poteva premere attraverso. Con il
+   cassetto aperto scendono sotto lo scrim: il menu è l'unica cosa viva.
+   Si passa da una classe sul body perché barra e cassetto non sono fratelli di
+   DOM, quindi un selettore tra fratelli non li raggiungerebbe. */
+body.drawer-open #hubFooter, body.drawer-open #chat-fab { z-index: 20; }
+.sidebar-btn { min-height: 2.4rem; border-left: 2px solid transparent; }
+.sidebar-btn:hover { border-left-color: var(--accent); }
+.sidebar-btn:active { transform: scale(0.985); }
+.sidebar-btn.is-active { background: var(--accent-soft); border-left-color: var(--accent); color: var(--accent); font-weight: 700; }
+.dark .sidebar-btn.is-active { background: rgba(37, 99, 235, 0.18); color: #93c5fd; }
+.sidebar-btn i { display: inline-flex; align-items: center; justify-content: center; width: 1.25rem; flex-shrink: 0; }
+.sidebar-section > p { display: flex; align-items: center; gap: 0.4rem; font-size: 0.62rem; letter-spacing: 0.09em; }
+.sidebar-section > p::after { content: ''; flex: 1; height: 1px; background: currentColor; opacity: 0.18; }
+@media (prefers-reduced-motion: reduce) { #sidebar, #sidebarScrim { transition: none; } }
+
+/* ── Finestre e viewport reale ──
+   La CDN di Tailwind inietta il suo <style> DOPO questo file, quindi a pari
+   specificità i suoi max-h-[85vh] vincono: qui serve !important. Su mobile "vh"
+   è l'altezza con la barra del browser nascosta, cioè più alta di quella che si
+   vede: il pulsante in fondo alla finestra finiva sotto la barra. dvh segue il
+   viewport visibile e la riga sopra resta il fallback dei browser che non lo
+   conoscono. .max-h-[90vh] è dichiarata prima perché il pannello che le ha
+   entrambe (90vh sotto, 85vh da sm in su) deve vincere 85vh sopra i 640px. */
+@supports (height: 1dvh) {
+  .max-h-\[90vh\] { max-height: 90dvh !important; }
+  .max-h-\[85vh\] { max-height: 85dvh !important; }
+}
+
+/* ── Testi che non sfondano ──
+   Titoli dei file, nomi di cartella e descrizioni arrivano dal cloud: una parola
+   lunga (un .STEP tutto attaccato) allargava la griglia oltre lo schermo. */
+.dash-card, .sidebar-btn, .modal-scroll-body, #sidebarUserName, #sidebarUserMail { overflow-wrap: break-word; }
+.dash-card, .sidebar-btn, #sidebar > div, #sidebarContent > div { min-width: 0; }
+
+/* Il muro di login è un flex centrato: quando la card diventa più alta della
+   finestra (PC con finestra bassa, o box "sessione già aperta" comparsa) il
+   fondo — "Entra come Ospite" e "Registrati" — restava fuori dallo schermo e
+   non si raggiungeva. overflow-y sul contenitore + m-auto sulla card: centrato
+   quando c'è spazio, scorrevole quando non c'è. */
+#loginBlocker { overflow-y: auto; }
+#loginBlocker > div { margin: auto; }
 
 /* Mobile touch improvements */
 button { cursor: pointer; touch-action: manipulation; }
@@ -61,10 +122,9 @@ button { cursor: pointer; touch-action: manipulation; }
   .max-w-7xl { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
   #chat-expanded { width: calc(100vw - 1rem) !important; right: 0.5rem !important; bottom: 5rem !important; max-height: 70vh !important; }
   #chat-fab { bottom: 5.5rem !important; width: 3rem !important; height: 3rem !important; font-size: 1.25rem !important; }
-  #sidebar { width: 100vw !important; }
+  #sidebar { width: min(88vw, 20rem) !important; }
   #statsBarTop { display: none !important; }
   nav .w-2\/4 .text-sm { font-size: 0.75rem !important; }
-  #searchCloud { width: 8rem !important; }
   #lang-it, #lang-en { padding: 0.25rem 0.45rem !important; font-size: 0.6rem !important; }
   #hubNavGrid { grid-template-columns: auto minmax(0, 1fr) auto !important; }
   #hubNavGrid > div { min-width: 0; }

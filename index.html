@@ -25,7 +25,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20261102f" />
+  <link rel="stylesheet" href="style.css?v=20261102g" />
   <link rel="icon" type="image/png" href="icon-192.png?v=20250718" />
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#2563eb" />
@@ -81,6 +81,31 @@
       <button id="googleLoginBtn" type="button" onclick="hubGoogleLogin()" class="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200 font-semibold py-2.5 rounded-lg text-xs transition-all duration-200 cursor-pointer flex items-center justify-center gap-2">
         <i class="fab fa-google text-[#4285F4]"></i><span data-i18n="googleLogin">Accedi con Google</span>
       </button>
+
+      <!-- SESSIONE GIA' APERTA: non entra da solo. La prima volta mostra chi è
+           già dentro e lascia scegliere se continuare o usare un altro account,
+           così su un PC condiviso si possono provare più account senza restare
+           bloccati nella sessione ripristinata. -->
+      <div id="resumeBox" class="hidden mt-3 pt-3 border-t border-gray-200 dark:border-slate-700 text-left">
+        <div class="flex items-center gap-2.5 bg-gray-50 dark:bg-slate-800/70 border border-gray-200 dark:border-slate-700 rounded-xl p-2.5">
+          <div id="resumeAvatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0">?</div>
+          <div class="min-w-0 flex-1">
+            <p class="text-[11px] text-gray-400 dark:text-gray-500" data-i18n="resumeAs">Sessione già aperta</p>
+            <p id="resumeName" class="text-xs font-bold truncate">-</p>
+            <p id="resumeMail" class="text-[10px] text-gray-400 dark:text-gray-500 truncate">-</p>
+          </div>
+        </div>
+        <p id="resumeNote" class="hidden text-[10px] text-amber-600 dark:text-amber-400 mt-2 leading-snug"></p>
+        <div class="flex gap-2 mt-2">
+          <button id="resumeEnterBtn" onclick="resumeHubEnter()" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2 rounded-lg text-[11px] tracking-wider uppercase transition-all cursor-pointer" data-i18n="resumeEnter">Entra</button>
+          <button onclick="hubLogout()" class="flex-1 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-300 font-semibold py-2 rounded-lg text-[11px] transition-all cursor-pointer" data-i18n="logoutSwitch">Esci / Cambia</button>
+        </div>
+        <button id="resumeAskBtn" onclick="hubRequestAccess()" class="hidden w-full mt-2 bg-amber-500 hover:bg-amber-400 text-white font-bold py-2 rounded-lg text-[11px] tracking-wider uppercase transition-all cursor-pointer" data-i18n="requestAccess">Chiedi l'accesso al proprietario</button>
+        <label class="flex items-center gap-1.5 text-[10px] text-gray-500 dark:text-gray-400 mt-2 cursor-pointer select-none">
+          <input type="checkbox" id="resumeAutoEnter" class="rounded border-gray-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer">
+          <span data-i18n="resumeAuto">Entra subito su questo PC</span>
+        </label>
+      </div>
 
       <!-- GUEST / REGISTER LINKS -->
       <div class="mt-3 flex flex-col gap-1.5">
@@ -750,37 +775,41 @@
         <button onclick="closeStatsModal()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
       </div>
       <div class="p-4 modal-scroll-body">
-        <div class="grid grid-cols-2 gap-4 mb-4" id="statsGrid">
-          <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-xl p-4 text-center">
-            <div class="text-2xl font-bold text-emerald-700 dark:text-emerald-400 font-mono" id="statExcel">0</div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4" id="statsGrid">
+          <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-xl p-3 text-center">
+            <div class="text-xl sm:text-2xl font-bold text-emerald-700 dark:text-emerald-400 font-mono" id="statExcel">0</div>
             <div class="text-[10px] text-emerald-600 dark:text-emerald-500 font-semibold uppercase tracking-wider" data-i18n="sidebarExcelStat">Excel</div>
           </div>
-          <div class="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 rounded-xl p-4 text-center">
-            <div class="text-2xl font-bold text-blue-700 dark:text-blue-400 font-mono" id="statDocs">0</div>
+          <div class="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 rounded-xl p-3 text-center">
+            <div class="text-xl sm:text-2xl font-bold text-blue-700 dark:text-blue-400 font-mono" id="statDocs">0</div>
             <div class="text-[10px] text-blue-600 dark:text-blue-500 font-semibold uppercase tracking-wider" data-i18n="sidebarDocStat">Docs</div>
           </div>
-          <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-xl p-4 text-center">
-            <div class="text-2xl font-bold text-amber-700 dark:text-amber-400 font-mono" id="statNotes">0</div>
+          <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-xl p-3 text-center">
+            <div class="text-xl sm:text-2xl font-bold text-amber-700 dark:text-amber-400 font-mono" id="statNotes">0</div>
             <div class="text-[10px] text-amber-600 dark:text-amber-500 font-semibold uppercase tracking-wider" data-i18n="sidebarNotesStat">Note</div>
           </div>
-          <div class="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/50 rounded-xl p-4 text-center">
-            <div class="text-2xl font-bold text-indigo-700 dark:text-indigo-400 font-mono" id="topStatTeam">0</div>
+          <div class="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/50 rounded-xl p-3 text-center">
+            <div class="text-xl sm:text-2xl font-bold text-indigo-700 dark:text-indigo-400 font-mono" id="topStatTeam">0</div>
             <div class="text-[10px] text-indigo-600 dark:text-indigo-500 font-semibold uppercase tracking-wider">Team</div>
           </div>
-          <div class="bg-teal-50 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-900/50 rounded-xl p-4 text-center">
-            <div class="text-2xl font-bold text-teal-700 dark:text-teal-400 font-mono" id="topStatTelegram">0</div>
+          <div class="bg-teal-50 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-900/50 rounded-xl p-3 text-center">
+            <div class="text-xl sm:text-2xl font-bold text-teal-700 dark:text-teal-400 font-mono" id="topStatTelegram">0</div>
             <div class="text-[10px] text-teal-600 dark:text-teal-500 font-semibold uppercase tracking-wider">Telegram</div>
           </div>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
           <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3">
             <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2"><span data-i18n="chartFilesCat">File per categoria</span></p>
-            <canvas id="chartCategories" height="130"></canvas>
+            <div class="chart-box">
+              <canvas id="chartCategories"></canvas>
+            </div>
             <div id="chartCategoriesEmpty" class="hidden text-center text-[11px] text-gray-400 py-8"><i class="fas fa-chart-bar mr-1"></i><span data-i18n="chartNoFiles">Nessun file da mostrare.</span></div>
           </div>
           <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3">
             <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2"><span data-i18n="chartTypes">Excel vs Documenti</span></p>
-            <canvas id="chartTypes" height="130"></canvas>
+            <div class="chart-box">
+              <canvas id="chartTypes"></canvas>
+            </div>
             <div id="chartTypesEmpty" class="hidden text-center text-[11px] text-gray-400 py-8"><span data-i18n="chartNoFiles">Nessun file da mostrare.</span></div>
           </div>
         </div>
@@ -860,52 +889,66 @@
   <button id="chat-fab" data-overlay="chat-expanded" onclick="toggleChatCollapse()" class="fixed bottom-28 right-4 w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-700 hover:from-blue-500 hover:to-purple-600 rounded-full shadow-2xl border-2 border-white/20 flex items-center justify-center text-2xl cursor-pointer transition-all duration-300 z-[55]">🤖</button>
 
 
-  <!-- SIDEBAR -->
-  <aside id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl z-40 hidden overflow-y-auto transition-transform">
-    <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 py-2.5 flex items-center justify-between z-10">
-      <h2 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400"><i class="fas fa-cog mr-2"></i><span data-i18n="sidebarTitle">Pannello Cloud</span></h2>
-      <button onclick="closeSidebar()" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-400"><i class="fas fa-times"></i></button>
-    </div>
-    <div class="p-2.5 space-y-0.5" id="sidebarContent">
-      <div class="sidebar-section mb-3 requires-owner">
-        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5"><span data-i18n="management">Gestione</span></p>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-owner" onclick="openUserModal()"><i class="fas fa-user-circle text-blue-500 w-4"></i><span data-i18n="manageUsers">Gestione Utenti</span></button>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="toggleCategoryManager()"><i class="fas fa-tags text-purple-500 w-4"></i><span data-i18n="manageCategories">Gestione Categorie</span></button>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openSubscribersModal()"><i class="fas fa-users text-indigo-500 w-4"></i><span data-i18n="newsletterSubscribers">Iscritti Newsletter</span></button>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openNewsHistoryModal()"><i class="fas fa-history text-teal-500 w-4"></i><span data-i18n="newsHistory">Storico Notizie</span></button>
-      </div>
-      <div class="sidebar-section mb-3">
-        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5" data-i18n="calculators">Calcolatori</p>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="toggleCalcModal()"><i class="fas fa-calculator text-amber-500 w-4"></i><span data-i18n="calcTitle">Calcolatore Peso Barre</span></button>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openMtbfModal()"><i class="fas fa-chart-line text-orange-500 w-4"></i><span data-i18n="titleMtbf">MTBF</span></button>
-      </div>
-      <div class="sidebar-section mb-3">
-        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5 requires-guest" data-i18n="registration">Registrazione</p>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-guest" onclick="var u=document.getElementById('loginUser');var p=document.getElementById('loginPass');if(u)u.value='';if(p)p.value='';window.toggleRegisterForm();closeSidebar()"><i class="fas fa-user-plus text-emerald-500 w-4"></i><span data-i18n="createAccount">Crea un Account</span></button>
-        <div class="requires-write">
-        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5" data-i18n="privateSpace">Spazio Privato</p>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="btnRequestPrivate" onclick="requestPrivateSpace()"><i class="fas fa-lock text-purple-500 w-4"></i><span data-i18n="requestPrivateSpace">Richiedi Spazio Privato</span></button>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-owner" onclick="openPrivateRequestsModal()"><i class="fas fa-inbox text-purple-500 w-4"></i><span id="privateRequestsBadge" data-i18n="privateRequests">Richieste Spazio Privato</span></button>
-        <div id="privateStatus" class="hidden mt-1 px-2.5 py-1 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-2"><i class="fas fa-check-circle"></i> <span data-i18n="privateActive">Spazio privato attivo</span></div>
+  <!-- SIDEBAR: cassetto con blocco account in testa, gruppi etichettati e scrim -->
+  <div id="sidebarScrim" class="fixed inset-0 bg-black/40 z-30 hidden" onclick="closeSidebar()"></div>
+  <aside id="sidebar" class="fixed top-0 left-0 h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl z-40 hidden flex flex-col overflow-hidden" aria-label="Menu">
+    <div class="px-3 pt-3 pb-2.5 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+      <div class="flex items-center gap-2.5">
+        <div id="sidebarAvatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0">?</div>
+        <div class="min-w-0 flex-1">
+          <p id="sidebarUserName" class="text-xs font-bold truncate">Ospite</p>
+          <p id="sidebarUserMail" class="text-[10px] text-gray-400 dark:text-gray-500 truncate">Accesso non effettuato</p>
         </div>
+        <button onclick="closeSidebar()" class="p-2 -mr-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 flex-shrink-0" title="Chiudi (Esc)" aria-label="Chiudi il menu"><i class="fas fa-times text-sm"></i></button>
+      </div>
+      <div class="mt-2 flex items-center gap-1">
+        <span id="sidebarRoleBadge" class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">ospite</span>
+        <button id="sidebarLogoutBtn" onclick="hubLogout()" class="hidden ml-auto text-[10px] font-semibold text-gray-500 hover:text-red-500 px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30"><i class="fas fa-right-from-bracket mr-1"></i><span data-i18n="logoutSwitch">Esci / Cambia</span></button>
+      </div>
+    </div>
+    <div class="p-2.5 space-y-1 overflow-y-auto flex-1 overscroll-contain" id="sidebarContent">
+      <div class="sidebar-section mb-3 requires-owner">
+        <p class="text-gray-400 dark:text-gray-500 mb-1.5 font-bold uppercase tracking-wider"><span data-i18n="management">Gestione</span></p>
+        <button class="sidebar-btn w-full text-left px-2.5 text-[12px] rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-owner" onclick="openUserModal()"><i class="fas fa-user-circle text-blue-500"></i><span data-i18n="manageUsers">Gestione Utenti</span></button>
+        <button class="sidebar-btn w-full text-left px-2.5 text-[12px] rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="toggleCategoryManager()"><i class="fas fa-tags text-purple-500"></i><span data-i18n="manageCategories">Gestione Categorie</span></button>
+        <button class="sidebar-btn w-full text-left px-2.5 text-[12px] rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openSubscribersModal()"><i class="fas fa-users text-indigo-500"></i><span data-i18n="newsletterSubscribers">Iscritti Newsletter</span></button>
+        <button class="sidebar-btn w-full text-left px-2.5 text-[12px] rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openNewsHistoryModal()"><i class="fas fa-history text-teal-500"></i><span data-i18n="newsHistory">Storico Notizie</span></button>
       </div>
       <div class="sidebar-section mb-3">
-        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5"><span data-i18n="evEyeProtection">Protezione Occhi</span></p>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="eyeProtectToggle" onclick="toggleEyeProtection()"><i class="fas fa-eye text-green-500 w-4"></i><span id="eyeProtectLabel">Attiva protezione occhi</span></button>
+        <p class="text-gray-400 dark:text-gray-500 mb-1.5 font-bold uppercase tracking-wider" data-i18n="calculators">Calcolatori</p>
+        <button class="sidebar-btn w-full text-left px-2.5 text-[12px] rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="toggleCalcModal()"><i class="fas fa-calculator text-amber-500"></i><span data-i18n="calcTitle">Calcolatore Peso Barre</span></button>
+        <button class="sidebar-btn w-full text-left px-2.5 text-[12px] rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openMtbfModal()"><i class="fas fa-chart-line text-orange-500"></i><span data-i18n="titleMtbf">MTBF</span></button>
       </div>
       <div class="sidebar-section mb-3">
-        <p class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5"><span data-i18n="info">Informazioni</span></p>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openStatsModal()"><i class="fas fa-chart-bar text-purple-500 w-4"></i><span data-i18n="cloudStats">Statistiche Cloud</span></button>
-        <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="hubInfoToggle" onclick="toggleHubInfo()"><i class="fas fa-info-circle text-cyan-500 w-4"></i><span data-i18n="hubInfo">Info Hub</span></button>
-        <div id="hubInfoPanel" class="hidden mt-1.5 p-2.5 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-xs space-y-1.5">
-           <p><span class="font-medium" data-i18n="version">Versione:</span> <span id="hubInfoVersion">v3.7.0</span></p>
+        <p class="text-gray-400 dark:text-gray-500 mb-1.5 font-bold uppercase tracking-wider" data-i18n="privateSpace">Spazio Privato</p>
+        <button class="sidebar-btn w-full text-left px-2.5 text-[12px] rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="btnRequestPrivate" onclick="requestPrivateSpace()"><i class="fas fa-lock text-purple-500"></i><span data-i18n="requestPrivateSpace">Richiedi Spazio Privato</span></button>
+        <button class="sidebar-btn w-full text-left px-2.5 text-[12px] rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-owner" onclick="openPrivateRequestsModal()"><i class="fas fa-inbox text-purple-500"></i><span id="privateRequestsBadge" data-i18n="privateRequests">Richieste Spazio Privato</span></button>
+        <div id="privateStatus" class="hidden mt-1 px-2.5 py-1 text-[11px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-2"><i class="fas fa-check-circle"></i> <span data-i18n="privateActive">Spazio privato attivo</span></div>
+      </div>
+      <div class="sidebar-section mb-3">
+        <p class="text-gray-400 dark:text-gray-500 mb-1.5 font-bold uppercase tracking-wider"><span data-i18n="evEyeProtection">Protezione Occhi</span></p>
+        <button class="sidebar-btn w-full text-left px-2.5 text-[12px] rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="eyeProtectToggle" onclick="toggleEyeProtection()"><i class="fas fa-eye text-green-500"></i><span id="eyeProtectLabel">Attiva protezione occhi</span></button>
+      </div>
+      <div class="sidebar-section mb-3">
+        <p class="text-gray-400 dark:text-gray-500 mb-1.5 font-bold uppercase tracking-wider"><span data-i18n="info">Informazioni</span></p>
+        <button class="sidebar-btn w-full text-left px-2.5 text-[12px] rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openStatsModal()"><i class="fas fa-chart-bar text-purple-500"></i><span data-i18n="cloudStats">Statistiche Cloud</span></button>
+        <button class="sidebar-btn w-full text-left px-2.5 text-[12px] rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" id="hubInfoToggle" onclick="toggleHubInfo()"><i class="fas fa-info-circle text-cyan-500"></i><span data-i18n="hubInfo">Info Hub</span></button>
+        <div id="hubInfoPanel" class="hidden mt-1.5 p-2.5 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-[11px] space-y-1.5">
+           <p><span class="font-medium" data-i18n="version">Versione:</span> <span id="hubInfoVersion">v3.7.1</span></p>
           <p><span class="font-medium" data-i18n="uptime">Attivo da:</span> <span id="hubInfoUptime">--</span></p>
           <p><span class="font-medium" data-i18n="lastUpdate">Ultimo aggiornamento:</span> <span id="hubInfoUpdate">--</span></p>
           <p><span class="font-medium" data-i18n="localTime">Ora locale:</span> <span id="hubInfoTimeDisplay">--</span></p>
         </div>
       </div>
-      <hr class="my-3 border-gray-200 dark:border-gray-700" />
-      <button class="sidebar-btn w-full text-left px-2.5 py-1.5 text-xs rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition flex items-center gap-2 text-red-500 requires-write" onclick="if(confirm('Eliminare definitivamente il tuo account? I tuoi dati rimarranno. Questa azione è irreversibile.'))deleteMyAccount()"><i class="fas fa-trash-alt w-4"></i><span data-i18n="deleteMyAccount">Elimina il mio account</span></button>
+      <div class="sidebar-section mb-3 requires-guest">
+        <p class="text-gray-400 dark:text-gray-500 mb-1.5 font-bold uppercase tracking-wider" data-i18n="registration">Registrazione</p>
+        <button class="sidebar-btn w-full text-left px-2.5 text-[12px] rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2 requires-guest" onclick="var u=document.getElementById('loginUser');var p=document.getElementById('loginPass');if(u)u.value='';if(p)p.value='';window.toggleRegisterForm();closeSidebar()"><i class="fas fa-user-plus text-emerald-500"></i><span data-i18n="createAccount">Crea un Account</span></button>
+      </div>
+      <div class="sidebar-section mb-3 requires-write">
+        <p class="text-gray-400 dark:text-gray-500 mb-1.5 font-bold uppercase tracking-wider"><span data-i18n="account">Account</span></p>
+        <button class="sidebar-btn w-full text-left px-2.5 text-[12px] rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center gap-2" onclick="openAccountModal();closeSidebar()"><i class="fas fa-id-card text-blue-500"></i><span data-i18n="myAccount">Il mio account</span></button>
+        <button class="sidebar-btn w-full text-left px-2.5 text-[12px] rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition flex items-center gap-2 text-red-500" onclick="if(confirm('Eliminare definitivamente il tuo account? I tuoi dati rimarranno. Questa azione è irreversibile.'))deleteMyAccount()"><i class="fas fa-trash-alt"></i><span data-i18n="deleteMyAccount">Elimina il mio account</span></button>
+      </div>
     </div>
   </aside>
 
@@ -1117,8 +1160,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-  <script src="js/config.js?v=20261102f"></script>
-  <script src="js/modal-manager.js?v=20261102f"></script>
-  <script src="js/app.js?v=20261102f"></script>
+  <script src="js/config.js?v=20261102g"></script>
+  <script src="js/modal-manager.js?v=20261102g"></script>
+  <script src="js/app.js?v=20261102g"></script>
 </body>
 </html>
