@@ -382,6 +382,7 @@ function showWelcomeSplash() {
 function enterHub(role, username) {
   window.userRole = role;
   window.username = username;
+  window.userEmail = auth && auth.currentUser ? auth.currentUser.email || '' : '';
   showWelcomeSplash();
   const lb = document.getElementById('loginBlocker');
   if (lb) {
@@ -746,16 +747,9 @@ window.toggleArchiveModal = () => {
   if (opening) {
     window.archivePage = 0;
     const inp = document.getElementById('searchCloud');
-    if (inp) {
-      inp.value = '';
-      inp.readOnly = true;
-    }
+    if (inp) inp.value = '';
     window.searchQuery = '';
     document.getElementById('clearSearch')?.classList.add('hidden');
-    setTimeout(() => {
-      const i2 = document.getElementById('searchCloud');
-      if (i2) { i2.value = ''; i2.readOnly = false; }
-    }, 400);
   }
   combineAndRenderArchive();
 };
@@ -1772,15 +1766,37 @@ function renderFolderIcons() {
 
 window.searchQuery = '';
 const searchInput = document.getElementById('searchCloud');
+function clearSearchQuery() {
+  searchInput.value = '';
+  window.searchQuery = '';
+  window.archivePage = 0;
+  document.getElementById('clearSearch')?.classList.add('hidden');
+  combineAndRenderArchive();
+}
+// Un value identico all'utente o alla mail in uso non è mai una ricerca digitata:
+// è il riempimento automatico che ha colpito la barra dell'archivio.
+function isCredentialAutofill(value) {
+  if (!value) return false;
+  const v = String(value).trim().toLowerCase();
+  const creds = [window.username, window.userEmail].filter(Boolean).map(s => String(s).toLowerCase());
+  return creds.includes(v);
+}
+// Il browser reinietta le credenziali salvate nel primo campo di testo disponibile:
+// il campo resta readonly finché non lo si tocca davvero e scarta ogni value scritto
+// mentre non ha il focus (l'autocompletamento non passa mai da un evento trusted).
+const unlockSearchField = () => { if (searchInput) searchInput.removeAttribute('readonly'); };
 searchInput?.addEventListener('focus', () => {
-  if (window.username && searchInput.value === window.username) { searchInput.value = ''; window.searchQuery = ''; window.archivePage = 0; combineAndRenderArchive(); }
+  unlockSearchField();
+  if (isCredentialAutofill(searchInput.value)) clearSearchQuery();
 });
+searchInput?.addEventListener('pointerdown', unlockSearchField);
+searchInput?.addEventListener('keydown', unlockSearchField);
 searchInput?.addEventListener('blur', () => {
-  if (window.username && searchInput.value === window.username) { searchInput.value = ''; window.searchQuery = ''; window.archivePage = 0; combineAndRenderArchive(); }
+  if (!searchInput.value) { searchInput.setAttribute('readonly', ''); return; }
+  if (isCredentialAutofill(searchInput.value)) clearSearchQuery();
 });
-document.getElementById('typeFilter')?.addEventListener('change', () => { window.archivePage = 0; combineAndRenderArchive(); });
-document.getElementById('folderFilter')?.addEventListener('change', () => { window.archivePage = 0; combineAndRenderArchive(); });
-document.getElementById('searchCloud')?.addEventListener('input', e => {
+searchInput?.addEventListener('input', e => {
+  if (document.activeElement !== searchInput) { e.target.value = ''; return; }
   window.archivePage = 0;
   if (!e.target.value) { window.searchQuery = ''; document.getElementById('clearSearch')?.classList.add('hidden'); combineAndRenderArchive(); return; }
   window.searchQuery = e.target.value.toLowerCase();
@@ -1788,13 +1804,11 @@ document.getElementById('searchCloud')?.addEventListener('input', e => {
   if (clearBtn) clearBtn.classList.toggle('hidden', !e.target.value);
   combineAndRenderArchive();
 });
+document.getElementById('typeFilter')?.addEventListener('change', () => { window.archivePage = 0; combineAndRenderArchive(); });
+document.getElementById('folderFilter')?.addEventListener('change', () => { window.archivePage = 0; combineAndRenderArchive(); });
 document.getElementById('clearSearch')?.addEventListener('click', () => {
-  const input = document.getElementById('searchCloud');
-  if (input) { input.value = ''; input.focus(); }
-  window.searchQuery = '';
-  window.archivePage = 0;
-  document.getElementById('clearSearch')?.classList.add('hidden');
-  combineAndRenderArchive();
+  clearSearchQuery();
+  searchInput?.focus();
 });
 document.getElementById('selectAllArchive')?.addEventListener('change', e => {
   document.querySelectorAll('.archive-checkbox').forEach(cb => cb.checked = e.target.checked);
