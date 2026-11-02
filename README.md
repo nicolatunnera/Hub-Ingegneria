@@ -187,10 +187,11 @@ Dopo il deploy di `firebase.rules.auth-ready`:
   documenti che non ce l'hanno, altrimenti spariscono dalla vista — più una seconda
   query vincolata a `ownerUid` per i file privati dell'utente. È il passo successivo
   naturale, non è incluso.
-- **mai leggibili da un altro membro**: `accountsHub` e la lista completa degli
-  iscritti Telegram con le chat id — solo il proprio documento, oppure tutto per
-  l'owner. Dentro `accountsHub` i campi `password` e `aiKey` si cancellano una volta
-  con `await hubDropLegacySecrets()` (punto 5b della migrazione).
+- **mai leggibili da un altro membro**: `accountsHub`, la lista completa degli
+  iscritti Telegram con le chat id e la coda `accessRequestsHub` delle richieste di
+  accesso — solo il proprio documento, oppure tutto per l'owner. Dentro `accountsHub` i
+  campi `password` e `aiKey` si cancellano una volta con `await hubDropLegacySecrets()`
+  (punto 5b della migrazione).
 
 ### Migrazione auth
 
@@ -223,12 +224,24 @@ questo progetto è **Google** (2026-11-02); Email/Password è facoltativo.
    - `hubLogout()` chiude la sessione; `onAuthStateChanged` la ripristina all'avvio e
      ripiega sul login anonimo quando non c'è un account.
 4. **Entra con Google e promuoviti**: dal sito → *Accedi con Google* → scegli l'account
-   che vuoi usare come amministratore. Poi **Firebase Console → Firestore Database →
-   `accountsHub` → il documento con il tuo uid → modifica `role` da `user` a `owner`**.
+   che vuoi usare come amministratore. Poi, nella console del browser:
+   ```js
+   await hubClaimOwner()
+   ```
+   Alza `role: 'owner'` sul tuo documento `accountsHub/{uid}` e ti fa entrare da
+   proprietario — funziona finché le regole in vigore sono quelle permissive; dopo il
+   punto 6 il campo `role` è bloccato e l'unica strada è
+   **Firebase Console → Firestore Database → `accountsHub` → il tuo documento → `role`
+   da `user` a `owner`**. Se preferisci non fidarti del client, fai subito il giro della
+   Console: il risultato è lo stesso.
    Da loggato con un account reale puoi anche cancellare i tre documenti `accountsHub`
    vecchi (id random, password DJB2): non sono utenti Firebase e non servono più.
    L'email che il token contiene la stampa `await hubMigrationReport()` (campo `login`):
    è quella da scrivere in `ownerEmails()`.
+   > **Come si apre la console del browser**: sul sito, `F12` (o tasto destro →
+   > *Ispeziona*) → tab **Console** → se Chrome chiede un conferimento digita
+   > `allow pasting` e Invio → incolla il comando → Invio. L'output è un oggetto:
+   > `console.table` stampa anche la tabella dei documenti.
 5. **Backfill dei documenti esistenti** (finché le regole sono ancora permissive):
    loggato come owner, apri la console del browser e lancia
    ```js
@@ -269,6 +282,21 @@ questo progetto è **Google** (2026-11-02); Email/Password è facoltativo.
    documento decide solo quali pannelli vede l'interfaccia.
    Se tutti i colleghi hanno un dominio in comune, `memberDomain()` ('@tuostudio.it')
    evita di elencarli uno per uno.
+   **Se un dominio in comune non c'è** (tutti su Gmail personale), l'alternativa alla
+   trafila uno-per-uno è la coda di approvazione, che evita di riscrivere le regole a
+   ogni nuovo arrivo:
+   - Chi entra con Google e non è in lista riceve `permission-denied` e il client invia
+     da solo la sua email in `accessRequestsHub/{uid}` (`hubRequestAccess()`; la
+     collezione è scrivibile da qualsiasi token non anonimo, leggibile solo dall'owner).
+   - L'owner, quando gli pare, lancia
+     ```js
+     await hubAccessQueue(['email.gia.approvata@gmail.com'])
+     ```
+     che stampa le richieste e la riga `memberEmails()` già composta con dentro le
+     vecchie e le nuove: si incolla in `firebase.rules.auth-ready` e si pubblica.
+     Un solo deploy per più persone, invece di uno per persona.
+     Approvare via interfaccia, senza toccare le regole, non è possibile: l'unica
+     informazione che la regola può leggere gratis è quella già dentro il token.
    ```bash
    cp firebase.rules.auth-ready firebase.rules
    ./deploy-rules.sh     # oppure incolla il contenuto in Console → Firestore → Rules
@@ -458,7 +486,7 @@ MIT License - Vedi LICENSE file
 
 | Versione | Data | Novità |
 |----------|------|--------|
-| **3.7.0** | 2026-11-01 | 🔐 Account Firebase veri: login/registrazione con Email/Password, scritture firmate (`ownerUid` + `createdAt`), `hubBackfillOwners()`, logout, avviso quando le letture sono riservate. Regole `auth-ready` riscritte per reggere le query (owner da allowlist di uid, niente `get()` nelle liste), `chatHub` intestata all'uid. `hubMigrationReport()` e `hubDropLegacySecrets()` per guidare e chiudere la migrazione; eliminata l'ultima lettura del campo `aiKey`. **Accedi con Google** (`hubGoogleLogin`) e regole `auth-ready` con allowlist di email: con un provider Google attivo un token valido lo ha chiunque, quindi "approvato" vuol dire email in lista. Barra di ricerca dell'archivio: il browser riempiva il campo con le credenziali salvate, ora il campo resta `readonly` finché non lo si tocca, ha `autocomplete="off"` e ogni valore scritto senza focus viene scartato |
+| **3.7.0** | 2026-11-01 | 🔐 Account Firebase veri: login/registrazione con Email/Password, scritture firmate (`ownerUid` + `createdAt`), `hubBackfillOwners()`, logout, avviso quando le letture sono riservate. Regole `auth-ready` riscritte per reggere le query (owner da allowlist di uid, niente `get()` nelle liste), `chatHub` intestata all'uid. `hubMigrationReport()` e `hubDropLegacySecrets()` per guidare e chiudere la migrazione; eliminata l'ultima lettura del campo `aiKey`. **Accedi con Google** (`hubGoogleLogin`) e regole `auth-ready` con allowlist di email: con un provider Google attivo un token valido lo ha chiunque, quindi "approvato" vuol dire email in lista. Barra di ricerca dell'archivio: il browser riempiva il campo con le credenziali salvate, ora il campo resta `readonly` finché non lo si tocca, ha `autocomplete="off"` e ogni valore scritto senza focus viene scartato. `hubClaimOwner()` (ruolo owner senza passare dalla Console), coda richieste di accesso `accessRequestsHub` con `hubRequestAccess()` / `hubAccessQueue()`, che stampa la riga `memberEmails()` già pronta da pubblicare in batch |
 | **3.6.0** | 2026-09-10 | 💎 Viewer file integrato: PDF, Word (.docx), STEP/STP 3D (occt-import-js WASM + Three.js), DXF 2D |
 | **3.5.1** | 2026-09-10 | ✨ Supporto file STEP/STP, security rules adattate, deploy script, doc completa |
 | **3.5.0** | 2025-01-20 | Mobile-layout fixes, chunking Firestore per file grandi |

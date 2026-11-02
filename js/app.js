@@ -164,11 +164,12 @@ window.hubMigrationReport = async function () {
   out.documenti = senzaFirma;
 
   const passi = [];
-  if (out.emailPassword === 'NON attivo') passi.push('1) Firebase Console → Authentication → Sign-in method → attiva Email/Password');
-  if (!u || u.isAnonymous) passi.push('3) registrati dal sito e accedi con l\'account nuovo');
-  if (window.userRole !== 'owner') passi.push('3b) promuovi il tuo documento accountsHub a role: owner');
-  if (Object.values(senzaFirma).some(v => /senza/.test(String(v)))) passi.push('5) lancia await hubBackfillOwners()');
-  if (String(out.letturePubbliche).indexOf('SÌ') === 0) passi.push('6) incolla le regole di firebase.rules.auth-ready (con il tuo uid in ownerUids) in Console → Firestore → Regole → Pubblica');
+  if (out.emailPassword === 'NON attivo') passi.push('Email/Password può restare spento: si entra con "Accedi con Google" (README, punto 1)');
+  if (!u || u.isAnonymous) passi.push('dal sito: "Accedi con Google" con la mail del proprietario (README, punto 4)');
+  if (window.userRole !== 'owner') passi.push('qui in console: await hubClaimOwner() (README, punto 4)');
+  if (Object.values(senzaFirma).some(v => /senza/.test(String(v)))) passi.push('qui in console: await hubBackfillOwners() e poi await hubDropLegacySecrets() (README, punti 5 e 5b)');
+  if (String(out.letturePubbliche).indexOf('SÌ') === 0) passi.push('incolla firebase.rules.auth-ready (ownerEmails già contiene la tua mail) in Console → Firestore → Regole → Pubblica (README, punto 6)');
+  if (passi.length === 0) passi.push('tutto fatto: resta solo da disattivare Anonimo e girare le credenziali che erano esposte');
   if (passi.length === 0) passi.push('tutto fatto: resta solo da disattivare Anonimo e girare le credenziali che erano esposte');
   out.prossimoPassaggio = passi;
   out.nota = 'un 400 su identitytoolkit in console è previsto: è il sondeo del provider, non un guasto';
@@ -364,6 +365,8 @@ function DJB2(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = ((h << 5)
 // il bundle. Vanno sostituite dall'autenticazione Firebase (README → "Migrazione auth").
 const OWNER_USER = 'Ing';
 const OWNER_PASS = 'Ing';
+// La stessa mail che sta in ownerEmails() dentro firebase.rules.auth-ready.
+const OWNER_EMAIL = 'nicola.tunnera@gmail.com';
 const REMEMBER_KEY = 'hub-cred';
 function showWelcomeSplash() {
   const splash = document.getElementById('welcomeSplash');
@@ -533,7 +536,9 @@ window.hubGoogleLogin = async function () {
     } else if (code === 'auth/operation-not-allowed') {
       showToast('Il provider Google non è attivo in Firebase Console.', 'error');
     } else if (code === 'permission-denied') {
-      showToast('Account non approvato: il proprietario deve aggiungere la tua email alle regole.', 'error', 8000);
+      // Non è nell'allowlist delle regole: si auto-segnala, l'owner approva a colpo.
+      showToast('Account non approvato: invio la richiesta al proprietario...', 'info', 5000);
+      await window.hubRequestAccess();
     } else if (code === 'auth/network-request-failed') {
       showToast('Errore di connessione.', 'error');
     } else {
@@ -542,6 +547,70 @@ window.hubGoogleLogin = async function () {
   } finally {
     if (btn) btn.disabled = false;
   }
+};
+
+// ─── PASSO 3: OWNER SENZA Console ─────────────────────────────────────
+// Promuove a owner il profilo creato con Google. Serve adesso, finché le regole
+// in vigore lasciano scrivere a chi ha un token: dopo la pubblicazione delle
+// auth-ready il campo role non è più modificabile dal client e la promozione si
+// fa dalla Console di Firestore. Il controllo sulla mail è comodo, non sicurezza:
+// la sicurezza vera è l'allowlist dentro le regole.
+window.hubClaimOwner = async function () {
+  if (!db || !auth || !auth.currentUser) { showToast('Prima usa "Accedi con Google".', 'error'); return; }
+  const u = auth.currentUser;
+  if (u.isAnonymous) { showToast('Questa è la sessione anonima: accedi con Google.', 'error'); return; }
+  if (String(u.email || '').toLowerCase() !== OWNER_EMAIL) { showToast('Può prendersi il ruolo owner solo ' + OWNER_EMAIL + '.', 'error'); return; }
+  try {
+    const d = await ensureHubProfile(u);
+    await db.collection('accountsHub').doc(u.uid).update({ role: 'owner' });
+    enterHub('owner', d.username || u.displayName || OWNER_USER);
+    showToast('Ruolo owner attivo. Prossimo passaggio: await hubBackfillOwners()', 'success', 8000);
+    return { uid: u.uid, email: u.email, ruolo: 'owner' };
+  } catch (e) {
+    if (e && e.code === 'permission-denied') showToast('Regole già chiuse: promuoviti a owner da Firestore Console.', 'error', 8000);
+    else showToast('Promozione non riuscita: ' + ((e && e.code) || e), 'error');
+  }
+};
+
+// ─── RICHIESTA DI ACCESSO ─────────────────────────────────────────────
+// Chi entra con Google ma non è ancora in lista non deve scrivere da nessuna
+// parte: lascia qui la sua email e il proprietario approva tutti in un colpo
+// solo. È il sostituto della trafila uno-per-uno, non una porta aperta: la
+// raccolta è leggibile solo all'owner e chi richiede resta fuori dall'archivio.
+window.hubRequestAccess = async function (nota) {
+  if (!db || !auth || !auth.currentUser) { showToast('Prima usa "Accedi con Google".', 'error'); return; }
+  const u = auth.currentUser;
+  if (u.isAnonymous) { showToast('Sessione anonima: accedi con Google e riprova.', 'error'); return; }
+  try {
+    await db.collection('accessRequestsHub').doc(u.uid).set({
+      uid: u.uid,
+      email: u.email || '',
+      name: u.displayName || '',
+      note: String(nota || '').slice(0, 200),
+      requestedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showToast('Richiesta inviata a ' + OWNER_EMAIL + ': ti approva il proprietario.', 'success', 7000);
+    return true;
+  } catch (e) {
+    showToast('Invio non riuscito: ' + ((e && e.code) || e), 'error');
+    return false;
+  }
+};
+
+// Da console, loggato owner: elenca le richieste e stampa la riga già pronta da
+// incollare in firebase.rules.auth-ready (memberEmails) prima di pubblicare.
+window.hubAccessQueue = async function (existingEmails) {
+  if (!db || window.userRole !== 'owner') { showToast('Serve il ruolo owner.', 'error'); return; }
+  let snap;
+  try { snap = await db.collection('accessRequestsHub').get(); }
+  catch (e) { showToast('Lettura negata (' + e.code + ').', 'error'); return; }
+  const richieste = snap.docs.map(d => { const x = d.data(); return { email: x.email || '(senza mail)', name: x.name || '', da: String(d.id).slice(0, 6) }; });
+  const giaApprovate = (existingEmails || []).map(e => String(e).toLowerCase());
+  const nuove = [...new Set(richieste.map(r => r.email.toLowerCase()).filter(e => !giaApprovate.includes(e)))];
+  console.table(richieste);
+  const riga = "function memberEmails() { return ['" + [...giaApprovate, ...nuove].join("', '") + "']; }";
+  console.log('%cDa incollare in firebase.rules.auth-ready e pubblicare:', 'font-weight:bold', '\n' + riga);
+  return { richieste: richieste.length, nuove, riga };
 };
 
 window.hubLogout = async function () {

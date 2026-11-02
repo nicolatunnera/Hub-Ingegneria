@@ -100,6 +100,19 @@ service cloud.firestore {
       allow delete: if isOwner() || (isMember() && uid == request.auth.uid);
     }
 
+    // ═══ RICHIESTE DI ACCESSO ═══════════════════════════════════════════════
+    // Il canale di approvvigionamento dei membri: chi ha un token Google vero
+    // (non anonimo) ma non è ancora in lista può scrivere la propria email qui.
+    // Scrivere è l'unica cosa che gli riesce: dell'archivio non vede nulla, e le
+    // richieste le legge e le chiude solo l'owner.
+    match /accessRequestsHub/{uid} {
+      allow create, update: if providerName() != 'anonymous' && providerName() != 'none'
+                            && uid == request.auth.uid
+                            && request.resource.data.get('uid', '') == request.auth.uid;
+      allow get: if isOwner() || uid == request.auth.uid;
+      allow list, delete: if isOwner();
+    }
+
     // ═══ ARCHIVO: excel, documenti, categorie, cartelle ═════════════════════
     // Lettura condivisa tra i membri: chi non ha un account approvato non vede
     // niente. I flag "private" restano un filtro d'interfaccia, non di regola:
