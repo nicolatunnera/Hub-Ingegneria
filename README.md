@@ -176,8 +176,10 @@ progetto Firebase. Se escono documenti, la lettura è aperta.
 
 Dopo il deploy di `firebase.rules.auth-ready`:
 
-- **fuori**: chi non ha un account Firebase — non legge niente, non scrive niente, e
-  il token anonimo non basta più. Questo copre il caso "chi apre il link per sbaglio".
+- **fuori**: chi non ha un account **approvato**. Non basta un token valido: con il
+  provider Google attivo qualunque account Google produce un token, quindi le regole
+  accettano solo le email in `ownerEmails()` / `memberEmails()` (o nel dominio
+  `memberDomain()`). Gli anonimi sono rifiutati esplicitamente.
 - **dentro**: chi ha un account. Un membro legge l'archivio (excel, documenti, note,
   bacheca, storico) anche se un file è marcato `private`: quel flag oggi è un filtro
   dell'interfaccia, non della regola. Renderlo vincolato costa una query
@@ -192,35 +194,41 @@ Dopo il deploy di `firebase.rules.auth-ready`:
 
 ### Migrazione auth
 
-Obiettivo: sostituire l'accesso anonimo con un account reale, così le regole possono
-distinguere chi è dentro da chiunque apra il sito.
+Obiettivo: sostituire l'accesso anonimo con un account vero **e approvato**, così le
+regole possono distinguere chi è dentro da chiunque apra il sito. Il provider attivo su
+questo progetto è **Google** (2026-11-02); Email/Password è facoltativo.
 
 1. **Firebase Console → Authentication → Sign-in method**
-   - Abilita **Email/Password** (o **Google** se preferisci).
-   - Lascia **Anonimo** disattivato: è quello che rende inutile `isSignedIn()`.
+   - **Google: Attivo** (già fatto). Se un giorno aggiungi **Email/Password**, il client
+     lo usa già senza altre modifiche.
+   - **Anonimo** si disattiva solo alla fine (punto 8): serve ancora per non rompere le
+     scritture sotto le regole vecchie.
+   - Se il popup Google risponde `auth/configuration-not-found`: stessa pagina →
+     tab **Impostazioni** → **Screen di consenso OAuth** → compilo nome app e email.
 2. **Authentication → Settings → Authorized domains**
    - Aggiungi il dominio del sito (es. `nicolatunnera.github.io`) e `localhost`
      solo per lo sviluppo.
-3. **Client** — fatto nel commit "auth: account Firebase veri":
+3. **Client** — fatto nei commit "auth: account Firebase veri" e "Accedi con Google":
+   - **`hubGoogleLogin()`** (pulsante "Accedi con Google" nel muro di login): apre il
+     popup Google, poi `ensureHubProfile()` crea `accountsHub/{uid}` con `role: 'user'`
+     se non esiste. L'email viene dal token: in Firestore non finisce nessuna password.
    - `verifyHubLogin` prova in ordine: credenziali nel bundle (porta vecchia),
-     account Firebase, tabella `accountsHub` con hash DJB2 (account nati prima).
-   - L'email Firebase è sintetizzata dall'username: `<username>@hub-ingegneria.app`.
-     È un dominio fittizio, non ci arriva posta: serve solo perché Firebase identifica
-     gli account con un'email.
+     account Firebase Email/Password, tabella `accountsHub` con hash DJB2 (nati prima).
+     L'email Firebase è sintetizzata dall'username: `<username>@hub-ingegneria.app`.
    - `registerHubAccount` (pulsante "Registrati") crea l'utente con
-     `createUserWithEmailAndPassword` e scrive il profilo in `accountsHub/{uid}` con
-     `role: 'user'`.
+     `createUserWithEmailAndPassword` e scrive il profilo con `role: 'user'`.
    - Le scritture si firmano da sole: `add()` e `set()` sono avvolti da `stampOwner()`,
      che aggiunge `ownerUid` (uid dell'account vero) e `createdAt`
      (`FieldValue.serverTimestamp()`, quindi il client non può mentire) se mancano.
    - `hubLogout()` chiude la sessione; `onAuthStateChanged` la ripristina all'avvio e
      ripiega sul login anonimo quando non c'è un account.
-4. **Crea il tuo account**: dal sito → *Non hai un account? Registrati*, poi promuoviti:
-   **Firebase Console → Firestore Database → `accountsHub` → il documento con il tuo uid
-   → modifica `role` da `user` a `owner`**. Da loggato con un account reale puoi anche
-   cancellare i tre documenti `accountsHub` vecchi (id random, password DJB2): non sono
-   utenti Firebase e con le regole nuove non servono.
-   Copia intanto l'UID (Authentication → Users → colonna UID): serve al punto 6.
+4. **Entra con Google e promuoviti**: dal sito → *Accedi con Google* → scegli l'account
+   che vuoi usare come amministratore. Poi **Firebase Console → Firestore Database →
+   `accountsHub` → il documento con il tuo uid → modifica `role` da `user` a `owner`**.
+   Da loggato con un account reale puoi anche cancellare i tre documenti `accountsHub`
+   vecchi (id random, password DJB2): non sono utenti Firebase e non servono più.
+   L'email che il token contiene la stampa `await hubMigrationReport()` (campo `login`):
+   è quella da scrivere in `ownerEmails()`.
 5. **Backfill dei documenti esistenti** (finché le regole sono ancora permissive):
    loggato come owner, apri la console del browser e lancia
    ```js
@@ -236,24 +244,31 @@ distinguere chi è dentro da chiunque apra il sito.
    Rimuove i campi `password` (hash DJB2) e `aiKey` da tutti i documenti. Sono campi
    che il codice non usa più — le password le verifica Firebase Auth e `askAI` non
    chiama nessun provider, quindi `aiKey` era solo una copia pubblicamente
-   scaricabile di una chiave. **Da fare dopo il punto 1**: senza `password` gli
-   account del vecchio login non hanno più modo di entrare, e vanno registrati di
-   nuovo.
+   scaricabile di una chiave. **Da fare dopo il punto 4**: senza `password` gli
+   account del vecchio login non hanno più modo di entrare, e chi ci stava dentro deve
+   passare da "Accedi con Google".
    Per sapere a che punto sei, dopo ogni passaggio rilancia
    ```js
    await hubMigrationReport()
    ```
-   Dice se Email/Password è attivo, se le letture sono ancora pubbliche (HTTP 200
-   sull'API REST), quanti documenti mancano di firma e quale passo manca.
-6. **Metti il tuo uid nelle regole**, poi fa il deploy. In `firebase.rules.auth-ready`:
+   Dice con che account sei dentro (provider ed email), se Email/Password è attivo, se
+   le letture sono ancora pubbliche (HTTP 200 sull'API REST), quanti documenti mancano
+   di firma e quale passo manca.
+6. **Metti le email approvate nelle regole**, poi fa il deploy. In
+   `firebase.rules.auth-ready`:
    ```javascript
-   function ownerUids() { return ['CAMBIA-QUI-IL-TUO-UID']; }
+   function ownerEmails()  { return ['nicola.tunnera@gmail.com']; }
+   function memberEmails() { return ['email.del.collega@gmail.com']; }
    ```
-   Non è un vezzo: il ruolo letto con `get()` su `accountsHub` dentro una query costa
-   una lettura per documento e oltre il budget la query fallisce (è il punto 2
-   dell'incidente qui sopra). L'allowlist sta nel token, costo zero. Per aggiungere un
-   secondo amministratore si aggiunge il suo uid e si redeploya — `role` nel documento
-   decide solo quali pannelli vede l'interfaccia, il permesso vero è l'uid qui.
+   Due motivi, entrambi seri. Il primo: il ruolo letto con `get()` su `accountsHub`
+   dentro una query costa una lettura per documento e oltre il budget la query fallisce
+   (è il punto 2 dell'incidente qui sopra); l'allowlist sta nel token, costo zero. Il
+   secondo: con il provider Google attivo **chiunque** ha un account Google e può
+   ottenere un token valido — senza lista delle email "isMember()" sarebbe una porta
+   aperta. Per approvare un collega si aggiunge la sua email e si ripubblica; `role` nel
+   documento decide solo quali pannelli vede l'interfaccia.
+   Se tutti i colleghi hanno un dominio in comune, `memberDomain()` ('@tuostudio.it')
+   evita di elencarli uno per uno.
    ```bash
    cp firebase.rules.auth-ready firebase.rules
    ./deploy-rules.sh     # oppure incolla il contenuto in Console → Firestore → Rules
@@ -263,12 +278,13 @@ distinguere chi è dentro da chiunque apra il sito.
    subito `firebase.rules` in Console: il sito torna funzionante (e di nuovo leggibile da
    tutti) in un click.
 7. **Test**: da una finestra incognito senza login la lista file deve venire vuota e
-   la console deve mostrare `Missing or insufficient permissions`; con login normale
-   tutto deve funzionare come prima. Due cose cambiano per gli utenti non owner, ed è
-   voluto: i pannelli *account registrati* e *iscritti Telegram* si svuotano (le liste
-   di quelle collezioni sono riservate all'owner) e gli account creati col vecchio
-   confronto DJB2 non si possono più usare — chi era dentro così deve registrarsi
-   di nuovo.
+   la console deve mostrare `Missing or insufficient permissions`; con "Accedi con
+   Google" (email in `ownerEmails()`) tutto deve funzionare come prima. Tre cose
+   cambiano, e sono volute: l'accesso dal bundle `Ing`/`Ing` non scrive più niente, i
+   pannelli *account registrati* e *iscritti Telegram* si svuotano per i non owner (le
+   liste di quelle collezioni sono riservate), e gli account creati col vecchio
+   confronto DJB2 non si possono più usare — chi era dentro così deve entrare con
+   Google e va approvato in `memberEmails()`.
 8. **A migrazione avvenuta**, in Authentication → Sign-in method disattiva **Anonimo**:
    le regole nuove lo rifiutano già, ma toglierlo chiude anche il foro delle regole
    vecchie nel caso dovessi rideployarle.
@@ -442,7 +458,7 @@ MIT License - Vedi LICENSE file
 
 | Versione | Data | Novità |
 |----------|------|--------|
-| **3.7.0** | 2026-11-01 | 🔐 Account Firebase veri: login/registrazione con Email/Password, scritture firmate (`ownerUid` + `createdAt`), `hubBackfillOwners()`, logout, avviso quando le letture sono riservate. Regole `auth-ready` riscritte per reggere le query (owner da allowlist di uid, niente `get()` nelle liste), `chatHub` intestata all'uid. `hubMigrationReport()` e `hubDropLegacySecrets()` per guidare e chiudere la migrazione; eliminata l'ultima lettura del campo `aiKey` |
+| **3.7.0** | 2026-11-01 | 🔐 Account Firebase veri: login/registrazione con Email/Password, scritture firmate (`ownerUid` + `createdAt`), `hubBackfillOwners()`, logout, avviso quando le letture sono riservate. Regole `auth-ready` riscritte per reggere le query (owner da allowlist di uid, niente `get()` nelle liste), `chatHub` intestata all'uid. `hubMigrationReport()` e `hubDropLegacySecrets()` per guidare e chiudere la migrazione; eliminata l'ultima lettura del campo `aiKey`. **Accedi con Google** (`hubGoogleLogin`) e regole `auth-ready` con allowlist di email: con un provider Google attivo un token valido lo ha chiunque, quindi "approvato" vuol dire email in lista |
 | **3.6.0** | 2026-09-10 | 💎 Viewer file integrato: PDF, Word (.docx), STEP/STP 3D (occt-import-js WASM + Three.js), DXF 2D |
 | **3.5.1** | 2026-09-10 | ✨ Supporto file STEP/STP, security rules adattate, deploy script, doc completa |
 | **3.5.0** | 2025-01-20 | Mobile-layout fixes, chunking Firestore per file grandi |

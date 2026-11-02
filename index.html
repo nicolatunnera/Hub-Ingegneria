@@ -25,7 +25,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="style.css?v=20261102b" />
+  <link rel="stylesheet" href="style.css?v=20261102c" />
   <link rel="icon" type="image/png" href="icon-192.png?v=20250718" />
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#2563eb" />
@@ -71,6 +71,16 @@
           <span id="loginSpinner" class="hidden"><svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></span>
         </button>
       </form>
+
+      <!-- ACCESSO GOOGLE: l'identità la verifica Google, in Firestore non finisce
+           nessuna password. E' la strada consigliata con le regole chiuse. -->
+      <div class="flex items-center gap-2 my-3">
+        <span class="flex-1 h-px bg-gray-200 dark:bg-slate-700"></span>
+        <span class="flex-1 h-px bg-gray-200 dark:bg-slate-700"></span>
+      </div>
+      <button id="googleLoginBtn" type="button" onclick="hubGoogleLogin()" class="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200 font-semibold py-2.5 rounded-lg text-xs transition-all duration-200 cursor-pointer flex items-center justify-center gap-2">
+        <i class="fab fa-google text-[#4285F4]"></i><span data-i18n="googleLogin">Accedi con Google</span>
+      </button>
 
       <!-- GUEST / REGISTER LINKS -->
       <div class="mt-3 flex flex-col gap-1.5">
@@ -1107,8 +1117,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-  <script src="js/config.js?v=20261102b"></script>
-  <script src="js/modal-manager.js?v=20261102b"></script>
-  <script src="js/app.js?v=20261102b"></script>
+  <script src="js/config.js?v=20261102c"></script>
+  <script src="js/modal-manager.js?v=20261102c"></script>
+  <script src="js/app.js?v=20261102c"></script>
 </body>
 </html>

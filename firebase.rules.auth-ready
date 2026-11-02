@@ -14,35 +14,64 @@ rules_version = '2';
 //   3. Gli account anonimi (sign_in_provider == "anonymous") sono rifiutati:
 //      il token anonimo si ottiene dalla config pubblica nel bundle.
 //
-// PERCHÉ IL RUOLO È UN'ALLOWLIST DI UID E NON UN GET() SU accountsHub
+// PERCHÉ IL RUOLO È UN'ALLOWLIST DI EMAIL E NON UN GET() SU accountsHub
 //   Nelle query (list) Firestore valuta la regola su OGNI documento restituito e
 //   ogni get()/exists() consuma il budget di 20 letture per richiesta. Una regola
-//   tipo "leggi accountsHub/{uid} per sapere se sei owner" su un archivio con 12
+//   tipo "leggi accountsHub/{uid} per sapere se sei owner" su un archivio con 24
 //   file fa fallire l'intera query: è il motivo per cui le regole proposte
 //   dall'esterno hanno svuotato l'archivio restando "verdi" in console.
-//   Qui isOwner() legge solo dal token: costo zero, nessuna query che può fallire.
-//   Il campo role nelle doc conta solo per l'interfaccia; il permesso vero è
-//   l'uid in ownerUids().
+//   Qui i controlli stanno tutti nel token: costo zero, nessuna query che può
+//   fallire. Il campo role nel documento decide solo quali pannelli vede
+//   l'interfaccia; il permesso sui dati è l'email qui sotto.
+//
+//   Secondo motivo, più importante: un token valido non vuol dire "approvato".
+//   Con il provider Google attivo CHIUNQUE ha un account Google può farsi un
+//   token. Senza allowlist, "isMember()" sarebbe una porta aperta. Quindi entra
+//   solo chi ha l'email in ownerEmails()/memberEmails() (o nel dominio di
+//   memberDomain()).
 //
 // Prima del deploy, una volta per tutte
-//   - mettere l'uid proprio in ownerUids() (Console → Authentication → Users → UID)
+//   - scrivere la propria email in ownerEmails() e quelle dei colleghi approvati
+//     in memberEmails() (Authentication → Users le elenca tutte dopo il primo
+//     accesso)
 //   - aver eseguito await hubBackfillOwners() sulla console del browser, così i
 //     documenti già esistenti hanno ownerUid e createdAt
 //   - gli account registrati col vecchio sistema (confronto su accountsHub) non
-//     potranno più leggere i loro dati: deve rifare la registrazione una volta
-//     attivo Email/Password
+//     potranno più accedere: devono entrare col Google o registrarsi
 // ═══════════════════════════════════════════════════════════════════════════
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function ownerUids() { return ['CAMBIA-QUI-IL-TUO-UID']; }
+    // Chi amministra. Conferma che sia l'account Google con cui entri: dopo il
+    // primo accesso, hubMigrationReport() stampa l'email che il token contiene.
+    function ownerEmails() { return ['nicola.tunnera@gmail.com']; }
 
-    function provider() {
+    // Colleghi approvati. Per aggiungerne uno: primo accesso (anche rifiutato),
+    // poi si aggiunge la sua email e si ripubblica.
+    function memberEmails() { return []; }
+
+    // Oppure, se tutti i colleghi hanno lo stesso dominio: '@tuostudio.it'.
+    // Lasciala vuota se usi email personali.
+    function memberDomain() { return ''; }
+
+    function providerName() {
       return request.auth == null ? 'none'
         : request.auth.token.get('firebase', {}).get('sign_in_provider', 'anonymous');
     }
-    function isMember() { return request.auth != null && request.auth.uid != null && provider() != 'anonymous'; }
-    function isOwner() { return isMember() && request.auth.uid in ownerUids(); }
+    function myEmail() { return request.auth == null ? '' : string(request.auth.token.get('email', '')); }
+
+    function isApproved() {
+      return myEmail() in ownerEmails()
+        || myEmail() in memberEmails()
+        || (memberDomain() != '' && myEmail().matches('.*' + memberDomain() + '$'));
+    }
+    // Niente anonimi (il token anonimo si ottiene dalla config pubblica) e niente
+    // account Google che non sono nella lista.
+    function isMember() {
+      return request.auth != null && request.auth.uid != null
+        && providerName() != 'anonymous' && providerName() != 'none' && isApproved();
+    }
+    function isOwner() { return isMember() && myEmail() in ownerEmails(); }
 
     // Proprietario del documento = chi l'ha creato (campo stampato dal client).
     function isMine(data) { return isMember() && data.get('ownerUid', '') == request.auth.uid; }

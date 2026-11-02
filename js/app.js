@@ -134,7 +134,8 @@ window.hubMigrationReport = async function () {
   const out = {};
   const cfg = window.firebaseConfig || {};
   const u = auth && auth.currentUser;
-  out.login = !u ? 'nessuno' : (u.isAnonymous ? 'anonimo di servizio' : 'account reale (' + u.uid.slice(0, 8) + '…)');
+  const prov = u && u.providerData && u.providerData[0] ? u.providerData[0].providerId : '';
+  out.login = !u ? 'nessuno' : (u.isAnonymous ? 'anonimo di servizio' : prov + ' · ' + (u.email || 'senza email'));
   out.ruolo = window.userRole || 'non sei entrato';
 
   // Sondeo sul provider: un account inesistente risponde con codici diversi a
@@ -477,6 +478,63 @@ window.registerHubAccount = async function (username, password, fullName) {
   });
   enterHub('user', username);
   return cred.user;
+};
+
+// Il profilo in accountsHub può non esistere al primo accesso con Google: si
+// crea lì con ruolo 'user'. Con le regole chiuse la scrittura è permessa solo
+// alle email nell'allowlist, quindi un estraneo non arriva nemmeno fin qui.
+async function ensureHubProfile(user) {
+  const ref = db.collection('accountsHub').doc(user.uid);
+  const snap = await ref.get();
+  if (snap.exists) return snap.data();
+  const email = user.email || '';
+  const username = String(user.displayName || email.split('@')[0] || 'utente')
+    .toLowerCase().replace(/[^a-z0-9._-]/g, '-');
+  const profilo = {
+    uid: user.uid,
+    username,
+    name: user.displayName || username,
+    email,
+    role: 'user',
+    provider: user.providerData && user.providerData[0] ? user.providerData[0].providerId : '',
+    ownerUid: user.uid,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  await ref.set(profilo);
+  return profilo;
+}
+
+// Accedi con Google: l'identità la verifica Google e in Firestore non finisce
+// nessuna password. È la strada consigliata ora che il provider è attivo.
+window.hubGoogleLogin = async function () {
+  if (!db || !auth) { showToast('Backend non disponibile.', 'error'); return; }
+  const btn = document.getElementById('googleLoginBtn');
+  if (btn) btn.disabled = true;
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  try {
+    const cred = await auth.signInWithPopup(provider);
+    const d = await ensureHubProfile(cred.user);
+    enterHub(d.role || 'user', d.username || cred.user.displayName || 'utente');
+  } catch (e) {
+    const code = (e && e.code) || '';
+    if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return;
+    if (code === 'auth/configuration-not-found') {
+      showToast('Provider Google da completare: Authentication → Impostazioni → Screen di consenso OAuth.', 'error', 9000);
+    } else if (code === 'auth/unauthorized-domain') {
+      showToast('Dominio non autorizzato: aggiungi ' + location.hostname + ' in Authentication → Impostazioni → Domini autorizzati.', 'error', 9000);
+    } else if (code === 'auth/operation-not-allowed') {
+      showToast('Il provider Google non è attivo in Firebase Console.', 'error');
+    } else if (code === 'permission-denied') {
+      showToast('Account non approvato: il proprietario deve aggiungere la tua email alle regole.', 'error', 8000);
+    } else if (code === 'auth/network-request-failed') {
+      showToast('Errore di connessione.', 'error');
+    } else {
+      showToast('Accesso Google non riuscito: ' + code, 'error');
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 };
 
 window.hubLogout = async function () {
@@ -3415,8 +3473,9 @@ if (auth) {
     if (user.isAnonymous || sessionRestoreTried || !db) return;
     if (!document.getElementById('loginBlocker')) return;
     sessionRestoreTried = true;
-    db.collection('accountsHub').doc(user.uid).get().then(snap => {
-      const d = snap.exists ? snap.data() : {};
+    db.collection('accountsHub').doc(user.uid).get().then(snap =>
+      snap.exists ? snap.data() : ensureHubProfile(user)
+    ).then(d => {
       enterHub(d.role || 'user', d.username || user.displayName || 'utente');
     }).catch(() => {});
   });
