@@ -185,9 +185,10 @@ Dopo il deploy di `firebase.rules.auth-ready`:
   documenti che non ce l'hanno, altrimenti spariscono dalla vista — più una seconda
   query vincolata a `ownerUid` per i file privati dell'utente. È il passo successivo
   naturale, non è incluso.
-- **mai leggibili da un altro membro**: `accountsHub` (hash password e `aiKey`) e la
-  lista completa degli iscritti Telegram con le chat id — solo il proprio documento,
-  oppure tutto per l'owner.
+- **mai leggibili da un altro membro**: `accountsHub` e la lista completa degli
+  iscritti Telegram con le chat id — solo il proprio documento, oppure tutto per
+  l'owner. Dentro `accountsHub` i campi `password` e `aiKey` si cancellano una volta
+  con `await hubDropLegacySecrets()` (punto 5b della migrazione).
 
 ### Migrazione auth
 
@@ -228,6 +229,22 @@ distinguere chi è dentro da chiunque apra il sito.
    Firma `ownerUid` + `createdAt` sui file caricati prima della migrazione. Senza
    questo passaggio, dopo il punto 6 i vecchi file restano leggibili ma **non si
    possono più cancellare o rinominare**, perché le regole nuove chiedono `ownerUid`.
+5b. **Cancella i secret morti da `accountsHub`**, sempre loggato owner:
+   ```js
+   await hubDropLegacySecrets()
+   ```
+   Rimuove i campi `password` (hash DJB2) e `aiKey` da tutti i documenti. Sono campi
+   che il codice non usa più — le password le verifica Firebase Auth e `askAI` non
+   chiama nessun provider, quindi `aiKey` era solo una copia pubblicamente
+   scaricabile di una chiave. **Da fare dopo il punto 1**: senza `password` gli
+   account del vecchio login non hanno più modo di entrare, e vanno registrati di
+   nuovo.
+   Per sapere a che punto sei, dopo ogni passaggio rilancia
+   ```js
+   await hubMigrationReport()
+   ```
+   Dice se Email/Password è attivo, se le letture sono ancora pubbliche (HTTP 200
+   sull'API REST), quanti documenti mancano di firma e quale passo manca.
 6. **Metti il tuo uid nelle regole**, poi fa il deploy. In `firebase.rules.auth-ready`:
    ```javascript
    function ownerUids() { return ['CAMBIA-QUI-IL-TUO-UID']; }
@@ -425,7 +442,7 @@ MIT License - Vedi LICENSE file
 
 | Versione | Data | Novità |
 |----------|------|--------|
-| **3.7.0** | 2026-11-01 | 🔐 Account Firebase veri: login/registrazione con Email/Password, scritture firmate (`ownerUid` + `createdAt`), `hubBackfillOwners()`, logout, avviso quando le letture sono riservate. Regole `auth-ready` riscritte per reggere le query (owner da allowlist di uid, niente `get()` nelle liste), `chatHub` intestata all'uid |
+| **3.7.0** | 2026-11-01 | 🔐 Account Firebase veri: login/registrazione con Email/Password, scritture firmate (`ownerUid` + `createdAt`), `hubBackfillOwners()`, logout, avviso quando le letture sono riservate. Regole `auth-ready` riscritte per reggere le query (owner da allowlist di uid, niente `get()` nelle liste), `chatHub` intestata all'uid. `hubMigrationReport()` e `hubDropLegacySecrets()` per guidare e chiudere la migrazione; eliminata l'ultima lettura del campo `aiKey` |
 | **3.6.0** | 2026-09-10 | 💎 Viewer file integrato: PDF, Word (.docx), STEP/STP 3D (occt-import-js WASM + Three.js), DXF 2D |
 | **3.5.1** | 2026-09-10 | ✨ Supporto file STEP/STP, security rules adattate, deploy script, doc completa |
 | **3.5.0** | 2025-01-20 | Mobile-layout fixes, chunking Firestore per file grandi |

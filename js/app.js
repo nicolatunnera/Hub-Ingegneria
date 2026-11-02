@@ -102,6 +102,80 @@ window.hubBackfillOwners = async function () {
   return report;
 };
 
+// ─── TOGLIE I SEGRETI MORTI DA accountsHub ────────────────────────────
+// `password` (hash DJB2, crackabile) e `aiKey` sono campi che il codice non usa
+// più: le password le verifica Firebase Auth e la chiave AI non la legge nessuno.
+// Finché le regole sono pubbliche restano scaricabili da chiunque, quindi conviene
+// cancellarli. Prima di farlo però serve Email/Password attivo: senza `password`
+// gli account del vecchio login non hanno più modo di entrare.
+window.hubDropLegacySecrets = async function () {
+  if (!db || window.userRole !== 'owner') { showToast('Serve il ruolo owner.', 'error'); return; }
+  let snap;
+  try { snap = await db.collection('accountsHub').get(); }
+  catch (e) { showToast('Lettura negata (' + e.code + '): con le regole chiuse lo fa l\'owner da dentro.', 'error'); return; }
+  const colpiti = snap.docs.filter(d => { const x = d.data(); return x.password !== undefined || x.aiKey !== undefined; });
+  if (!colpiti.length) { showToast('Nessun campo password/aiKey trovato: già pulito.', 'info'); return; }
+  const nomi = colpiti.map(d => d.data().username || d.id);
+  if (!confirm('Rimuovo i campi "password" e "aiKey" da ' + colpiti.length + ' account:\n' + nomi.join(', ') +
+    '\n\nGli account nati col vecchio login non potranno più accedere e dovranno registrarsi di nuovo. Continua?')) return;
+  const FieldValue = firebase.firestore.FieldValue;
+  const batch = db.batch();
+  colpiti.forEach(d => batch.update(d.ref, { password: FieldValue.deleteField(), aiKey: FieldValue.deleteField() }));
+  await batch.commit();
+  showToast('Campi rimossi da ' + colpiti.length + ' account.', 'success');
+  return colpiti.length;
+};
+
+// ─── REPORT DI STATO DELLA MIGRAZIONE ─────────────────────────────────
+// Un comando solo per sapere a che punto si è e quale passaggio manca.
+// Da rilanciare nella console del browser dopo ogni azione in Firebase Console.
+window.hubMigrationReport = async function () {
+  if (!db || !auth) { showToast('Backend non disponibile.', 'error'); return; }
+  const out = {};
+  const cfg = window.firebaseConfig || {};
+  const u = auth && auth.currentUser;
+  out.login = !u ? 'nessuno' : (u.isAnonymous ? 'anonimo di servizio' : 'account reale (' + u.uid.slice(0, 8) + '…)');
+  out.ruolo = window.userRole || 'non sei entrato';
+
+  // Sondeo sul provider: un account inesistente risponde con codici diversi a
+  // seconda che Email/Password sia attivo o no. Non crea nulla.
+  out.emailPassword = await auth.signInWithEmailAndPassword('sondaggio-stato@hub-ingegneria.app', 'Sondaggio!2026')
+    .then(() => 'attivo (e questo account esiste?! verificare)')
+    .catch(e => e.code === 'auth/operation-not-allowed' ? 'NON attivo' : 'attivo');
+
+  if (cfg.projectId && cfg.apiKey) {
+    out.letturePubbliche = await fetch('https://firestore.googleapis.com/v1/projects/' + cfg.projectId +
+      '/databases/(default)/documents/textHub?key=' + cfg.apiKey)
+      .then(r => r.status === 200 ? 'SÌ: le regole in vigore fanno leggere chiunque' : 'no (HTTP ' + r.status + '): regole chiuse in vigore')
+      .catch(e => 'errore di rete (' + e.message + ')');
+  } else {
+    out.letturePubbliche = 'config mancante';
+  }
+
+  const senzaFirma = {};
+  for (const coll of ['excelHub', 'textHub', 'notesHub', 'historyHub', 'newsHub', 'categoriesHub', 'archiveFolders', 'subscribers', 'privateSpaceRequests']) {
+    try {
+      const snap = await db.collection(coll).get();
+      const missing = snap.docs.filter(d => { const x = d.data(); return !x.ownerUid || !x.createdAt; }).length;
+      senzaFirma[coll] = missing ? missing + ' di ' + snap.size + ' senza ownerUid/createdAt' : 'tutti firmati';
+    } catch (e) { senzaFirma[coll] = 'lettura negata (' + e.code + ')'; }
+  }
+  out.documenti = senzaFirma;
+
+  const passi = [];
+  if (out.emailPassword === 'NON attivo') passi.push('1) Firebase Console → Authentication → Sign-in method → attiva Email/Password');
+  if (!u || u.isAnonymous) passi.push('3) registrati dal sito e accedi con l\'account nuovo');
+  if (window.userRole !== 'owner') passi.push('3b) promuovi il tuo documento accountsHub a role: owner');
+  if (Object.values(senzaFirma).some(v => /senza/.test(String(v)))) passi.push('5) lancia await hubBackfillOwners()');
+  if (String(out.letturePubbliche).indexOf('SÌ') === 0) passi.push('6) incolla le regole di firebase.rules.auth-ready (con il tuo uid in ownerUids) in Console → Firestore → Regole → Pubblica');
+  if (passi.length === 0) passi.push('tutto fatto: resta solo da disattivare Anonimo e girare le credenziali che erano esposte');
+  out.prossimoPassaggio = passi;
+
+  console.table(out.documenti);
+  console.log('[hub migration report]', out);
+  return out;
+};
+
 // ─── LARGE FILE CHUNKING (Firestore has 1MB/doc limit) ────────────────
 const CHUNK_SIZE = 600000;
 const CHUNK_THRESHOLD = 400000;
@@ -317,15 +391,13 @@ function enterHub(role, username) {
     }, 400);
   }
   setupPermissions();
+  // La chiave AI non viene più letta dal cloud: `askAI` non chiama nessun
+  // provider e window.AI_KEY è vuota, quindi il campo aiKey in accountsHub era
+  // solo una copia pubblicamente scaricabile di un secret. Resta il valore
+  // locale, se c'è.
   if (role === 'owner') {
     const saved = localStorage.getItem('ai_key_owner');
     if (saved) localStorage.setItem('ai_key', saved);
-  } else if (db) {
-    // La chiave AI dell'utente sta nel suo documento: con le regole chiuse la
-    // lettura dei documenti altrui è negata, quindi si rinuncia in silenzio.
-    db.collection('accountsHub').where('username', '==', username).limit(1).get()
-      .then(snap => { if (!snap.empty && snap.docs[0].data().aiKey) localStorage.setItem('ai_key', snap.docs[0].data().aiKey); })
-      .catch(() => {});
   }
 }
 
