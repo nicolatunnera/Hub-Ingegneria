@@ -170,6 +170,7 @@ window.hubMigrationReport = async function () {
   if (String(out.letturePubbliche).indexOf('SÌ') === 0) passi.push('6) incolla le regole di firebase.rules.auth-ready (con il tuo uid in ownerUids) in Console → Firestore → Regole → Pubblica');
   if (passi.length === 0) passi.push('tutto fatto: resta solo da disattivare Anonimo e girare le credenziali che erano esposte');
   out.prossimoPassaggio = passi;
+  out.nota = 'un 400 su identitytoolkit in console è previsto: è il sondeo del provider, non un guasto';
 
   console.table(out.documenti);
   console.log('[hub migration report]', out);
