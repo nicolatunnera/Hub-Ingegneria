@@ -519,6 +519,12 @@ window.hubGoogleLogin = async function () {
   } catch (e) {
     const code = (e && e.code) || '';
     if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return;
+    if (code === 'auth/popup-blocked') {
+      // Blocco popup o mobile: la stessa autenticazione passa dal redirect.
+      // Al ritorno ci pensa onAuthStateChanged, che qui sotto entra nell'app.
+      showToast('Apro Google in questa scheda...', 'info');
+      return auth.signInWithRedirect(provider);
+    }
     if (code === 'auth/configuration-not-found') {
       showToast('Provider Google da completare: Authentication → Impostazioni → Screen di consenso OAuth.', 'error', 9000);
     } else if (code === 'auth/unauthorized-domain') {
